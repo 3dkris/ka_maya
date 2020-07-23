@@ -372,9 +372,6 @@ class Hotkeys(object):
                 ka_display.removeFromIsolateSelect()
 
             elif context.getUiTypeUnderMouse() == 'hyperShade':
-                #mel.eval('ka_hgRemove();')
-                melCmd = 'hyperShadePanelGraphCommand("%s", "removeSelected");' % context.getPanelUnderMouse()
-                OOOOOOO = "melCmd"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
                 mel.eval(melCmd)
 
         @staticmethod
@@ -410,14 +407,10 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            print 'boop'
-            #ka_reload.reloadPackage()
-            #scrubWidget = ka_scrubSlider.ScrubWidget()
             mel.eval('dR_DoCmd("softSelStickyPress")')
 
         @staticmethod
         def release_command():
-            #mel.eval('''artDeactivateScreenSlider''')
             mel.eval('dR_DoCmd("softSelStickyRelease")')
 
 # C ######################################################################################################################
@@ -456,8 +449,6 @@ class Hotkeys(object):
         def command():
             if ka_util.selectionIsComponent():
                 ka_weightPainting.copyWeights()
-                #mel.eval('ka_copyAttrValues;')
-                print 'I copied! RAWR'
             else:
                 pass
 
@@ -496,7 +487,6 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            print 'delete history'
             cmds.delete(constructionHistory=True,)
 
         @staticmethod
@@ -972,7 +962,6 @@ setToolTo ShowManips''')
 
         @staticmethod
         def command():
-            #print 'partyTime'
             #reload(ka_scrubSlider)
             ka_scrubSlider.weight_strandBlend_Scrub()
             #ka_menu.press(buildMenuOverride='paintPallet', sliderMode='pasteWeights')
@@ -993,7 +982,6 @@ setToolTo ShowManips''')
                 ka_menu.press(buildMenuOverride='paintPallet', sliderMode='pasteWeights')
 
             else:
-                print 'snap'
                 ka_transforms.snap(t=1)
 
         @staticmethod
@@ -1166,7 +1154,6 @@ setToolTo ShowManips''')
         @staticmethod
         def command():
             reload(ka_util)
-            print 'yaaa'
             ka_transforms.snap(a=1)
 
         @staticmethod
@@ -1308,7 +1295,7 @@ setToolTo ShowManips''')
 
         @staticmethod
         def command():
-            print 'not implemented'
+            pass
 
         @staticmethod
         def release_command():

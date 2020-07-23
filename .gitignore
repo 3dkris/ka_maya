@@ -5,6 +5,7 @@ syntax: glob
 *.pyc
 *.mll
 *~
+*.p
 
 # switch to regexp syntax.
 syntax: regexp

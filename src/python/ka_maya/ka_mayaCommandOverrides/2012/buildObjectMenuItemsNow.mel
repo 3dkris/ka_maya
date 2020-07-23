@@ -1,0 +1,85 @@
+// Copyright (C) 1997-2010 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+//
+//
+// Creation Date:  28 June 1996
+//
+//
+//  Procedure Name:
+//      buildObjectMenuItemsNow
+//
+//  Description:
+//      This procedure is called from ModelEdMenu as a postMenuCommand.
+//
+//  Input Arguments:
+//      The parent item to parent the popup menu to.
+//
+//  Return Value:
+//      None.
+//
+
+//OVERLOAD~~
+//allows me to add my own menu build command to the view pane right click postMenuCommand
+global proc buildObjectMenuItemsNow( string $parentName)
+{
+	global int $gKa_menu;
+	if(!$gKa_menu) //if ka_menu is not being built
+	{
+		mayaBuildObjectMenuItemsNow($parentName);
+	}
+
+}
+
+
+global proc mayaBuildObjectMenuItemsNow( string $parentName)
+{
+	global int $gIsMarkingMenuOn;
+
+	if (`popupMenu -e -exists $parentName`) {
+		popupMenu -e -deleteAllItems $parentName;	
+		if (`popupMenu -q -mm $parentName` != $gIsMarkingMenuOn) {
+			popupMenu -e -mm $gIsMarkingMenuOn $parentName;
+		}
+		if (!`dagObjectHit -mn $parentName`) {
+			string $leadObject[] = `ls -sl -tail 1 -typ transform -typ shape`;
+			if (size($leadObject) > 0) {
+				dagMenuProc($parentName, $leadObject[0]);
+			} else {
+				setParent -menu $parentName;
+
+				menuItem
+					-label (uiRes("m_buildObjectMenuItemsNow.kSelectAll"))
+					-radialPosition "S"
+					-command ("SelectAll");
+
+            	menuItem
+					-label (uiRes("m_buildObjectMenuItemsNow.kCompleteTool"))
+					-radialPosition "N"
+					-command ("CompleteCurrentTool");
+
+            	setParent ..;
+			}
+		}
+	} else {
+		warning (uiRes("m_buildObjectMenuItemsNow.kParentWarn"));
+	}
+}

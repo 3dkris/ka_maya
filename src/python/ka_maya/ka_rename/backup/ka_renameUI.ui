@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>405</width>
+    <height>354</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="renameMode_tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>401</width>
+      <height>341</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>0</number>
+    </property>
+    <widget class="QWidget" name="tab_2">
+     <attribute name="title">
+      <string>Name and Number</string>
+     </attribute>
+     <widget class="QFrame" name="frame_2">
+      <property name="geometry">
+       <rect>
+        <x>5</x>
+        <y>5</y>
+        <width>385</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLabel" name="label_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>45</y>
+         <width>81</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>and number by:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>5</y>
+         <width>81</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Rename as:</string>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="numberBy_comboBox">
+       <property name="geometry">
+        <rect>
+         <x>90</x>
+         <y>45</y>
+         <width>81</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="frame">
+        <bool>true</bool>
+       </property>
+       <item>
+        <property name="text">
+         <string>Replacing #</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Ending</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Beginning</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label_6">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>68</y>
+         <width>31</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>with:</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="nameAndNumber_lineEdit">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>365</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QComboBox" name="numberWith_comboBox">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>68</y>
+         <width>131</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <item>
+        <property name="text">
+         <string>Numbers (start at 1)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Numbers (start at 0)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Letters (lowercase)</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Letters (UPPERCASE)</string>
+        </property>
+       </item>
+      </widget>
+      <widget class="QLabel" name="label_13">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>68</y>
+         <width>31</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>using:</string>
+       </property>
+      </widget>
+      <widget class="QSpinBox" name="buffer_spinBox">
+       <property name="geometry">
+        <rect>
+         <x>214</x>
+         <y>68</y>
+         <width>42</width>
+         <height>15</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_14">
+       <property name="geometry">
+        <rect>
+         <x>263</x>
+         <y>68</y>
+         <width>46</width>
+         <height>15</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>buffers</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="nameAndNumber_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>280</y>
+        <width>381</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Name and Number!</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_4">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>100</y>
+        <width>191</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Selection:</string>
+      </property>
+      <widget class="QListWidget" name="nameAndNumber_selection_listWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>15</y>
+         <width>181</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
+       </property>
+       <property name="selectionRectVisible">
+        <bool>false</bool>
+       </property>
+      </widget>
+      <zorder>nameAndNumber_selection_listWidget</zorder>
+      <zorder>frame_2</zorder>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>100</y>
+        <width>191</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Preview Results:</string>
+      </property>
+      <widget class="QListWidget" name="nameAndNumber_previewResults_listWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>15</y>
+         <width>181</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="reload_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>250</y>
+        <width>381</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Reload</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab">
+     <attribute name="title">
+      <string>Search and Replace</string>
+     </attribute>
+     <widget class="QLineEdit" name="searchAndReplace_search_lineEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>361</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="searchAndReplace_replace_lineEdit">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>70</y>
+        <width>361</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="searchAndReplace_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>280</y>
+        <width>381</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Search and Replace!</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_2">
+      <property name="geometry">
+       <rect>
+        <x>287</x>
+        <y>10</y>
+        <width>31</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>of:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_3">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>52</y>
+        <width>361</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>and Replace with:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="searchMode_comboBox">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>10</y>
+        <width>101</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>case sensitive</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>ignore case</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>46</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Search:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_11">
+      <property name="geometry">
+       <rect>
+        <x>155</x>
+        <y>10</y>
+        <width>20</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>for:</string>
+      </property>
+     </widget>
+     <widget class="QComboBox" name="searchScope_comboBox">
+      <property name="geometry">
+       <rect>
+        <x>176</x>
+        <y>10</y>
+        <width>106</width>
+        <height>15</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>All Occurrences</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>ONLY Occurrence</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>First Occurrence</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Last Occurrence</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_5">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>100</y>
+        <width>191</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Selection:</string>
+      </property>
+      <widget class="QListWidget" name="searchAndReplace_selection_listWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>15</y>
+         <width>181</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
+       </property>
+       <property name="selectionRectVisible">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_6">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>100</y>
+        <width>191</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Preview Results:</string>
+      </property>
+      <widget class="QListWidget" name="searchAndReplace_previewResults_listWidget">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>15</y>
+         <width>181</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::NoSelection</enum>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="searchAndReplace_reload_pushButton">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>250</y>
+        <width>381</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Reload</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_3">
+     <attribute name="title">
+      <string>Regular Expressions</string>
+     </attribute>
+     <widget class="QComboBox" name="searchMode_comboBox_2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>sub</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>findAll</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>split</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLineEdit" name="regex_lineEdit">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>10</y>
+        <width>271</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QFrame" name="frame_3">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>160</y>
+        <width>395</width>
+        <height>151</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLineEdit" name="regexTest_output_lineEdit1_3">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>90</y>
+         <width>211</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_input_lineEdit1_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>60</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_15">
+       <property name="geometry">
+        <rect>
+         <x>15</x>
+         <y>10</y>
+         <width>71</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Input Text:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_16">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>10</y>
+         <width>101</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Result</string>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_input_lineEdit1">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_output_lineEdit1_1">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>30</y>
+         <width>211</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_input_lineEdit1_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>90</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_input_lineEdit1_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>120</y>
+         <width>161</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_output_lineEdit1_2">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>60</y>
+         <width>211</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QLineEdit" name="regexTest_output_lineEdit1_4">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>120</y>
+         <width>211</width>
+         <height>20</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLineEdit" name="regEx_replace_lineEdit">
+      <property name="geometry">
+       <rect>
+        <x>120</x>
+        <y>40</y>
+        <width>271</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_17">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>31</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>arg2</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

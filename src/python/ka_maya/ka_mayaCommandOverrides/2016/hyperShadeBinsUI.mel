@@ -1,0 +1,976 @@
+// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+//-------------------
+// Global Variable
+//-------------------
+global int $gHyperShadeLastBinButtonSelectionIndex = 0; 
+global int $noHyperShadeRefreshForBinRename = false;
+global int $gHyperShadeLastBinNameNum = 1;
+            
+//------------------
+// Helper Procedure
+//------------------
+// Description:  This procedure is called to return the selected shading
+//  nodes (as well as other nodes related to hypershade such as lights,
+//  cameras and containers)
+//
+proc getSelectedShadingNodes(string $selectedShadingNodes[])
+{
+    $selectedShadingNodes = `lsThroughFilter -sl DefaultAllShadingNodesFilter`;
+
+	// get containers also, since they are displayed in hypershade
+	//
+	string $containers[] = `ls -sl -type container`;
+	int $selShadingNodesCount = size($selectedShadingNodes);
+	for ($ii = 0; $ii < size($containers); $ii++) {
+		$selectedShadingNodes[$selShadingNodesCount+$ii] = $containers[$ii];
+	}
+}
+
+// Description:  This procedure is called to return the selected shading
+//  nodes or all selected nodes, depending on the optionVar 
+//  hsBinsSortShadingNodesOnly.
+//
+global proc hyperShadeGetSelectedNodes(string $selectedNodes[])
+{
+    if (`optionVar -query hsBinsSortShadingNodesOnly`)
+    {
+        getSelectedShadingNodes($selectedNodes);
+    } 
+    else
+    {
+        $selectedNodes = `ls -selection`;
+    }
+}
+
+// Description:  This procedure is called to return the list of 
+//  shading nodes or all nodes which belongs to the specified bin,
+//  dpending on the optionVar hsBinsSortShadingNodesOnly.
+//  This procedure shall not be used when "Master Bin" is in the
+//  $binList.
+//
+global proc hyperShadeGetNodesInBins(
+    string $binList[], string $nodes[])
+{
+    // Make a set for all nodes in the given bin.
+    //
+    string $binName;
+    string $binFilter = `itemFilter -classification "builtIn"`;
+    for ($binName in $binList)
+    {
+        itemFilter -edit -byBin $binName $binFilter;
+    }
+
+    string $filter;
+    if (`optionVar -query hsBinsSortShadingNodesOnly`)
+    {
+        // Make a filter that takes the intersection of the binFilter
+        // and the DefaultAllShadingNodesFilter.
+        //
+        $filter = `itemFilter  -classification "builtIn" -intersect $binFilter DefaultAllShadingNodesFilter`;
+        delete $binFilter;
+    }
+    else
+    {
+        $filter = $binFilter;
+    }
+
+    // Get the relevant nodes in the bin. 
+    //
+    $nodes = `lsThroughFilter -na $filter`;
+    
+    // Delete the temporary filters.
+    //
+    delete $filter; 
+}
+
+// Description:  This procedure is called to check if the new 
+//  binName is an acceptable bin name.  It should be a valid bin name,
+//  and should not be an existing bin name.
+// 
+proc int isAcceptableNewBinName(string $binName)
+{
+    // The binName can not be the empty string.
+    //
+    if (!isValidBinName($binName))
+    {
+        return false;
+    }
+
+    if (binNameExistsInHyperShadeBinList($binName))
+    {
+        warning (uiRes("m_hyperShadeBinsUI.kNameAlreadyExist"));
+        return false;
+    }
+    
+    // Got a valid bin name the user entered.
+    //
+    return true; 
+}
+
+// Description:  This procedure is called to prompt the user to give
+//  a name to the newly created bin.
+//
+global proc string promptForNewBinName()
+{
+    string $text;
+    string $result;
+    string $defaultBinName;
+    int $gotValidAnswer = false;
+    global int $gHyperShadeLastBinNameNum;
+
+    // Loop around till we get a valid answer.
+    //
+    while (!$gotValidAnswer)
+    {
+		$defaultBinName = "newBin" + string($gHyperShadeLastBinNameNum);
+		
+		while(!isAcceptableNewBinName($defaultBinName))
+		{
+			// Increment until an acceptable name is found
+			$gHyperShadeLastBinNameNum++;
+			$defaultBinName = "newBin" + string($gHyperShadeLastBinNameNum);
+		}
+		
+	    string $ok = (uiRes("m_hyperShadeBinsUI.kOK"));
+	    string $cancel = (uiRes("m_hyperShadeBinsUI.kCancel"));
+	     
+	    $result = `promptDialog
+	        -title (uiRes("m_hyperShadeBinsUI.kNewBinName"))
+	        -message (uiRes("m_hyperShadeBinsUI.kEnterName"))
+	        -text $defaultBinName
+	        -button $ok -button $cancel
+	        -defaultButton $ok -cancelButton $cancel
+	        -dismissString $cancel`;
+	
+	    if ($result == $ok) {
+    
+            // Get the text the user entered.
+            //
+	        $text = `promptDialog -query -text`;
+
+            $gotValidAnswer = isAcceptableNewBinName($text);
+	    }
+        else 
+        {
+            // The user did not enter a new name.
+            //
+            $text = "";
+            $gotValidAnswer = true;
+        }
+    }
+    
+    // Increment counter only if user chose the default name
+    if ($text == $defaultBinName)
+		$gHyperShadeLastBinNameNum++;
+
+    return $text;
+}
+
+//------------------
+// Bin UI
+//------------------
+
+// Description:  This procedure is called to get the bin UI's 
+//  full path the $gridLayout and the $gridItem which contains
+//  the binUI. 
+//
+proc string getBinUIFullPath(string $gridLayout, string $gridLayoutItem)
+{
+    return ($gridLayout+"|"+$gridLayoutItem); 
+}
+
+// Description:  This procedure is called to get the bin name
+//      from the binUI.
+// 
+proc string getBinNameFromBinUI(string $binButton)
+{
+    return `iconTextButton -q -label $binButton`;
+}
+
+// Description:  This procedure is called to select one bin UI.
+//
+proc selectOneBinUI(string $binUIFullPath, int $select)
+{
+    string $binName = getBinNameFromBinUI($binUIFullPath);
+    string $imageNameInsert = "";
+    string $masterBin = (uiRes("m_hyperShadeBinsUI.kMasterBin"));
+    if ($binName == $masterBin)
+    {
+        // The bin image name for the master bin is
+        //      imageNamePrefix + "Master" + ".png".
+        // Non-master bin's image name is 
+        //      imageNamePrefix.png
+        //
+        $imageNameInsert = "Master";
+    }
+
+    string $buttonFullPath = $binUIFullPath;
+
+    // This line is necessary for the mac to refresh properly.
+    //
+    iconTextButton -edit -enable false $buttonFullPath; 
+
+    if ($select)
+    {
+        iconTextButton -edit 
+            -backgroundColor 1 1 1 
+            -image1 ("hypershadeBin"+$imageNameInsert+".png") 
+            $buttonFullPath;
+    }
+    else
+    {
+        // Deselect this bin's UI.
+        //
+        iconTextButton -edit 
+            -image1 ("hypershadeBinBlackAndWhite"+$imageNameInsert+".png")
+            -backgroundColor 0.828125 0.8125 0.78125
+            $buttonFullPath;
+    }
+
+    // This line is necessary for the mac to refresh properly.
+    //
+    iconTextButton -edit -enable true $buttonFullPath; 
+}
+
+// Description:  This procedure is called to find the fullpath of binUI
+//  for the given binName.
+// 
+global proc string findOneBinUI(string $binName, string $gridLayout)
+{
+	string $orderArray[] = `gridLayout -query -gridOrder $gridLayout`;
+
+    // Find the binUI which corresponds to this bin name.
+    //
+    string $gridLayoutItem;
+    for ($gridLayoutItem in $orderArray)
+    {   
+        string $binUIFullPath = getBinUIFullPath($gridLayout, $gridLayoutItem);
+        string $currentBinName = getBinNameFromBinUI($binUIFullPath);
+        if ($currentBinName == $binName)
+        {
+            return $binUIFullPath;
+        } 
+    }
+    return "";
+}
+
+// Description:  This procedure is called to mark one bin UI as
+//      being selected or not selected.
+//
+global proc markOneBinUI(string $binName, string $gridLayout, int $select)
+{
+    string $binUIFullPath = findOneBinUI($binName, $gridLayout);
+    if ($binUIFullPath != "")
+    {
+        selectOneBinUI($binUIFullPath, $select);
+    }
+    else
+    {
+        string $warnMsg = (uiRes("m_hyperShadeBinsUI.kCannotFindBin"));
+        warning (`format -s $binName $warnMsg`);
+    }
+}
+
+// Description:  This procedure is called to deselect all buttons
+//      in a gridLayout.
+//
+proc deselectAllBinUI(string $gridLayout)
+{
+    setParent $gridLayout;
+    string $childArray[] = `gridLayout -q -childArray $gridLayout`;
+    string $child;
+    for ($child in $childArray)
+    {
+        string $currentBinUIFullPath = getBinUIFullPath($gridLayout, $child);
+        selectOneBinUI($currentBinUIFullPath, false); 
+    }
+}
+
+proc string getShortName(string $name)
+//
+//	Description:
+//		Given a full path name to an object return the short name.
+//
+//	Arguments:
+//		$name - Full path name to an object.
+//
+//	Returns:
+//		The short name.
+//
+{
+	string $result = "", $tokenArray[];
+	int    $tokenCount;
+
+	//	To get the short name from a long name tokenize the long name
+	//	using "|" as the split character because that is the path
+	//	separator. The short name is simply the last token.
+	//
+	$tokenCount = `tokenize $name "|" $tokenArray`;
+	if (0 < $tokenCount) $result = $tokenArray[$tokenCount - 1];
+
+	return $result;
+}
+
+// Description:  This procedure is called to add a new bin button
+//  in the $gridLayout
+//      
+global proc addNewBinUI(string $bin, string $gridLayout, int $isMasterBin)
+{
+    string $oldParent = `setParent -q`;
+    setParent $gridLayout;
+
+        // Bin Name.
+        //
+        string $button = `iconTextButton 
+            -image1 "hypershadeBinBlackAndWhiteMaster.png"
+            -label  $bin
+            -style "iconAndTextHorizontal"`;
+
+        iconTextButton -edit 
+            -command ("hyperShadeBinSelect "
+                   +$button
+                   +" "+$gridLayout) 
+            $button;
+
+        if (!$isMasterBin)
+        {
+            // The non-master-bin buttons accepts mouse drag and drop.
+            // 
+            iconTextButton -edit 
+                -image1 "hypershadeBinBlackAndWhite.png" 
+                -dragCallback   "hyperShadeBinButtonDrag"
+                -dropCallback   "hyperShadeBinButtonDrop"
+                -handleNodeDropCallback ("hyperShadeNodeDropOnBinCallback "+$button)
+                $button;
+
+            iconTextButton -edit
+                    -labelEditingCallback ("hyperShadeRenameCallback "+$button)
+                    $button;
+
+            //  Attach a popup menu to each non-master bin button.
+            //
+            $popupMenu = `popupMenu -button 3 -parent $button`;
+            popupMenu -edit
+                -postMenuCommand 
+                    ("hyperShadeBinPopupMenuUI #1 #2 "
+                    +$gridLayout)
+                $popupMenu;
+        }
+        else
+        {
+            //  Attach a popup menu to the master bin button.
+            //
+            $popupMenu = `popupMenu -button 3 -parent $button`;
+            popupMenu -edit
+                -postMenuCommand 
+                    ("hyperShadeMasterBinMultiBinOperationMenu #1 "
+                    +$gridLayout)
+                $popupMenu;
+        }
+
+    setParent $oldParent;
+}
+
+// Description:  This procedure is called to return the hyper shade
+//      bin grid layout name.  All the bin icons and buttons are 
+//      contained in this gridLayout. 
+// 
+proc string hyperShadeBinsGridLayoutName()
+{
+    string $oldParent = `setParent -q`;
+
+    string $parentForm = hyperShadeCreateAndOrganizeFormName();
+    setParent $parentForm;
+    setParent "binsGridLayout";
+    string $result = `setParent -q`;
+
+    setParent $oldParent;
+    return $result;
+}
+
+global proc string [] hyperShadeBinButtonDrag(
+    string $dragControl,
+    int    $x,
+    int    $y,
+    int    $mods)
+//
+//  Description:
+//      This procedure is called whenever the user begins a drag from
+//      a layer button.
+//
+//      Set up a drag message so we can detect it on the drop callback.
+//
+//  Arguments:
+//      $dragControl - The layer button where the drag occurred.
+//
+//      $x, $y       - Location of the drag event.
+//
+//      $mods        - State of the mouse modifiers.
+//
+//  Returns:
+//      A string array value representing the type of drag message.
+//
+{
+    string $result[] = {"HyperShadeBinButtonDragMessage"};
+    return $result;
+}
+
+global proc hyperShadeBinButtonDrop(
+    string $dragControl,
+    string $dropControl,
+    string $messages[],
+    int    $x,
+    int    $y,
+    int    $dragType)
+//
+//  Description:
+//      This procedure is called whenever the user ends a drag from
+//      a layer button to another layer button.
+//
+//      If the drag message is the correct type then reorder the
+//      layer buttons.
+//
+//  Arguments:
+//      $dragControl - The layer button where the drag occurred.
+//
+//      $dropControl - The layer button where the drop occurred.
+//
+//      $messages[]  - The drag messages corresponding to the event.
+//
+//      $x, $y       - Location of the drag event.
+//
+//      $dragType    - Type of drag event.
+//
+{
+    string $gridLayout = hyperShadeBinsGridLayoutName();
+
+    if ("HyperShadeBinButtonDragMessage" == $messages[0]) 
+    {
+        gridLayoutRowDragAndDrop($gridLayout, $dragControl, $dropControl);
+    }
+}
+
+// Description:  Add a node and all its upstream nodes to one bin. 
+//
+global proc hyperShadeAddNodeAndUpstreamNodesToBin(string $binName, string $node)
+{
+    // Add the node and its upstream nodes to the bin.
+    //
+    string $nodeList[] = `hyperShade -listUpstreamNodes $node`;
+    $nodeList[size($nodeList)] = $node;
+    binMembership -addToBin $binName $nodeList;
+}
+
+// Description:  This procedure is called when a user drops a node
+//      on a bin button.  
+//
+global proc hyperShadeNodeDropOnBinCallback(string $binButton, string $node)
+{
+    if ($node == "")
+    {
+        return;
+    }
+
+    // Get all selected shading nodes.
+    //
+    string $resultShadingNodes[]; 
+    hyperShadeGetSelectedNodes($resultShadingNodes);
+
+    // If there is no selected shading node, then use the node which
+    // is dropped on the bin UI provided that this node is a shading node.
+    //
+    if (size($resultShadingNodes) == 0)
+    {
+        // The node needs to be a shading node.
+        //
+        string $nameFilter = `itemFilter -byName $node -classification "builtIn"`;
+        string $filter = `itemFilter -classification "builtIn" -intersect $nameFilter DefaultAllShadingNodesFilter`;
+
+        $resultShadingNodes = `lsThroughFilter -na $filter`;
+    }
+
+    if (size($resultShadingNodes) == 0)
+    {
+        // The node we received is not a shading node.  
+        // Don't do anything.
+        //
+        return;
+    }
+
+    // Add the nodes and their upstream nodes to the bin.
+    //
+    string $binName = `iconTextButton -q -label $binButton`;
+    string $currentNode;
+    string $echoStr = "// Nodes ";
+    for ($currentNode in $resultShadingNodes)
+    {
+        hyperShadeAddNodeAndUpstreamNodesToBin($binName, $currentNode);
+        $echoStr += ($currentNode+" ");
+    }
+	string $addedMsgFormat = (uiRes("m_hyperShadeBinsUI.kAddedToBin"));
+    print (`format -stringArg $echoStr -stringArg $binName $addedMsgFormat`);
+
+    global string $gHyperShadeSelectedBinList[];
+    if (AWNumberOfOccurrencesInStringArray($binName, $gHyperShadeSelectedBinList) > 0)
+    {
+        if (AWNumberOfOccurrencesInStringArray((uiRes("m_hyperShadeBinsUI.kMasterBin")), $gHyperShadeSelectedBinList) == 0)
+        {
+            // When "Master Bin" is not selected, but the bin we dropped
+            // nodes on is selected, refresh UI.
+            //
+            binMembership -notifyChanged; 
+        }
+    } 
+}
+
+// Description:  This procedure is called to rename a bin name.
+//
+global proc renameBinInHyperShadeBinList(string $oldName, string $newName)
+{
+    if (!isValidBinName($oldName) || !isValidBinName($newName))
+    {
+        // Invalid input.  Do not rename.
+        //
+        return;
+    }
+
+    string $binList = `getAttr defaultRenderGlobals.hyperShadeBinList`;
+
+    // It is assumed that the bin names are separated by ";".  For
+    // example "wood;metal;outdoors".
+    //
+    int $renamed = false;
+    string $newBinList;
+    if ($oldName == $binList)
+    {
+        // The old bin name is the only item in the bin list.
+        //
+        $newBinList = $newName;
+        $renamed = true;
+    }
+
+    if (!$renamed)
+    {
+        $newBinList = `substitute ("^"+$oldName+";") $binList ($newName+";")`;
+        if ($newBinList != $binList)
+        {
+            // The old bin name occurred at the beginning of the bin list.
+            //
+            $renamed = true;
+        }
+    }
+
+    if (!$renamed)
+    {
+        $newBinList = `substitute (";"+$oldName+"$") $binList (";"+$newName)`;
+        if ($newBinList != $binList)
+        {
+            // The old bin name occurred at the end of the bin list.
+            //
+            $renamed = true;
+        }
+    }
+
+    if (!$renamed)
+    {
+        $newBinList = `substitute (";"+$oldName+";") $binList (";"+$newName+";")`;
+        if ($newBinList != $binList)
+        {
+            // The old bin name occurred in the middle of the bin list.
+            //
+            $renamed = true;
+        }
+    }
+
+    if (!$renamed)
+    {
+        // The oldName does not occur in the bin list.  Can not
+        // rename.
+        //
+        return;
+    }
+
+    // Store the new bin list back into the render globals' attribute.
+    //
+    setAttr defaultRenderGlobals.hyperShadeBinList -type "string" $newBinList;
+}
+
+// Description:  This procedure is called to rename the nodes
+//  which belows to the given bin.
+//
+global proc renameBinForNodes(string $oldBinName, string $newBinName)
+{
+    // Get all shading nodes which belong to the old bin.
+    //
+    string $nodes[];
+    hyperShadeGetNodesInBins({$oldBinName}, $nodes);
+
+
+    if (size($nodes) > 0)
+    {
+        // Remove these nodes from the old bin.
+        //
+        binMembership -removeFromBin $oldBinName $nodes;
+
+        // Add these nodes to the new bin.
+        //
+        binMembership -addToBin $newBinName $nodes;
+    }
+}
+
+// Description:  This procedure is called to rename a word in a
+//      list.
+//
+global proc int renameWordInList(string $oldWord, string $newWord, string $list[])
+{
+    int $i;
+    int $renamed = false;
+    for ($i = size($list)-1; $i >=0; $i--)
+    {
+        if ($list[$i] == $oldWord)
+        {
+            $list[$i] = $newWord;
+            $renamed = true;
+        }
+    }
+    return $renamed;
+}
+            
+// Description:  This procedure is called to rename a hyper shade bin.
+//
+global proc hyperShadeRenameCallback(
+    string $binButton,
+    string $newBinName)
+{
+    if (!isAcceptableNewBinName($newBinName))
+    {
+        return;
+    }
+
+    // Ask the hyper shade bin UI refresh procedure not to
+    // rebuild the bins UI for bin rename.
+    //
+    global int $noHyperShadeRefreshForBinRename;
+    $noHyperShadeRefreshForBinRename = true;
+
+    // Determine the old bin name.
+    //
+    string $oldBinName = `iconTextButton -q -label $binButton`;
+
+    // Rename nodes belong to this bin.
+    //
+    renameBinForNodes($oldBinName, $newBinName);
+
+    // Change the bin button label.
+    //
+    iconTextButton -edit -label $newBinName $binButton;
+
+    // Rename the bin in the bin list.
+    //
+    renameBinInHyperShadeBinList($oldBinName, $newBinName);
+
+    // Rename the bin in the selected bin list.
+    //
+    global string $gHyperShadeSelectedBinList[];
+    int $renamed = renameWordInList($oldBinName, $newBinName, $gHyperShadeSelectedBinList);
+
+    if ($renamed)
+    {
+        if (AWNumberOfOccurrencesInStringArray((uiRes("m_hyperShadeBinsUI.kMasterBin")), $gHyperShadeSelectedBinList) == 0)
+        {
+            // The "Master Bin" is not selected, one of the selected
+            // bins is renamed.  We need to rebuild the filter.
+            //
+            refreshHyperShadePaneFrontTab("", false);
+        }
+    }
+}
+    
+// Description:  This procedure is called to check if a word exists
+//      in a list.
+//
+global proc int hasWordInList(string $word, string $list[])
+{
+    string $currentWord;
+    for ($currentWord in $list)
+    {
+        if ($currentWord == $word)
+        {
+            // Found the word in the list.
+            //
+            return true;
+        }
+    }
+            
+    // Got to the end of the $list, and did not find the given $word. 
+    //
+    return false;
+}
+
+// Description:  This procedure is called to figure out the position of
+//      a button in a gridLayout.  It returns the position and the
+//      $orderArray, where the $orderArray lists the buttons in the
+//      gridLayout in sequence.
+//
+proc int binUIPositionInGridLayout(
+    string $binUIFullPath, string $gridLayout, string $orderArray[])
+{
+    int $index;
+
+	//	Determine the position of the selected button.
+	//
+	string $orderArray[] = `gridLayout -query -gridOrder $gridLayout`;
+    string $gridLayoutChildName = getShortName($binUIFullPath);
+	for ($index = 0; $index < size($orderArray); $index++) 
+    {
+		if ($gridLayoutChildName == $orderArray[$index]) 
+        {
+			return $index;
+		}
+	}
+
+    // Can not find the button in the gridLayout.
+    //
+    string $errMsg = (uiRes("m_hyperShadeBinsUI.kCannotFindObject"));
+    error (`format -s $binUIFullPath -s $gridLayout $errMsg`);
+
+    // Use the last selected bin button index as the default selected
+    // index.
+    //
+    global int $gHyperShadeLastBinButtonSelectionIndex; 
+    return $gHyperShadeLastBinButtonSelectionIndex;
+}
+
+// Description:  This procedure is called when the user select a
+//      bin button.
+//
+// Arguments:
+//      $modifiers  - The state of the keyboard key which is
+//                      used in combination with the mouse button pressed.
+//      $binButton  - The name of the bin button selected
+//      
+global proc hyperShadeBinSelect(
+    string $binUIFullPath,
+    string $gridLayout)
+{
+	int $modifiers = `getModifiers`;
+
+    string $oldParent = `setParent -q`;
+
+    setParent $gridLayout;
+
+    global string $gHyperShadeSelectedBinList[];
+    global int $gHyperShadeLastBinButtonSelectionIndex; 
+    string $orderArray[];
+
+    int $masterBinInOldSelection = (AWNumberOfOccurrencesInStringArray((uiRes("m_hyperShadeBinsUI.kMasterBin")), $gHyperShadeSelectedBinList) > 0);
+
+    if ($modifiers == 0)
+    {
+        // No modifier.
+        // Deselect any currently selected buttons.  Then select the
+        // current button only. 
+        //
+        deselectAllBinUI($gridLayout); 
+
+        string $binName = getBinNameFromBinUI($binUIFullPath);
+        $gHyperShadeSelectedBinList = {$binName};
+    
+     
+        selectOneBinUI($binUIFullPath, true);
+
+		//	Determine and save the position of the selected button.
+		//	Need the position of this button for range selecting with
+		//	the Shift modifier.
+		//
+        $gHyperShadeLastBinButtonSelectionIndex = 
+            binUIPositionInGridLayout(
+                $binUIFullPath, $gridLayout, $orderArray);
+    }
+
+	else if (1 == $modifiers) {
+		//
+		//	Shift modifier. Select the range of buttons from the button
+		//	that was just pressed to the last button pressed.
+		//
+
+		//	Determine the position of the selected button.
+		//
+        int $selectionPosition = 
+            binUIPositionInGridLayout($binUIFullPath, $gridLayout, $orderArray);
+
+        // Determine the starting and the ending index for the buttons
+        // for this selection operation.
+        //
+        int $startIndex, $endIndex;
+		$startIndex = $endIndex = 0;
+
+		if ($selectionPosition <= $gHyperShadeLastBinButtonSelectionIndex) {
+			$startIndex = $selectionPosition;
+			$endIndex = $gHyperShadeLastBinButtonSelectionIndex;
+
+		} else if ($selectionPosition > $gHyperShadeLastBinButtonSelectionIndex) {
+			$startIndex = $gHyperShadeLastBinButtonSelectionIndex;
+			$endIndex = $selectionPosition;
+		}
+
+        // Deselect any currently selected buttons.  Then select the
+        // buttons within the start and end range. 
+        //
+        deselectAllBinUI($gridLayout); 
+        $gHyperShadeSelectedBinList = {};
+
+        int $index;
+		for ($index = $startIndex; $index <= $endIndex; $index++) 
+        {
+            string $currentBinUIFullPath = getBinUIFullPath($gridLayout, $orderArray[$index]); 
+            selectOneBinUI($currentBinUIFullPath, true);
+            
+            // Add it to the selected bin list.
+            // 
+            string $binName = getBinNameFromBinUI($currentBinUIFullPath);
+            $gHyperShadeSelectedBinList[size($gHyperShadeSelectedBinList)] = 
+                $binName; 
+                    
+		}
+
+	} 
+    else if (4 == $modifiers) {
+		//
+		//	Ctrl modifier. Toggle the selection of the button.
+		//
+        string $binName = getBinNameFromBinUI($binUIFullPath);
+        if (hasWordInList($binName, $gHyperShadeSelectedBinList))
+        {
+            selectOneBinUI($binUIFullPath, false);
+            $gHyperShadeSelectedBinList = 
+                stringArrayRemove(
+                {$binName}, $gHyperShadeSelectedBinList);
+        }
+        else
+        {
+            selectOneBinUI($binUIFullPath, true);
+            $gHyperShadeSelectedBinList[size($gHyperShadeSelectedBinList)] = 
+                $binName; 
+        }
+	}
+
+    int $masterBinInNewSelection = (AWNumberOfOccurrencesInStringArray((uiRes("m_hyperShadeBinsUI.kMasterBin")), $gHyperShadeSelectedBinList) > 0);
+
+    if (!($masterBinInOldSelection && $masterBinInNewSelection))
+    {
+        refreshHyperShadePaneFrontTab("", true);
+    }
+
+    setParent $oldParent;
+}
+
+// Description:  This procedure is called to create the bins UI
+//      in hyper shade.
+//
+global proc hyperShadeBinsUI(string $parentForm)
+{
+    string $oldParent = `setParent -q`;
+    setParent $parentForm;
+
+        // Bins Menu -- for operation which applies to all selected 
+        // bins. 
+        //
+        $binsToolbarForm = `formLayout BinsToolbarForm`;
+        setParent ..;  // from BinsToolbarForm
+
+        // Create the Bin button UI.
+        //
+        string $scrollLayout = 
+            `scrollLayout -horizontalScrollBarThickness 0 binsScrollLayout`;
+
+            // Bin buttons.
+            //
+		    string $gridLayout = `gridLayout
+		        -allowEmptyCells     false
+		        -autoGrow            true
+		        -numberOfColumns     1
+				-cellWidthHeight     400 32
+		        binsGridLayout`;
+            setParent ..; // from gridLayout
+
+        setParent ..;  // from scrollLayout
+
+    formLayout -edit
+            -af $binsToolbarForm top 2
+            -an $binsToolbarForm bottom 
+            -af $binsToolbarForm left 1
+            -af $binsToolbarForm right 1
+            -ac $scrollLayout top 2 $binsToolbarForm
+            -af $scrollLayout bottom 0
+            -af $scrollLayout left 1
+            -af $scrollLayout right 1
+            $parentForm;
+
+    // Specify the multi-bin operation menu items for the binsToolbarForm. 
+    //
+    hyperShadeMultiBinOperationMenu($binsToolbarForm, $gridLayout);
+
+    refreshHyperShadeBinsUI($parentForm, true);
+
+    // Allow the hyper shade bin UI to refresh whenever the bin list
+    // changes.
+    //
+    scriptJob -parent $parentForm
+              -attributeChange "defaultRenderGlobals.hyperShadeBinList"
+                               ("refreshHyperShadeBinsUI \""+$parentForm+"\" true");
+
+    setParent $oldParent;
+}
+
+// Description:  This procedure is called after scene open.
+//  If the hyper shade bin tab exists, then we need to delete
+//  the old bin UIs and create new ones.
+//
+global proc hyperShadeUpdateBinsUISceneOpenCallback()
+{
+    string $panel = hyperShadePanelName();
+
+    if (!`layout -exists $panel`)
+    {
+        // Hyper shade panel layout does not exists.  Nothing to refresh.
+        //
+        return;
+    }
+
+    // Empty the global selected bin lsit.
+    //
+    global string $gHyperShadeSelectedBinList[]; 
+    $gHyperShadeSelectedBinList = {};
+    global int $gHyperShadeLastBinButtonSelectionIndex; 
+    $gHyperShadeLastBinButtonSelectionIndex = 0; 
+
+    // Refresh the bins UI tab.
+    //
+    string $binUIForm = hyperShadeBinUIForm($panel);
+    refreshHyperShadeBinsUI($binUIForm, true);
+
+    // Refresh the visible scene tabs.
+    //
+    refreshHyperShadePaneFrontTab("", true);
+}

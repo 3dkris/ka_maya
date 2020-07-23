@@ -1,0 +1,2165 @@
+/* [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+[]
+[]  Written By: Kris Andrews
+[]  Contact: KrisAndrews@3dkris.com
+[]
+[]  Synopsis:
+[]              a collection of scripts for use in hotkeys and other scripts
+[]
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]*/
+global proc ka_recoverCrashFile()
+{
+	string $tempDir = `internalVar -userTmpDir`;
+	string $fileList[] = `getFileList -filespec "*.ma" -folder $tempDir`;
+	print $fileList;
+}//incomplete
+global proc ka_calculator()
+{
+	system("start \"C:/WINDOWS/system32/calc.exe\"");
+}
+global proc ka_objectSelectMode()
+{
+    
+    changeSelectMode -object;
+    buildSelectObjectMM;
+}
+global proc ka_objectSelectMode_release()
+{
+    MarkingMenuPopDown;
+}
+global proc ka_componentSelectMode()
+{
+    
+    changeSelectMode -component;
+    setComponentPickMask "Point" true;
+    //buildSelectObjectMM;
+}
+global proc ka_componentSelectMode_release()
+{
+    //MarkingMenuPopDown;
+}
+
+global proc ka_connectedSameNameAttrs()
+{
+    string $sel[] = `ls -sl`;
+    string $userAttrs[] = `listAttr -userDefined $sel[0]`;
+    for($each in $sel)
+    {
+        if($each != $sel[0])
+        {
+            for($u in $userAttrs)
+            {
+                if(`attributeQuery -exists -node $each $u`)
+                {
+                    connectAttr -f ($sel[0] + "." + $u) ($each + "." + $u);
+                }
+                if(`attributeQuery -exists -node $each ($u + "Shape")`)
+                {
+                    connectAttr -f ($sel[0] + "." + $u) ($each + "." + $u + "Shape");
+                }
+            }
+        }
+    }  
+}
+global proc ka_smoothPreview(int $divLevel)//for maya versions that predate it
+{
+	string $sel[] = `ls -sl`;
+	setDisplaySmoothness ($divLevel + 1);
+	
+	for($each in $sel)
+	{
+		string $shapes[] = `listRelatives -noIntermediate -shapes -path -type "mesh" $each`;
+		
+		for($s in $shapes)
+		{
+			string $shapeParent[] = `listRelatives -parent $s`;
+			if($shapeParent[0] == $each)
+			{//chech if shape is an immediate child of selected object, rather than a distant child
+				string $history[] = `listHistory $s`;
+				int $smoothExists = 0;
+				string $polySmooth[];
+				for($h in $history)
+				{
+					if(`objectType $h` == "polySmoothFace")
+					{
+						$smoothExists = 1;
+						$polySmooth[0] = $h;
+					}
+				}
+				
+				if($divLevel != 0)
+				{
+					if($smoothExists == 0)
+					{
+						$polySmooth = `polySmooth $s`;
+					}
+					setAttr ($polySmooth[0] + ".divisions") $divLevel;
+				}
+				else 
+				{
+					delete $polySmooth;
+				}
+			}
+		}
+	}
+	select -r $sel;
+}
+global proc ka_deleteBindPoses()
+{
+	string $bindPoses[] = `ls "bindPose*"`;
+	delete $bindPoses;
+}
+global proc findLatticeDeformersLatticeCage()
+{
+	string $sel[] = `ls  -sl`;
+	string $newSel[];
+	for($each in $sel)
+	{
+		print ("\neach: " + $each);
+		string $objectShapeMatrix = `connectionInfo -sourceFromDestination ($each + ".deformedLatticeMatrix")`;
+		print ("\nobjectShapeMatrix: " + $objectShapeMatrix);
+
+		//strip the attribute
+		string $objectShape = `match "^[^\.]*" $objectShapeMatrix`;
+		print ("\nobjectShape: " + $objectShape);
+
+		string $object[] = `listRelatives -p -fullPath $objectShape`;
+		print ("\nobject " + $object[0]);
+
+		$newSel[`size($newSel)`]  = $object[0];
+	}
+	//print $newSel;
+	select -r $newSel;
+}
+global proc ka_addSelectionToSet()
+{
+	string $sel[] = `ls -sl`;
+	string $set = $sel[(`size($sel)` - 1)];
+	
+	for($each in $sel)
+	{
+		if($each != $set)
+		{
+			sets -addElement $set $each;
+		}
+	}
+}
+global proc ka_removeSelectionToSet()
+{
+	string $sel[] = `ls -sl`;
+	string $set = $sel[(`size($sel)` - 1)];
+	
+	for($each in $sel)
+	{
+		if($each != $set)
+		{
+			sets -remove $set $each;
+		}
+	}
+}
+
+global proc ka_filterSelection()
+{
+	string $sel[] = `ls -sl`;
+	string $newSel[];  
+	string $filter;
+	
+	string $result = `promptDialog
+        -title "Selection Filter"
+        -text ""
+        -message "Filter Selection by Type"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+
+    if ($result == "OK") 
+    {
+        $filter = `promptDialog -query -text`;
+        for($each in $sel)
+        {
+        	print ("each type: " + `objectType $each` + "\n");
+            if(`objectType $each` == $filter)
+            {
+            	$newSel[`size($newSel)`] = $each;
+            }
+        }
+    }
+    
+    
+    select -r $newSel;
+}
+
+global proc ka_copyShape()
+{
+    string $sel[] = `ls -sl`;
+    if(`size $sel` != 1){ error "must have one object only Selected"; }
+    
+    string $selShapes[] = `listRelatives -s $sel[0]`;
+    if(`size $selShapes` < 1){ error "Selection must have a shape"; }
+
+    optionVar -clearArray "ka_shapeXformClipBoard";
+        print ("\nStoring shape values for " + $selShapes[0] + "\n");
+
+    int $numSpans = `getAttr ( $selShapes[0] + ".spans" )`;
+    int $degree   = `getAttr ( $selShapes[0] + ".degree" )`;
+    int $form     = `getAttr ( $selShapes[0] + ".form" )`;
+ 
+    int $CVs   = $numSpans + $degree;
+    // Adjust for periodic curve:
+    if ( $form == 2 ) $CVs -= $degree;
+     print ("\nCurve has " + $CVs + " CVs\n");
+      
+    float $cvValues[];
+    float $curveCVsValues[];
+    int $i = 0;
+    while( $i < $CVs)
+    {
+        $cvValues  = `xform -q -os -t ($selShapes[0] + ".cv[" + $i + "]")`;
+        for($v in $cvValues)
+        {
+            $curveCVsValues[`size($curveCVsValues)`]  = $v;
+            optionVar -floatValueAppend "ka_shapeXformClipBoard" ($v);
+        }
+    $i++;   
+    }
+}
+
+global proc ka_pasteShape(string $mode)
+{
+    string $sel[] = `ls -sl`;
+    if(`size $sel` != 1){ error "must have one object only Selected"; }
+    
+    string $selShapes[] = `listRelatives -s $sel[0]`;
+    if(`size $selShapes` < 1){ error "Selection must have a shape"; }
+    
+    float $curveCVsValues[] = `optionVar -q "ka_shapeXformClipBoard"`;
+        print ("\nPasting shape values for " + $selShapes[0] + "\n");
+
+        int $CVs = `size($curveCVsValues)`;
+               
+        float $cvValues[];
+        int $i = 0;
+        int $count = 0;
+        while( $i < $CVs)
+        {
+            float $x = $curveCVsValues[$i];
+            $i++;
+            float $y = $curveCVsValues[$i];
+            $i++;
+            float $z = $curveCVsValues[$i];
+            $i++;
+            if($mode == "reversed"){ $x = ($x * -1); $y = ($y * -1); $z = ($z * -1); }
+            if($mode == "flipped"){ $x = ($x * -1);}
+            xform -os -t $x $y $z ($selShapes[0] + ".cv[" + $count + "]") ;
+            print ("cv " + $count + " was set to " + $x + " " + $y + " " + $z + "\n");
+            $count++;
+        }
+}
+global proc ka_copyUVs()
+{
+    string $sel[] = `ls -sl`;
+    if(`size $sel` != 1){ error "must have one object only Selected"; }
+    
+    string $selShapes[] = `listRelatives -s $sel[0]`;
+    if(`size $selShapes` < 1){ error "Selection must have a shape"; }
+
+    optionVar -clearArray "ka_UV_listClipBoard";
+    optionVar -clearArray "ka_UV_XformClipBoard";
+    print ("\nStoring shape values for " + $selShapes[0] + "\n");
+    
+    int $vertexList[] = `getAttr -s ($selShapes[0] + ".map[0:99999999999]")`;
+    int $numVertex = `size $vertexList`;
+    print ("\nMesh has " + $numVertex + " VTXs\n");
+ /*
+    int $UVs   = `polyListComponentConversion -fv -tuv polySurface26.vtx[0:($numVertex - 1)]`;
+    // Adjust for periodic curve:
+    if ( $form == 2 ) $CVs -= $degree;
+
+      
+    float $uvValues[];*/
+   
+    string $UVs[];
+    float $uvValues[];
+    string $attr;
+    int $i = 0;
+    while( $i < $numVertex)
+    {
+    	//$UVs = `polyListComponentConversion -fv -tuv ($selShapes[0] + ".vtx[" + $i + "]")`;
+    	$UVs[0]  = ($selShapes[0] + ".map[" + $i + "]");
+        for($each in $UVs)
+        {
+
+        	$uvValues = `polyEditUV -q $each`;
+        	//extract the uv attribute without object name
+        	$attr = `substitute "^[^.]*\\." $each ""`;
+        	optionVar -stringValueAppend "ka_UV_listClipBoard" ($attr);
+
+			for($v in $uvValues)
+			{
+				optionVar -floatValueAppend "ka_UV_XformClipBoard" ($v);
+			}
+			print ("\n" + $each + " uv values are : " + $uvValues[0] + " " + $uvValues[1]);
+        }
+        
+    $i++;   
+    }
+}
+
+global proc ka_pasteUVs()
+{
+    string $sel[] = `ls -sl`;
+    if(`size $sel` != 1){ error "must have one object only Selected"; }
+    
+    string $selShapes[] = `listRelatives -s $sel[0]`;
+    if(`size $selShapes` < 1){ error "Selection must have a shape"; }
+    
+    string $meshUVlist[] = `optionVar -q "ka_UV_listClipBoard"`;
+    float $meshUVsValues[] = `optionVar -q "ka_UV_XformClipBoard"`;
+        print ("\nPasting shape values for " + $selShapes[0] + "\n");
+/*
+        int $CVs = `size($curveCVsValues)`;
+               
+        float $cvValues[];
+        int $i = 0;
+        int $count = 0;
+        while( $i < $CVs)
+        {
+            float $x = $meshUVsValues[$i];
+            $i++;
+            float $y = $meshUVsValues[$i];
+            $i++;
+            float $z = $meshUVsValues[$i];
+            $i++;
+            if($mode == "reversed"){ $x = ($x * -1); $y = ($y * -1); $z = ($z * -1); }
+            if($mode == "flipped"){ $x = ($x * -1);}
+            xform -os -t $x $y $z ($selShapes[0] + ".cv[" + $count + "]") ;
+            print ("cv " + $count + " was set to " + $x + " " + $y + " " + $z + "\n");
+            $count++;
+        }//*/
+        
+        int $i = 0;
+        for($each in $meshUVlist)
+        {
+        	$each = ($selShapes[0] + "." + $each);
+        	polyEditUV -r 0 -u $meshUVsValues[$i] $each;
+        	print ("\nSetting " + $each + " to: " + $meshUVsValues[$i]);
+        	$i++;
+        	polyEditUV -r 0 -v $meshUVsValues[$i] $each;
+        	print (" " + $meshUVsValues[$i]);
+        	$i++;
+        }
+}
+
+global proc ka_masterGroup()
+{
+    if(`objExists "MASTER"`) { error "master node already exists in the scene"; }
+    string $master = `group -em -name "MASTER"`;
+    string $animationControls = `group -em -name "ANIMATION_CONTROLS"`;
+    string $geometry = `group -em -name "GEOMETRY"`;
+    string $joints = `group -em -name "JOINTS"`;
+    string $deformers = `group -em -name "DEFORMERS"`;
+
+    string $adjWorld = `group -em -name "adj_WORLD"`;
+    string $offset1World = `group -em -name "offset1_WORLD"`;
+    string $offset2World = `group -em -name "offset2_WORLD"`;
+    string $offset3World = `group -em -name "offset3_WORLD"`;
+    string $worldCurve = `curve -p -0.542843 0 -2.695805 -p -2.062267 0 -2.062267 -p -2.664144 0 -0.542843 -p -2.664144 0 -0.542843 -p -3.799904 0 -0.542843 -p -3.799904 0 -0.542843 -p -3.799904 0 -1.085687 -p -3.799904 0 -1.085687 -p -4.88559 0 0 -p -4.88559 0 0 -p -3.799904 0 1.085687 -p -3.799904 0 1.085687 -p -3.799904 0 0.542843 -p -3.799904 0 0.542843 -p -2.664144 0 0.542843 -p -2.664144 0 0.542843 -p -2.062267 0 2.062267 -p -0.542843 0 2.695805 -p -0.542843 0 2.695805 -p -0.542843 0 3.799904 -p -0.542843 0 3.799904 -p -1.085687 0 3.799904 -p -1.085687 0 3.799904 -p 0 0 4.88559 -p 0 0 4.88559 -p 1.085687 0 3.799904 -p 1.085687 0 3.799904 -p 0.542843 0 3.799904 -p 0.542843 0 3.799904 -p 0.542843 0 2.695805 -p 0.542843 0 2.695805 -p 2.062267 0 2.062267 -p 2.664144 0 0.542843 -p 2.664144 0 0.542843 -p 3.799904 0 0.542843 -p 3.799904 0 0.542843 -p 3.799904 0 1.085687 -p 3.799904 0 1.085687 -p 4.88559 0 0 -p 4.88559 0 0 -p 3.799904 0 -1.085687 -p 3.799904 0 -1.085687 -p 3.799904 0 -0.542843 -p 3.799904 0 -0.542843 -p 2.664144 0 -0.542843 -p 2.664144 0 -0.542843 -p 2.062267 0 -2.062267 -p 0.542843 0 -2.695805 -p 0.542843 0 -2.695805 -p 0.542843 0 -3.799904 -p 0.542843 0 -3.799904 -p 1.085687 0 -3.799904 -p 1.085687 0 -3.799904 -p 0 0 -4.88559 -p 0 0 -4.88559 -p -1.085687 0 -3.799904 -p -1.085687 0 -3.799904 -p -0.542843 0 -3.799904 -p -0.542843 0 -3.799904 -p -0.542843 0 -2.695805`; 
+    string $worlds[] = `closeCurve -n "WORLD" -ch on -ps on $worldCurve`;
+    string $world = $worlds[0];
+    string $worldShapes[] = `listRelatives  -shapes`;
+    setAttr ($worldShapes[0] + ".overrideEnabled") 1;
+    setAttr ($worldShapes[0] + ".overrideColor") 18;
+    delete $worldCurve;
+    
+    parent $geometry $animationControls $joints $deformers $master;
+    parent $adjWorld $animationControls;
+    parent $offset1World $adjWorld;
+    parent $offset2World $offset1World;
+    parent $offset3World $offset2World;
+    parent $world $offset3World;
+
+    addAttr -ln "resolution" -at "enum" -en "low:high:render:"  $master;
+    setAttr -keyable false -channelBox true ($master + ".resolution") 1;
+    
+    addAttr -ln "geoSelectable" -at long  -min 0 -max 1 $master;
+    setAttr -keyable false -channelBox true ($master + ".geoSelectable") 1;
+    
+    addAttr -ln "controlVis" -at long  -min 0 -max 1 $master;
+    setAttr -keyable false -channelBox true ($master + ".controlVis") 1;
+    
+    addAttr -ln "geoVis" -at long  -min 0 -max 1 $master;
+    setAttr -keyable false -channelBox true ($master + ".geoVis") 1;
+    
+    addAttr -ln "rigMechanics" -at long  -min 0 -max 1 $deformers;
+    setAttr -keyable false -channelBox true ($deformers + ".rigMechanics") 1;
+       
+    addAttr -ln "characterSize" -at long  -min 0 -max 1 $world;
+    setAttr -keyable false -channelBox true ($world + ".characterSize") 1;
+    
+    string $setRangeNode = `shadingNode -asUtility setRange`;
+    setAttr ($setRangeNode + ".minX") 1;
+    setAttr ($setRangeNode + ".maxX") 0;
+    setAttr ($setRangeNode + ".oldMinX") 0;
+    setAttr ($setRangeNode + ".oldMaxX") 1;
+
+    connectAttr -f  ($master + ".geoSelectable") ($setRangeNode + ".valueX");
+    connectAttr -f  ($setRangeNode + ".outValueX") ($geometry + ".overrideEnabled");
+    setAttr  ($geometry + ".overrideDisplayType") 2;
+    
+    connectAttr -f  ($master + ".controlVis") ($animationControls + ".v");
+    connectAttr -f  ($master + ".geoVis") ($geometry + ".v");
+    connectAttr -f  ($deformers + ".rigMechanics") ($deformers + ".v");
+
+    connectAttr -f  ($world + ".characterSize") ($world + ".sx");
+    connectAttr -f  ($world + ".characterSize") ($world + ".sy");
+    connectAttr -f  ($world + ".characterSize") ($world + ".sz");
+    
+    connectAttr -f  ($world + ".characterSize") ($joints + ".sx");
+    connectAttr -f  ($world + ".characterSize") ($joints + ".sy");
+    connectAttr -f  ($world + ".characterSize") ($joints + ".sz");
+    
+    setAttr -lock true -keyable false ($master + ".tx");
+    setAttr -lock true -keyable false ($master + ".ty");
+    setAttr -lock true -keyable false ($master + ".tz");
+    setAttr -lock true -keyable false ($master + ".rx");
+    setAttr -lock true -keyable false ($master + ".ry");
+    setAttr -lock true -keyable false ($master + ".rz");
+    setAttr -lock true -keyable false ($master + ".sx");
+    setAttr -lock true -keyable false ($master + ".sy");
+    setAttr -lock true -keyable false ($master + ".sz");
+    
+    setAttr -lock true -keyable false ($geometry + ".tx");
+    setAttr -lock true -keyable false ($geometry + ".ty");
+    setAttr -lock true -keyable false ($geometry + ".tz");
+    setAttr -lock true -keyable false ($geometry + ".rx");
+    setAttr -lock true -keyable false ($geometry + ".ry");
+    setAttr -lock true -keyable false ($geometry + ".rz");
+    setAttr -lock true -keyable false ($geometry + ".sx");
+    setAttr -lock true -keyable false ($geometry + ".sy");
+    setAttr -lock true -keyable false ($geometry + ".sz");
+    setAttr -lock true -keyable false ($geometry + ".v");
+        
+    setAttr -lock true -keyable false ($animationControls + ".tx");
+    setAttr -lock true -keyable false ($animationControls + ".ty");
+    setAttr -lock true -keyable false ($animationControls + ".tz");
+    setAttr -lock true -keyable false ($animationControls + ".rx");
+    setAttr -lock true -keyable false ($animationControls + ".ry");
+    setAttr -lock true -keyable false ($animationControls + ".rz");
+    setAttr -lock true -keyable false ($animationControls + ".sx");
+    setAttr -lock true -keyable false ($animationControls + ".sy");
+    setAttr -lock true -keyable false ($animationControls + ".sz");
+    setAttr -lock true -keyable false ($animationControls + ".v");
+        
+    setAttr -lock true -keyable false ($joints + ".tx");
+    setAttr -lock true -keyable false ($joints + ".ty");
+    setAttr -lock true -keyable false ($joints + ".tz");
+    setAttr -lock true -keyable false ($joints + ".rx");
+    setAttr -lock true -keyable false ($joints + ".ry");
+    setAttr -lock true -keyable false ($joints + ".rz");
+    setAttr -lock true -keyable false ($joints + ".sx");
+    setAttr -lock true -keyable false ($joints + ".sy");
+    setAttr -lock true -keyable false ($joints + ".sz");
+        
+    setAttr -lock true -keyable false ($deformers + ".tx");
+    setAttr -lock true -keyable false ($deformers + ".ty");
+    setAttr -lock true -keyable false ($deformers + ".tz");
+    setAttr -lock true -keyable false ($deformers + ".rx");
+    setAttr -lock true -keyable false ($deformers + ".ry");
+    setAttr -lock true -keyable false ($deformers + ".rz");
+    setAttr -lock true -keyable false ($deformers + ".sx");
+    setAttr -lock true -keyable false ($deformers + ".sy");
+    setAttr -lock true -keyable false ($deformers + ".sz");
+    setAttr -lock true -keyable false ($deformers + ".v");
+
+    setAttr -lock true -keyable false ($world + ".sx");
+    setAttr -lock true -keyable false ($world + ".sy");
+    setAttr -lock true -keyable false ($world + ".sz");
+    setAttr -lock true -keyable false ($deformers + ".v");
+}
+
+global proc ka_deleteAnimationCurves()
+{//delete animation curve nodes that use time as an imput (ie: not set driven curves)
+	string $sel[] = `ls -sl`;
+	string $destinationConnections[];
+	string $objectsToCheck[];
+	for($each in $sel)
+	{
+		$destinationConnections = `listConnections -destination 1 $each`;
+		for($d in $destinationConnections)
+		{
+			$objectsToCheck[`size($objectsToCheck)`] = $d;
+		}
+	}
+	
+	for($each in $objectsToCheck)
+	{
+		if(`objectType $each` == "animCurveTA" || `objectType $each` == "animCurveTU" || `objectType $each` == "animCurveTL" )
+		{
+			delete $each;
+		}
+	}
+}
+  //HOTKEYS_________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_loadHotkeys()
+{// Load Hotkeys to hotkey editor
+    string $hotKeyCommandList[];
+    
+    for($each in $hotKeyCommandList)
+    {
+        
+    }
+}
+/*-----------------------------------------------------( XRAY )-----------------------------------------------------*/
+global proc  ka_xRay()
+{//turn X-ray on for the current pannel
+    string $currentPanel = `getPanel -withFocus`;
+ 
+    modelEditor -e -xray 1 $currentPanel;
+    string $version = `about -version`;
+    if(`match "20" $version` == "20")
+    {
+        modelEditor -e -jointXray (!`modelEditor -q -jointXray $currentPanel`) $currentPanel;
+    }
+    if(`match "8.5" $version` == "8.5")
+    {
+        if(`currentCtx` == "artAttrSkinContext")
+        {
+            modelEditor -edit -displayAppearance "wireframe" -displayTextures off -displayLights "default" $currentPanel;
+        }
+    }
+}
+
+global proc ka_xRay_release()
+{//turn X-ray off for the current pannel
+    string $currentPanel = `getPanel -withFocus`;
+    string $version = `about -version`;
+    
+    modelEditor -e -xray 0 $currentPanel;
+    
+    if(`match "8.5" $version` == "8.5")
+    {
+        if(`currentCtx` == "artAttrSkinContext")
+        {
+            modelEditor -edit -displayAppearance "smoothShaded" -displayTextures off -displayLights "default" $currentPanel;
+        }
+    }
+}
+/*-----------------------------------------------------( ISOLATE SELECTION )-----------------------------------------------------*/
+global proc ka_isolateSelect()
+{//advanced isolate selection (context senitive) also isolates joints of skin cluster when in paint modestring $ToolContext = `currentCtx`;
+     string $panelUnderPointer = `getPanel -underPointer`;
+
+     if(`match "modelPanel" $panelUnderPointer` == "modelPanel")
+     {
+        string $ToolContext = `currentCtx`;
+        string $CurrentPanel = `getPanel -withFocus`;
+        int $CurrentState = `isolateSelect -q -state $CurrentPanel`;
+        
+        if ($CurrentState == 0) {
+            //if weight painting
+            if ( $ToolContext == "artAttrSkinContext") {
+                string $Selection[];
+                $Selection = `ls -sl`;
+                string $SkinCluster;
+                string $JointList[];
+                
+                $SkinCluster = `findRelatedSkinCluster($Selection[0])`;
+                $JointList = `listConnections -d off -s on -scn 1 $SkinCluster`;
+                print $JointList;
+                select -add $JointList;
+                isolateSelect -state 1 $CurrentPanel;
+                isolateSelect -addSelected $CurrentPanel;
+                select -d $JointList;
+            }else {
+                isolateSelect -state 1 $CurrentPanel;
+                isolateSelect -addSelected $CurrentPanel;
+                isoSelectAutoAddNewObjs $panelUnderPointer 1;
+                print ("\n\n" + $panelUnderPointer + "\n\n");
+            }
+        }else{
+            isolateSelect -state 0 $CurrentPanel;
+        }
+     }
+}
+/*-----------------------------------------------------( WIREFRAME ON SHADED )-----------------------------------------------------*/
+global proc ka_wireframeOnShaded()
+{//SIMPLE TOGGLE FOR WIREFRAME ON SHADED
+    string $currentPanel = `getPanel -withFocus`;
+     modelEditor -e -wos (!`modelEditor -q -wos $currentPanel`) $currentPanel;
+}
+
+global proc ka_toggleDisplayOnEffected()
+{
+    displayAffected (!`displayAffected -query`);
+}
+/*-----------------------------------------------------( SNAP SCALE AND ROTATE )-----------------------------------------------------*/
+global proc ka_snapScaleAndRotate()
+{
+    manipRotateContext -e -snap true Rotate;
+    manipScaleContext -e -snap true Scale;
+    manipScaleContext -e -snapValue 0.5 Scale;
+}
+global proc ka_snapScaleAndRotate_release()
+{
+    manipRotateContext -e -snap false Rotate;
+    manipScaleContext -e -snap false Scale;
+}
+/*-----------------------------------------------------( SELECT MIRROR )-----------------------------------------------------*/
+//SELECTS OBJECT OF THE SAME NAME CONTAINING A "_L_" or "_R_" in upper or lower case
+global proc ka_selectMirrorObject()
+{
+    string $sel[] = `ls -sl`;
+    if(`match "_L_" $sel[0]` == "_L_")
+    {
+        select `substitute "_L_" $sel[0] "_R_"`;
+    }
+    else if(`match "_l_" $sel[0]` == "_l_")
+    {
+        select `substitute "_l_" $sel[0] "_r_"`;
+    }
+        else if(`match "_R_" $sel[0]` == "_R_")
+    {
+        select `substitute "_R_" $sel[0] "_L_"`;
+    }
+        else if(`match "_r_" $sel[0]` == "_r_")
+    {
+        select `substitute "_r_" $sel[0] "_l_"`;
+    }
+}
+/*-----------------------------------------------------( MATCH XFORM )-----------------------------------------------------*/
+global proc ka_matchXform(string $type)
+{//SNAPS OBJECTS TO THE SPECIFIED XFORM OF THE LAST OBJECT SELECTED
+    string $sel[] = `ls -sl`;
+    int $selSize = `size($sel)`;
+    print ("\n\n" + $selSize + "\n\n");
+    string $snapingObjects[] =  `ls -sl -head ($selSize - 1)`;
+    string $target[] = `ls -sl -tail 1`;
+    
+    switch ($type)
+    {
+        case "t":    //SNAP TRANSLATE
+            for($each in $snapingObjects)
+            {
+                string $constraint[] = `pointConstraint -offset 0 0 0 -weight 1 $target[0] $each`;
+                delete $constraint[0];
+            }
+            break;
+            
+        case "r":    //SNAP ROTATE
+            for($each in $snapingObjects)
+            {
+                string $constraint[] = `orientConstraint -offset 0 0 0 -weight 1 $target[0] $each`;
+                delete $constraint[0];
+            }
+            break;
+ 
+        case "s":    //SNAP SCALE
+            for($each in $snapingObjects)
+            {
+                string $constraint[] = `scaleConstraint -offset 1 1 1 -weight 1 $target[0] $each`;
+                delete $constraint[0];
+                
+                if(`objectType $target[0]` == "joint" && `objectType $each` == "joint")
+                {//if both target and object being scale snapped are a joint type object, than also copy over the radius size
+                    float $jointSize = `getAttr ($target[0] + ".radius")`;
+                    setAttr ($each + ".radius") $jointSize;
+                }
+            }
+            break;
+            
+         case "a":    //SNAP ALL
+            for($each in $snapingObjects)
+            {
+                string $constraint[] = `pointConstraint -offset 0 0 0 -weight 1 $target[0] $each`;
+                delete $constraint[0];
+
+                $constraint = `orientConstraint -offset 0 0 0 -weight 1 $target[0] $each`;
+                delete $constraint[0];
+                
+                $constraint = `scaleConstraint -offset 1 1 1 -weight 1 $target[0] $each`;
+                delete $constraint[0];
+                
+                if(`objectType $target[0]` == "joint" && `objectType $each` == "joint")
+                {//if both target and object being scale snapped are a joint type object, than also copy over the radius size
+                    float $jointSize = `getAttr ($target[0] + ".radius")`;
+                    setAttr ($each + ".radius") $jointSize;
+                }
+            }
+            break;
+      }
+      select -r $snapingObjects;
+}
+/*-----------------------------------------------------( CONSTRAIN )-----------------------------------------------------*/
+global proc ka_constrain(string $mode, string $order, string $offset)
+{
+	string $sel[] = `ls -sl`;
+	string $constraintObject = $sel[(`size($sel)` - 1)];
+	string $newSel[];
+	string $constraint[];
+	string $offsetNamingPrefix = "constrainTarget_";
+	string $newSel[];
+
+	
+	if($offset == "offset")
+	{
+		for($each in $sel)
+		{
+			if($each != $constraintObject)
+			{
+				string $eachShortName = `match "[^|]*$" $each`;
+				string $offsetGroup;
+				string $newName[];
+				
+				if(`objExists ($offsetNamingPrefix + $eachShortName)`)
+				{
+					$offsetGroup = ($offsetNamingPrefix + $eachShortName);
+					$newName[0] = ($offsetNamingPrefix + $eachShortName);
+				}
+				else
+				{
+					$offsetGroup = `group -em -w -n ($offsetNamingPrefix + $eachShortName)`;
+					$newName =  `parent $offsetGroup $each`;
+				}
+                
+				string $constraint[] = `pointConstraint -offset 0 0 0 -weight 1 $constraintObject $offsetGroup`;
+                delete $constraint[0];
+
+                $constraint = `orientConstraint -offset 0 0 0 -weight 1 $constraintObject $offsetGroup`;
+                delete $constraint[0];
+                
+                $constraint = `scaleConstraint -offset 1 1 1 -weight 1 $constraintObject $offsetGroup`;
+                delete $constraint[0];
+                
+
+                $newSel[`size($newSel)`] = $newName[0];
+            }
+		}
+		$newSel[`size($newSel)`] = $constraintObject;
+		select -r $newSel;
+	}
+	
+	if($order == "reversed")
+	{
+		ka_invertSelectionOrder();
+	}
+	
+	//constrain based on mode
+	if($mode == "point")
+	{
+		pointConstraint -offset 0 0 0 -weight 1;
+	}
+	if($mode == "orient")	
+	{
+		$constraint = `orientConstraint -offset 0 0 0 -weight 1`;
+		setAttr ($constraint[0] + ".interpType") 2;
+	}
+	if($mode == "Scale")	
+	{
+		scaleConstraint -offset 1 1 1 -weight 1;
+	}
+	if($mode == "pointAndOrient")
+	{
+		pointConstraint -offset 0 0 0 -weight 1;
+		$constraint = `orientConstraint -offset 0 0 0 -weight 1`;
+		setAttr ($constraint[0] + ".interpType") 2;
+	}
+	if($mode == "pointAndOrientAndScale")
+	{
+		pointConstraint -offset 0 0 0 -weight 1;
+		$constraint = `orientConstraint -offset 0 0 0 -weight 1`;
+		setAttr ($constraint[0] + ".interpType") 2;
+		scaleConstraint -offset 1 1 1 -weight 1;
+	}
+	if($mode == "pointAndOrientAndScaleAndShear")
+	{
+		pointConstraint -offset 0 0 0 -weight 1;
+		$constraint = `orientConstraint -offset 0 0 0 -weight 1`;
+		setAttr ($constraint[0] + ".interpType") 2;
+		scaleConstraint -offset 1 1 1 -weight 1;
+		for($each in $sel)
+		{
+			if($each != $constraintObject)
+			{
+				connectAttr ($each + ".shear") ($constraintObject + ".shear");
+			}
+		}
+	}
+	if($mode == "pointOnSurface")
+	{
+		string $nurbSurface;
+		string $nurbTransform[];
+		if(`objectType $sel[0]` == "nurbsSurface")
+		{
+			$nurbSurface = $sel[0];
+			$nurbTransform = `listRelatives -p $nurbSurface`;
+		}
+		else
+		{
+			string $shapeNodes[] = `listRelatives -shapes $sel[0]`;
+			if(`objectType $shapeNodes[0]` == "nurbsSurface")
+			{
+				$nurbSurface = $shapeNodes[0];
+				$nurbTransform[0] = $sel[0];
+			}
+		}
+		
+		string $pointOnSurface = `shadingNode -asUtility "pointOnSurfaceInfo"`;
+		connectAttr ($nurbSurface + ".worldSpace[0]") ($pointOnSurface + ".inputSurface");
+		string $vectorProduct = `shadingNode -asUtility "vectorProduct"`;
+		setAttr ($vectorProduct + ".operation") 4;
+		connectAttr ($pointOnSurface + ".position") ($vectorProduct + ".input1");
+		connectAttr ($sel[1] + ".parentInverseMatrix[0]") ($vectorProduct + ".matrix");
+		connectAttr ($vectorProduct + ".output") ($sel[1] + ".translate");
+		
+		setAttr -k on ($pointOnSurface + ".parameterU");
+		setAttr -k on ($pointOnSurface + ".parameterV");
+	}
+	
+	select -r $sel[(`size($sel)` - 1)];
+}
+/*-----------------------------------------------------( ZERO OUT GROUP )-----------------------------------------------------*/
+global proc ka_zeroOutGroup()
+{
+    string $sel[] = `ls -sl`;
+    string $newSel[];
+    string $namingPrefix = "adj_";
+    string $secondaryNamingPrefix = "offset_";
+    string $parent;
+    string $zeroGroup;
+    string $constraint[];
+    
+    for($each in $sel)
+    {
+    	string $eachShortName = `match "[^|]*$" $each`;
+
+        if(`objExists ($namingPrefix + $eachShortName)`)
+        {//if zero out group already exists, reposition it
+        	print "\nYES\n";
+            string $name = ($secondaryNamingPrefix + $eachShortName);
+            
+            int $i = 2;            
+            if(`objExists ($secondaryNamingPrefix + $eachShortName)`)
+            {
+            	$name = ($secondaryNamingPrefix + "_" + $i + "_" + $eachShortName);
+				while(`objExists ($secondaryNamingPrefix + "_" + $i + "_" + $eachShortName)`)
+				{
+					$name = ($secondaryNamingPrefix + "_" + $i + "_" + $eachShortName);
+					$i++;
+				}
+            }
+            
+            $zeroGroup = `group -em -w -n ($name)`;
+            $constraint = `pointConstraint -offset 0 0 0 -weight 1 $each $zeroGroup`; delete $constraint[0];
+            $constraint = `orientConstraint -offset 0 0 0 -weight 1 $each $zeroGroup`; delete $constraint[0];
+            $constraint = `scaleConstraint -offset 1 1 1 -weight 1 $each $zeroGroup`; delete $constraint[0];
+
+            $parent = firstParentOf($each);
+            if($parent != "") { parent $zeroGroup $parent; }
+            string $newLongName[] = `parent $each $zeroGroup`;
+            $newSel[`size($newSel)`] = $newLongName[0];
+        }                                    
+        else
+        {
+            $zeroGroup = `group -em -w -n ($namingPrefix + $eachShortName)`;
+            $constraint = `pointConstraint -offset 0 0 0 -weight 1 $each $zeroGroup`; delete $constraint[0];
+            $constraint = `orientConstraint -offset 0 0 0 -weight 1 $each $zeroGroup`; delete $constraint[0];
+            $constraint = `scaleConstraint -offset 1 1 1 -weight 1 $each $zeroGroup`; delete $constraint[0];
+            
+            $parent = firstParentOf($each);
+            if($parent != "") { parent $zeroGroup $parent; }
+            string $newLongName[] = `parent $each $zeroGroup`;
+            $newSel[`size($newSel)`] = $newLongName[0];
+        }
+    }
+    select $newSel;
+}
+
+global proc ka_shadowGroup()
+{
+    string $sel[] = `ls -sl`;
+    string $newSel[];
+    string $namingPrefix = "shdw_";
+    string $parent;
+    string $shadowGroup;
+    string $constraint[];
+    
+    for($each in $sel)
+    {
+        if(`objExists ($namingPrefix + $each)`)
+        {//if zero out group already exists, reposition it
+        	/*
+           $shadowGroup = ($namingPrefix + $each);
+           $parent = firstParentOf(($namingPrefix + $each));
+            string $children[] = `listRelatives -type "transform" $shadowGroup`;
+              
+            //check if shadowGroup parented properly
+            //if(`firstParentOf($each)` != $shadowGroup) { error ($shadowGroup + " already exists and is not the parent of " + $each); }
+            
+            
+            for($c in $children) { parent -w $c; }
+            $constraint = `pointConstraint -offset 0 0 0 -weight 1 $each $shadowGroup`; delete $constraint[0];
+            $constraint = `orientConstraint -offset 0 0 0 -weight 1 $each $shadowGroup`; delete $constraint[0];
+            $constraint = `scaleConstraint -offset 1 1 1 -weight 1 $each $shadowGroup`; delete $constraint[0];
+            for($c in $children) { parent $c $shadowGroup; }
+        }                                    
+        else
+        {*/
+        	string $eachShortName = `match "[^|]*$" $each`;
+            $shadowGroup = `group -em -w -n ($namingPrefix + $eachShortName)`;
+            $constraint = `pointConstraint -offset 0 0 0 -weight 1 $each $shadowGroup`;
+            $constraint = `orientConstraint -offset 0 0 0 -weight 1 $each $shadowGroup`;
+            $constraint = `scaleConstraint -offset 1 1 1 -weight 1 $each $shadowGroup`;
+            
+            $parent = firstParentOf($each);
+            if($parent != "") { parent $shadowGroup $parent; }
+            $newSel[`size($newSel)`] = $shadowGroup;
+        }
+    }
+    select $newSel;
+}
+/*-----------------------------------------------------( INVERT SELECTION )-----------------------------------------------------*/
+global proc ka_invertSelectionOrder()
+{//REVEARSE SELECTION ORDER
+        
+    string $selectionList[] = `ls -sl`;
+    int $i = `size $selectionList`;
+    
+    select -cl;
+    while($i != 0)
+    {//while full number of items has not been reselected in reverse order
+        $i = ($i -1);
+        select -add $selectionList[$i];
+    }
+}
+/*-----------------------------------------------------( RESET TRANSFORMS )-----------------------------------------------------*/
+global proc ka_resetXforms()
+{//ResetXforms
+	string $kaToolContext = `currentCtx`;
+	string $kaSelection[] = `ls -sl`;
+	for($each in $kaSelection)
+	{//reset the active and unlocked transform values of the objects in selection. if alt is held down, then zero out all transform values.
+		if ( $kaToolContext == "RotateSuperContext" || `getModifiers` == 4) 
+		{
+            if (`getAttr -lock ($each + ".rotateX")` == 0) 	setAttr ($each + ".rotateX") 0;
+            if (`getAttr -lock ($each + ".rotateY")` == 0) setAttr ($each + ".rotateY") 0;
+            if (`getAttr -lock ($each + ".rotateZ")` == 0) setAttr ($each + ".rotateZ") 0;	
+		}
+		else if ( $kaToolContext == "moveSuperContext" || `getModifiers` == 4)
+		{
+            if (`getAttr -lock ($each + ".translateX")` == 0) setAttr ($each + ".translateX") 0;
+            if (`getAttr -lock ($each + ".translateY")` == 0) setAttr ($each + ".translateY") 0;
+            if (`getAttr -lock ($each + ".translateZ")` == 0) setAttr ($each + ".translateZ") 0;
+		}
+		else if ( $kaToolContext == "scaleSuperContext" || `getModifiers` == 4)
+		{
+            if (`getAttr -lock ($each + ".scaleX")` == 0) setAttr ($each + ".scaleX") 1;
+            if (`getAttr -lock ($each + ".scaleY")` == 0) setAttr ($each + ".scaleY") 1;
+            if (`getAttr -lock ($each + ".scaleZ")` == 0) setAttr ($each + ".scaleZ") 1;
+		}
+	}
+}
+/*-----------------------------------------------------( IMPROVED DUPLICATE )-----------------------------------------------------*/
+global proc ka_duplicate()
+{
+    string $sel[] = `ls -sl`;
+	string $component = `substitute "^[^.]*\\." $sel[0] ""`;
+     
+	if(`substring $component 1 4` == "vtx[")
+    {
+        ChamferVertex;
+        print "vertex";
+    }
+	else if(`substring $component 1 2` == "e[")
+    {
+        PolyExtrude;
+        print "edge";
+    }
+	else if(`substring $component 1 2` == "f[")
+    {
+        PolyExtrude;
+        print "poly";
+    }
+    else
+    {
+        performDuplicate false;
+        print "none";
+    }
+}
+
+/*-----------------------------------------------------( ADDITIVE PICK WALK )-----------------------------------------------------*/
+//PICK WALK WITHOUT LOOSING SELECTION
+global proc ka_additivePickWalkUP()
+{
+    string $sel[] = `ls -sl`;
+    pickWalk -d up;
+    string $pickSel[] = `ls -sl`;
+    select -replace $sel;
+    select -add $pickSel;
+}
+global proc ka_additivePickWalkDOWN()
+{
+    string $sel[] = `ls -sl`;
+    pickWalk -d down;
+    string $pickSel[] = `ls -sl`;
+    select -replace $sel;
+    select -add $pickSel;
+}
+global proc ka_additivePickWalkRIGHT()
+{
+    string $sel[] = `ls -sl`;
+    pickWalk -d right;
+    string $pickSel[] = `ls -sl`;
+    select -replace $sel;
+    select -add $pickSel;
+}
+global proc ka_additivePickWalkLEFT()
+{
+    string $sel[] = `ls -sl`;
+    pickWalk -d left;
+    string $pickSel[] = `ls -sl`;
+    select -replace $sel;
+    select -add $pickSel;
+}
+/*-----------------------------------------------------( TOGGLE NORMALS/ and EDIT ROTATION AXIS )-----------------------------------------------------*/
+global proc ka_toggleRotAxis()
+{
+    string $panelUnderPointer = `getPanel -underPointer`;
+    if(`modelEditor -q -handles $panelUnderPointer` == 0)
+    {
+        warning "Panel under mouse has handles set to NOT show, local axis will be hidden in that panel";
+    }
+    string $sel[] = `ls -sl`;
+    string $shapes[] = `listRelatives -shapes -path`;
+    string $type;
+    if(`size($shapes)` >= 1){ $type = `nodeType $shapes[0]`; }
+    if($type == "mesh")
+    {
+        ToggleFaceNormalDisplay;
+    }
+    else
+    {
+        ToggleLocalRotationAxes;
+        
+    }
+}
+global proc ka_disableRotAxisAll()
+{
+     string $sel[] = `ls -type "transform"`;
+     string $selJ[] = `ls -type "joint"`;
+     for($each in $sel) { setAttr ($each + ".displayLocalAxis") 0; }
+     for($each in $selJ) { setAttr ($each + ".displayLocalAxis") 0; }
+}
+global proc ka_toggleRotAxisEditMode()
+{
+    int $hierarchicalMode = `iconTextCheckBox -q -v selectButton1`;
+    int $objectMode = `iconTextCheckBox -q -v selectButton2`;
+    int $componentMode = `iconTextCheckBox -q -v selectButton3`;
+    
+    if($objectMode == 1)
+    {
+       	iconTextCheckBox -e -v 0 selectButton1;
+		iconTextCheckBox -e -v 0 selectButton2;
+		iconTextCheckBox -e -v 1 selectButton3;
+		setSelectMode("components", "Components");
+		setComponentPickMask "Other" true;
+		selectType -localRotationAxis 1;
+    }
+    else
+    {
+        iconTextCheckBox -e -v 0 selectButton1;
+		iconTextCheckBox -e -v 1 selectButton2;
+		iconTextCheckBox -e -v 0 selectButton3;
+		setSelectMode("objects", "Objects");
+		setComponentPickMask "Other" false;
+    }
+}
+global proc  ka_editRotAxis()
+{
+    string $sel[] = `ls -sl`;
+    select -r ($sel[0] + ".rotateAxis");
+    buildRotateMM;
+    MarkingMenuPopDown;
+}
+/*-----------------------------------------------------( RENAME SHAPE NODES )-----------------------------------------------------*/
+global proc ka_renameAllShapeNodes()
+{
+    string $shapes[] = `ls -shapes`;
+    string $parent[];
+    int $dupCheck = 0;
+    int $i = 0;
+    string $n;
+    for($each in $shapes)
+    {
+        $parent = `listRelatives -parent $each`;
+        $i = 0;
+        $n = "";
+        while($dupCheck == 0)
+        {
+            if(`objExists ($parent[0] + "Shape" + $n)`)
+            {
+                $i++;
+                $n = $i;
+            }
+            else
+            {
+                $dupCheck = 1;
+            }
+        }
+        if($i == 0){ $n = ""; } else { $n = $i; }
+        print ("\nRenaming: (" + $each + ") to (" + ($parent[0] + "Shape" + $n) + ")\n");
+        if($each != ($parent[0] + "Shape" + $n))
+        {
+                rename $each ($parent[0] + "Shape" + $n);
+        }
+    }    
+}
+
+/*-----------------------------------------------------( CONTROL CURVE GENERATOR )-----------------------------------------------------*/
+global proc ka_createControlCurve(string $shape)
+{
+	if($shape == "cube")
+	{
+		curve -n ("ctrl_" + $shape) -degree 1 -p -1 -1 1 -p -1 -1 -1 -p 1 -1 -1 -p 1 -1 1 -p -1 -1 1 -p -1 1 1 -p 1 1 1 -p 1 -1 1 -p 1 1 1 -p 1 1 -1 -p -1 1 -1 -p -1 1 1 -p -1 1 -1 -p -1 -1 -1 -p 1 -1 -1 -p 1 1 -1;
+	}
+	else if($shape == "circle")
+	{
+		curve -n ("ctrl_" + $shape) -degree 3 -p 4.798237341e-017 0.7836116249 -0.7836116249 -p -7.741709208e-033 1.108194188 1.264317061e-016 -p -4.798237341e-017 0.7836116249 0.7836116249 -p -6.785732323e-017 3.211269507e-016 1.108194188 -p -4.798237341e-017 -0.7836116249 0.7836116249 -p -2.04467358e-032 -1.108194188 3.339205364e-016 -p 4.798237341e-017 -0.7836116249 -0.7836116249 -p 6.785732323e-017 -5.952132599e-016 -1.108194188;
+		closeCurve -ch 1 -ps 0 -rpo 1 -bb 0.5 -bki 0 -p 0.1;
+	}
+		if($shape == "square")
+	{
+		curve -n ("ctrl_" + $shape) -degree 1 -p 0 -1 1 -p 0 -1 -1 -p 0 1 -1 -p 0 1 1 -p 0 -1 1;
+	}
+}
+global proc ka_readControlCurve()
+{
+	string $sel[] = `ls -sl`;
+	float $pointPositionsXYZ[] = `getAttr ($sel[0] + ".cv[*]")`;
+	int $degree = `getAttr ($sel[0] + ".degree")`;
+	int $count = 0;
+	int $trueCount = 1;
+	string $curveCreatePoints = "-p";
+	for($each in $pointPositionsXYZ)
+	{
+		if($count == 2)
+		{
+			$curveCreatePoints = ($curveCreatePoints + " " + $each);
+			if($trueCount != `size $pointPositionsXYZ`)
+			{
+				$curveCreatePoints = ($curveCreatePoints + " -p");
+			}
+			$count = 0;
+		}
+		else
+		{
+			$curveCreatePoints = ($curveCreatePoints + " " + $each);
+			$count++;
+		}
+		$trueCount++;
+	}
+	print ("curve -n \"ctrl_curve\" -degree " + $degree + " " + $curveCreatePoints + ";");
+}
+
+/*-----------------------------------------------------( IK TOOLS )-----------------------------------------------------*/
+global proc ka_riggingBuddie()
+{
+if(`window -q -ex ka_riggingBuddieWindow`) { deleteUI ka_riggingBuddieWindow; }
+    window -title "ka rigging buddie" -widthHeight 300 600 -resizeToFitChildren 1 ka_riggingBuddieWindow;
+    	formLayout ka_riggingBuddie_FL;
+    	
+    	string $formItems[];
+    	string $taskTypeRCLs[];
+    
+			$formItems[`size($formItems)`] = `optionMenu  -cc "ka_riggingBuddie_hideAllTypeLayouts()" -p "ka_riggingBuddie_FL" taskType_OM`;
+				menuItem -label "ikSpline_fromJointChain" -c "ka_riggingBuddie_hideAllTypeLayouts(); rowColumnLayout -e -vis 1 ikSplineFromJointChain_RCL;" -p "taskType_OM";
+				menuItem -label "ikSpline_makeStrechy" -c "ka_riggingBuddie_hideAllTypeLayouts(); rowColumnLayout -e -vis 1 ikSplineMakeStrechy_RCL;" -p "taskType_OM";
+				menuItem -label "ikSpline_createUpVectors" -c "ka_riggingBuddie_hideAllTypeLayouts(); rowColumnLayout -e -vis 1 ikSplineCreateUpVectors_RCL;" -p "taskType_OM";
+    	
+			$formItems[`size($formItems)`] = `formLayout ka_taskType_FL`;
+		
+				$taskTypeRCLs[`size($taskTypeRCLs)`] = `rowColumnLayout -nc 1 -cw 1 300 -p ka_taskType_FL ikSpline_fromJointChain_RCL`;	
+					text "Base Name:      (ie \"leg_R\" will result in \"leg_R_ikHandle\"";
+					textField ikSpline_fromJointChain_RCL_BaseName_TF;
+					text "CVs in curve:";
+					intField -v 3 ikSpline_fromJointChain_RCL_CVs_IF;
+					text "";
+					button -l "Rig It!" -c "ka_riggingBuddie_namedIkSpline;";
+					
+				$taskTypeRCLs[`size($taskTypeRCLs)`] = `rowColumnLayout -nc 1 -cw 1 300 -p ka_taskType_FL ikSpline_makeStrechy_RCL`;	
+
+				$taskTypeRCLs[`size($taskTypeRCLs)`] = `rowColumnLayout -nc 1 -cw 1 300 -p ka_taskType_FL ikSpline_createUpVectors_RCL`;	
+
+				for($each in $taskTypeRCLs)
+				{
+					formLayout -edit
+					-attachForm $each "top" 5
+					-attachNone $each "bottom"
+					-attachForm $each "left" 0
+					-attachForm $each "right" 5
+					ka_taskType_FL;
+				}
+			//$formItems[`size($formItems)`] = ``;
+
+    	int $i;
+    	for ($i=0; $i<`size $formItems`; $i++)
+    	{
+    		if($i == 0)
+    		{
+				formLayout -edit
+				-attachForm     $formItems[$i]     "top" 5
+				-attachForm     $formItems[$i]     "left" 5
+				-attachNone  $formItems[$i]     "bottom"
+				-attachForm $formItems[$i]     "right"  5
+				ka_riggingBuddie_FL;
+    		}
+			else
+			{
+				formLayout -edit
+				-attachControl     $formItems[$i]     "top" 5 $formItems[$i-1]
+				-attachForm     $formItems[$i]     "left" 0
+				-attachNone  $formItems[$i]     "bottom"
+				-attachForm $formItems[$i]     "right" 5
+				ka_riggingBuddie_FL;
+			}
+
+    	}
+    
+    showWindow ka_riggingBuddieWindow;
+}
+
+
+global proc ka_riggingBuddie_hideAllTypeLayouts()
+{
+	print "hi!!!\n";
+	string $selected = `optionMenu -q -value taskType_OM`;
+	string $formChildren[] = `formLayout -q -childArray ka_taskType_FL`;
+	for($each in $formChildren)
+	{
+		rowColumnLayout -e -vis 0 $each;
+	}
+	rowColumnLayout -e -vis 1 ($selected + "_RCL");
+}
+
+global proc ka_riggingBuddie_namedIkSpline()
+{
+	string $name = `textField -q -text ikSpline_fromJointChain_RCL_BaseName_TF`;
+	int $numberOfCVs = `intField -q -v ikSpline_fromJointChain_RCL_CVs_IF`;
+	ka_namedIkSplineButton($name, $numberOfCVs);
+}
+
+global proc ka_riggingBuddie_strechIkSpline()
+{
+	
+}
+
+global proc ka_riggingBuddie_ikSplineUpVectors()
+{
+	
+}
+
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+
+global proc ka_namedIkSpline()
+{
+	if(`window -q -ex ka_OptionsWindow`) { deleteUI ka_OptionsWindow; }
+    window -title "ka Options Window" -resizeToFitChildren 1 ka_OptionsWindow;
+    	rowColumnLayout;
+    		text "Rig IK Spline";
+    		separator; separator -vis 0 -h 15;
+    		text "base Name";
+    		textField ka_OptionsWindow_TF1;
+    		separator; separator -vis 0 -h 5;
+    		text "number of CVs";
+    		intField -v 4 -minValue 4 ka_OptionsWindow_IF1;
+    		separator; separator -vis 0 -h 5;
+    		string $cmd = "";
+    		button -l "RIG IT!" -c ("{ string $tf = `textField -q -text ka_OptionsWindow_TF1`; string $if = `intField -q -value ka_OptionsWindow_IF1`; ka_namedIkSplineButton($tf, $if); }");
+    showWindow ka_OptionsWindow;
+
+}
+global proc ka_namedIkSplineButton(string $name, int $numberOfCVs)
+{
+    string $sel[] = `ls -sl`;
+    string $startJoint = $sel[0];
+    string $endJoint = $sel[1];
+    //int $numberOfCVs = 5; 
+    string $ikHandle[] = `ikHandle -sj $startJoint -ee $endJoint -solver ikSplineSolver -simplifyCurve 1 -numSpans ($numberOfCVs - 3)`;
+    string $ikCurveShape = `ikHandle -q -curve $ikHandle[0]`;
+    string $ikEndEffector = `ikHandle -q -endEffector $ikHandle[0]`;
+    string $ikCurve[] = `listRelatives -parent $ikCurveShape`;
+
+    
+    $ikHandle[0] = `rename $ikHandle[0] ($name + "_ikHandle")`;
+    $ikEndEffector = `rename $ikEndEffector ($name + "_effector")`;
+    $ikCurve[0] = `rename $ikCurve[0] ($name + "_splineIkCurve")`;
+
+	int $i;
+	for ($i=0; $i< $numberOfCVs; $i++)
+	{
+		string $cluster[] = `cluster -n ($name + "_splineIkCluster_" + $i) ($ikCurve[0] + ".cv[" + $i+ "]")`;
+		select -r ($name + "_splineIkCluster_" + $i);
+		//ka_zeroOutGroup();
+    }
+	select -r $sel;
+    
+    string $makeStrechy = `confirmDialog -title "ka_ikStrechCheck" -message "would you like to make ikSpline Strechy?"
+    -button "Yes" -button "No" 
+    -defaultButton "Yes"
+    -cancelButton "No"`;
+    if($makeStrechy == "Yes")
+    {
+    	ka_strechIkSplineButton($name, $ikHandle[0]);
+    }
+    else
+    {
+		string $makeStrechy = `confirmDialog -title "ka_ikStrechCheck" -message "would you like to make ikSpline Up Vectors?"
+		-button "Yes" -button "No" 
+		-defaultButton "Yes"
+		-cancelButton "No"`;
+		if($makeStrechy == "Yes")
+		{
+			ka_ikSplineUpVectorsButton($name, $ikHandle[0]);
+		}
+    }
+}
+
+global proc ka_strechIkSpline()
+{
+    string $sel[] = `ls -shortNames -sl`;
+    if(`objectType $sel[0]` != "ikHandle") { error "must select ikSpline's ikHandle"; }
+    string $name;
+    string $result = `promptDialog
+    -title "Root Name of ikSpline"
+    -message ("ikHandle of ikSpline: " + $sel[0] + "\n\nenter root Name of ikSpline components:")
+    -button "OK" -button "Cancel"
+    -defaultButton "OK" -cancelButton "Cancel"
+    -dismissString "Cancel"`;
+
+    if ($result == "OK") 
+    {
+        $name = `promptDialog -query -text`;
+        ka_strechIkSplineButton($name, $sel[0]);
+    }
+    
+}
+global proc ka_strechIkSplineButton(string $name, string $ikHandle)
+{
+//    string $sel[] = `ls -sl`;
+//    string $ikHandle = $sel[0];
+    string $ikCurveShape = `ikHandle -q -curve $ikHandle`;
+    string $ikEndEffector = `ikHandle -q -endEffector $ikHandle`;
+    string $ikCurve[] = `listRelatives -parent $ikCurveShape`;
+    string $lastJoint = `connectionInfo -sourceFromDestination ($ikEndEffector + ".tx")`;
+    $lastJoint = `match "^[^\.]*" $lastJoint`;
+    
+    string $cuveInfoNode = `shadingNode -n ($name + "_ikSplineCurveInfo") -asUtility curveInfo`;
+    string $multiplyDivideNode1 = `shadingNode -n ($name + "_ikSplineScaleMultiplier") -asUtility multiplyDivide`;
+    string $multiplyDivideNode2 = `shadingNode -n ($name + "_ikSplineDivideByJoints") -asUtility multiplyDivide`;
+    float $arcLength = `getAttr ($cuveInfoNode + ".arcLength")`;
+    
+    string $jointList[] = `ikHandle -q -jointList $ikHandle`;
+    $jointList[`size($jointList)`] = $lastJoint;
+	
+    string $dummyGroup = `group -empty`;
+    string $dummyConstraint[] = `scaleConstraint $jointList[0] $dummyGroup`;
+    float $scale = `getAttr ($dummyGroup + ".scaleX")`;
+    delete $dummyGroup;
+    
+    connectAttr ($ikCurveShape + ".worldSpace[0]") ($cuveInfoNode + ".inputCurve");
+    connectAttr ($cuveInfoNode + ".arcLength") ($multiplyDivideNode1 + ".input1X");
+    connectAttr ($multiplyDivideNode1 + ".outputX") ($multiplyDivideNode2 + ".input1X");
+    setAttr ($multiplyDivideNode1 + ".input2X") $scale;
+    setAttr ($multiplyDivideNode1 + ".operation") 2;
+    setAttr ($multiplyDivideNode2 + ".input2X") (`size $jointList` - 1);
+    setAttr ($multiplyDivideNode2 + ".operation") 2;
+    
+    for($each in $jointList)
+    {
+        if($each != $jointList[0])
+        {
+            connectAttr ($multiplyDivideNode2 + ".outputX") ($each + ".translateX");
+        }
+    }
+    ctxAbort;
+      
+    string $makeStrechy = `confirmDialog -title "ka_ikStrechCheck" -message "would you like to make ikSpline Up Vectors?"
+    -button "Yes" -button "No" 
+    -defaultButton "Yes"
+    -cancelButton "No"`;
+    if($makeStrechy == "Yes")
+    {
+    	ka_ikSplineUpVectorsButton($name, $ikHandle);
+    }
+}
+global proc ka_ikSplineUpVectors()
+{
+    string $sel[] = `ls -shortNames -sl`;
+    if(`objectType $sel[0]` != "ikHandle") { error "must select ikSpline's ikHandle"; }
+    string $name;
+    string $result = `promptDialog
+    -title "Root Name of ikSpline"
+    -message ("ikHandle of ikSpline: " + $sel[0] + "\n\nenter root Name of ikSpline components:")
+    -button "OK" -button "Cancel"
+    -defaultButton "OK" -cancelButton "Cancel"
+    -dismissString "Cancel"`;
+
+    if ($result == "OK") {
+        $name = `promptDialog -query -text`;
+        ka_ikSplineUpVectorsButton($name, $sel[0]);
+    }
+}
+global proc ka_ikSplineUpVectorsButton(string $name, string $ikHandle)
+{
+ //   string $sel[] = `ls -sl`;
+//    string $ikHandle = $sel[0];
+    string $ikCurveShape = `ikHandle -q -curve $ikHandle`;
+    string $ikEndEffector = `ikHandle -q -endEffector $ikHandle`;
+    string $ikCurve[] = `listRelatives -parent $ikCurveShape`;
+    string $lastJoint = `connectionInfo -sourceFromDestination ($ikEndEffector + ".tx")`;
+    $lastJoint = `match "^[^\.]*" $lastJoint`;
+    string $jointList[] = `ikHandle -q -jointList $ikHandle`;
+    string $constraint[];
+    
+    string $upVectorStart[] = `spaceLocator  -n ($name + "_ikSplineStartUpVector")`;
+    string $upVectorEnd[] = `spaceLocator  -n ($name + "_ikSplineEndUpVector")`;
+               
+    $constraint = `pointConstraint -offset 0 0 0 -weight 1 $jointList[0] $upVectorStart[0]`;
+    delete $constraint;
+	$constraint = `orientConstraint -offset 0 0 0 -weight 1 $jointList[0] $upVectorStart[0]`;
+	delete $constraint;
+
+    $constraint = `pointConstraint -offset 0 0 0 -weight 1 $lastJoint $upVectorEnd[0]`;
+    delete $constraint;
+	$constraint = `orientConstraint -offset 0 0 0 -weight 1 $lastJoint $upVectorEnd[0]`;
+	delete $constraint;
+	
+	select-r $upVectorStart;
+	ka_zeroOutGroup();
+	select-r $upVectorEnd;
+	ka_zeroOutGroup();
+	
+	setAttr ($upVectorStart[0] + ".ty") 2;
+	setAttr ($upVectorEnd[0] + ".ty") 2;
+	
+	setAttr ($ikHandle + ".dTwistControlEnable") 1;
+	setAttr ($ikHandle + ".dWorldUpType") 2;
+
+	connectAttr -f  ($upVectorStart[0] + ".worldMatrix[0]") ($ikHandle + ".dWorldUpMatrix");
+	connectAttr -f  ($upVectorEnd[0] + ".worldMatrix[0]") ($ikHandle + ".dWorldUpMatrixEnd");
+
+    ctxAbort;
+    
+
+
+}
+
+/*-----------------------------------------------------( CHANNEL EDITOR )-----------------------------------------------------*/
+global proc ka_channelBox()
+{
+    if(`window -q -ex ka_channelBoxWindow`) { deleteUI ka_channelBoxWindow; }
+    window ka_channelBoxWindow;
+    
+    formLayout form;
+    textField -w 300 -changeCommand "ka_channelBoxAttrSearch" ka_channelBoxSearchField;
+    
+    channelBox -longNames 1 ka_channelBox;
+    formLayout -e
+        -af ka_channelBox "top" 20
+        -af ka_channelBox "left" 0
+        -af ka_channelBox "right" 0
+        -af ka_channelBox "bottom" 0
+        form;
+        //generateChannelMenu ka_channelBox;
+    showWindow;
+}
+
+global proc ka_channelBoxAttrSearch()
+{
+    $sel = `ls -sl`;
+    string $searchString = `textField -q -text ka_channelBoxSearchField`;
+    string $searchLower = `tolower $searchString`;
+
+    string $outputList[] = `listAttr -settable $sel[0]`;
+    string $newOutputList[];
+    
+    for($each in $outputList)
+    {
+    	string $eachLower = `tolower $each`;
+        if(`match $searchLower $eachLower` == $searchLower)
+        {
+            $newOutputList[`size($newOutputList)`] = $each;
+        }
+        if(`match $searchLower $eachLower` == $searchLower)
+        {
+            $newOutputList[`size($newOutputList)`] = $each;
+        }
+    }
+    
+    channelBox -e -fixedAttrList $newOutputList ka_channelBox;
+}
+/*-----------------------------------------------------( COPY ATTR VALUES )-----------------------------------------------------*/
+global proc ka_copyAttrValues()
+{
+    //get objects effected by the main channel box
+    string $channelBoxSelection[] = `channelBox -q -mainObjectList mainChannelBox`;
+    string $copyObject = $channelBoxSelection[(`size($channelBoxSelection)` - 1)];
+    
+    //get attributes selected in the channel box, if none are selected, then record them all
+    string $mainAttrs[] = `channelBox -q -selectedMainAttributes mainChannelBox`;
+    if(`size $mainAttrs` == 0)
+    {
+        $mainAttrs = `listAttr -keyable $copyObject`;
+    }
+    
+    optionVar -clearArray "ka_AttrClipBoard";
+
+    string $mainAttrsValues[];
+    string $valueType;
+    string $value;
+    string $connection;
+    
+    print ("\nattributes copied to ka_clipBoard: ");
+    //copy the attribute value of the specified attributes, and store them in an option variable
+    for($each in $mainAttrs)
+    {
+        $value = `getAttr ($copyObject + "." + $each)`;
+     
+        if(`connectionInfo -isDestination ($copyObject + "." + $each)`)
+        {//if attribute is the destination of a connection
+            $connection = `connectionInfo -sourceFromDestination ($copyObject + "." + $each)`;
+            
+            if(`gmatch $connection "*.rotate"`){ $connection =  (`match "^[^\.]*" $connection` + "." + $each); }
+            
+            if(`connectionInfo -isExactDestination ($copyObject + "." + $each)`)
+            {
+                if(`gmatch $connection "unitConversion*"`)
+                {//if connection is a unit Conversion
+                        $connection = `match "^[^\.]*" $connection`; //strip the attribute, leave object name
+                        $connection = `connectionInfo -sourceFromDestination ($connection + ".input")`;
+                }
+            }
+            optionVar -stringValueAppend "ka_AttrClipBoard" ("Connection-" + $connection);
+            print ($connection +", ");
+        }
+        else// if it is not a connection
+        {
+            optionVar -stringValueAppend "ka_AttrClipBoard" ($value);
+            print ($value +", ");
+        }
+
+    }
+    print ("\n");
+}
+
+global proc ka_pasteAttrValues()
+{
+    //get objects effected by the main channel box
+    string $channelBoxSelection[] = `channelBox -q -mainObjectList mainChannelBox`;
+    string $copyObject = $channelBoxSelection[(`size($channelBoxSelection)` - 1)];
+
+    //get attributes selected in the channel box, if none are selected, then record them all
+    string $mainAttrs[] = `channelBox -q -selectedMainAttributes mainChannelBox`;
+    if(`size $mainAttrs` == 0)
+    {
+        $mainAttrs = `listAttr -keyable $copyObject`;
+    }
+    
+    string $value;
+    //retrieve attribute array stored by the ka_copyAttrValues command
+    string $ka_clipBoard[] = `optionVar -q "ka_AttrClipBoard"`;
+
+    print ("\nattributes pasted from ka_clipBoard: ");
+    int $i = 0;
+    //paste the attributes retrieved to the new selections (the objects effected by the channel box)
+    for($each in $ka_clipBoard)
+    {
+        for($c in $channelBoxSelection)
+        {
+            if(`getAttr -settable ($c + "." + $mainAttrs[$i] )`)//check if attribute is locked or connected
+            {
+                if(`gmatch $each "Connection-*"`)
+                {//if pasting a connection
+                    string $connectionTokens[];
+                    tokenize $each "-" $connectionTokens;
+                    connectAttr $connectionTokens[1] ($c + "." + $mainAttrs[$i]);
+                    print ($connectionTokens[1] +", ");
+                }
+                else //if is a value rather than a connection
+                {
+                    setAttr -clamp ($c + "." + $mainAttrs[$i]) (float($each));
+                    print ($each +", ");
+                }
+            }
+        }
+        $i++;
+
+    }
+    print ("\n");
+}
+
+/*-----------------------------------------------------( ADD ATTR WINDOW )-----------------------------------------------------*/
+global proc ka_attrManager()
+{
+    if(`window -q -ex ka_attrManagerWindow`) { deleteUI ka_attrManagerWindow; }
+    //uncomment line above to see scripting changes to the window
+    if(!`window -q -ex ka_attrManagerWindow`) 
+    { 
+        window -title "ka Attribute Manager Window" -widthHeight 200 400 -resizeToFitChildren 1 ka_attrManagerWindow;
+            rowColumnLayout -cw 1 200 -numberOfColumns 1 -columnAlign 1 "center" ka_attrManagerRCL;
+                text " New Attr Name";
+                textField ka_newAttrNameInput;
+                //radioButtonGrp -numberOfRadioButtons 3 -labelArray3 "rename" "prefix" "sufix" -columnWidth 1 50 -columnWidth 2 50 newAttrTypeRBGroup;
+                //radioButtonGrp -numberOfRadioButtons 2 -labelArray2 "prefix" "sufix" -columnWidth 1 50 -columnWidth 2 50 CapsRG;
+                button -l "float" ka_attrManagerTypeButton;
+                text -vis 0 -l "float" ka_attrManagerTypeText;
+                    popupMenu -button 1 -mm 1 -p "ka_attrManagerTypeButton" ka_attrManagerTypeMM;
+                    //attribute type list follows format, readable name seperated by a space and followed by the acual name
+                    string $attrTypeList[] = {"float float", "boolean bool", "message message" };
+                    string $nameBreakdown[];
+                    for($each in $attrTypeList)
+                    {
+                        tokenize $each " " $nameBreakdown;
+                        menuItem -label $nameBreakdown[0] -c ("button -e -l \"" + $nameBreakdown[0] + "\" ka_attrManagerTypeButton; text -e -l \"" + $nameBreakdown[1] + "\" ka_attrManagerTypeText;") -p "ka_attrManagerTypeMM";
+                    }
+                    
+                    button -l "Create New Attribute" -c "ka_attrManagerNewAttr()";
+    }
+    showWindow ka_attrManagerWindow;
+}
+
+
+global proc ka_attrManagerNewAttr()
+{
+    string $sel[] = `ls -sl`;
+    string $name = `textField -q -text ka_newAttrNameInput`;
+    string $type = `text -q -l ka_attrManagerTypeText`;
+    
+    for($each in $sel)
+    {
+        addAttr -k 1 -longName $name -attributeType ($type) $each;
+    }
+}
+/*-----------------------------------------------------( TOGGLE TEMPLATE )-----------------------------------------------------*/
+global proc ka_toggleTemplated()
+{
+    $sel = `ls -sl`;
+    for($each in $sel)
+    {
+        setAttr ($each + ".template") (!(`getAttr ($each + ".template")`));
+    }
+}
+/*-----------------------------------------------------( MIRROR JOINT SHAPE )-----------------------------------------------------*/
+global proc ka_mirrorJointShape()
+{
+    string $sel[] = `ls -sl -l`;
+    string $shapes[];
+    
+    select -cl;
+    for($each in $sel)
+    {
+        $shapes = `listRelatives -shapes -f $sel[0]`;
+        for($s in $shapes)
+        {
+            select -add ($each + ".cv[*]");
+        }
+        scale -1 -1 -1 ;
+    }
+    select $sel;
+ }
+ /*-----------------------------------------------------( SET_ATTR )-----------------------------------------------------*/
+global proc ka_setAttr()
+{
+    string $sel[] = `ls -sl -l`;
+    
+    string $result = `promptDialog
+        -title "setAttr"
+        -text ""
+        -message "setAttr ($each + \".\" + $stringInput) $intInput;  \/\/ text input is what is entered below followed by a value"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+
+    if ($result == "OK") 
+    {
+        string $input = `promptDialog -query -text`;
+        string $inputTokens[];
+        tokenize $input " " $inputTokens;
+        for($each in $sel)
+        {
+            setAttr ($each + "." + $inputTokens[0]) (int($inputTokens[1]));
+        }
+    }
+}
+/*-----------------------------------------------------( SHAPE PARENT )-----------------------------------------------------*/
+global proc ka_ShapeParent()
+{
+    string $sel[] = `ls -sl -l`;
+    if(`size($sel)` == 2 )
+    {
+
+        string $shapeObj[] = `parent $sel[0] $sel[1]`;
+        makeIdentity -apply true -t 1 -r 1 -s 1 -n 1 $shapeObj[0];
+        string $shapes[] = `listRelatives -f -s $shapeObj[0]`;
+        for($s in $shapes)
+        {
+            parent -shape -add $s $sel[1];
+        }
+        delete $shapeObj;
+        select -r $sel[1];
+    }
+    else
+    {
+        error "script only works when 2 objects are selected";
+    }
+}
+/*-----------------------------------------------------( POINT ON CURVE CONSTRAINT )-----------------------------------------------------*/
+global proc ka_pointOnCurveConstraint()
+{
+    string $sel[] = `ls -sl`;
+    addAttr -ln "pointOnCurvePerecnt"  -at double  -min 0 -max 1 -dv 0.5 $sel[1];
+
+    string $pointOnCurveInfoNode = `shadingNode -asUtility "pointOnCurveInfo"`;
+    connectAttr -f ($sel[0]+".worldSpace") ($pointOnCurveInfoNode+".inputCurve");
+    connectAttr -f ($pointOnCurveInfoNode+".position") ($sel[1]+".translate");
+    connectAttr -f ($pointOnCurveInfoNode+".parameter") ($sel[1]+".pointOnCurvePerecnt");
+
+    tangentConstraint -weight 1 -aimVector 1 0 0 -upVector 0 1 0 -worldUpType "vector" -worldUpVector 0 1 0 $sel[0] $sel[1];
+}
+/*-----------------------------------------------------( COPY FLIPPED SHAPE )-----------------------------------------------------*/
+global proc ka_copyFlippedShape()
+{
+    string $sel[] = `ls -sl -l`;
+    string $duplicate[] = `duplicate -rr $sel[0]`;
+    select -r $duplicate[0];
+    abSymCtl("fsBn");
+    select -add $sel[1];
+    
+    string $blendshapeNode[] = `blendShape -tc 0 -n "DELETEME_shapes"`;
+    setAttr ($blendshapeNode[0] + "." + $duplicate[0]) 1;
+    delete -ch $sel[1];
+    delete $duplicate[0];
+    
+
+
+}
+/*-----------------------------------------------------( SET COLOUR )-----------------------------------------------------*/
+global proc kaRig_colourSelection(string $colour)
+{
+    string $sel[] = `ls -sl -l`;
+    for($each in $sel)
+    {
+        kaRig_colour $each $colour;
+    }
+}
+
+global proc kaRig_colour(string $object, string $colour)
+{
+        string $each = $object;
+        setAttr ($each + ".overrideEnabled") 1;
+        switch($colour)
+        {
+            case "black": setAttr ($each + ".overrideColor") 1; break;
+            case "darkGrey": setAttr ($each + ".overrideColor") 2; break;
+            case "lightGrey": setAttr ($each + ".overrideColor") 3; break;
+            case "white": setAttr ($each + ".overrideColor") 16; break;
+            case "blueGreen": setAttr ($each + ".overrideColor") 28; break;
+            case "darkBlue": setAttr ($each + ".overrideColor") 5; break;
+            case "blue": setAttr ($each + ".overrideColor") 15; break;
+            case "brightBlue": setAttr ($each + ".overrideColor") 6; break;
+            case "lightBlue": setAttr ($each + ".overrideColor") 18; break;
+            case "dullBlue": setAttr ($each + ".overrideColor") 29; break;
+            case "darkPurple": setAttr ($each + ".overrideColor") 8; break;
+            case "dullPurple": setAttr ($each + ".overrideColor") 30; break;
+            case "magenta": setAttr ($each + ".overrideColor") 9; break;
+            case "dullmagenta": setAttr ($each + ".overrideColor") 31; break;
+            case "darkRed": setAttr ($each + ".overrideColor") 4; break;
+            case "brightRed": setAttr ($each + ".overrideColor") 13; break;
+            case "pink": setAttr ($each + ".overrideColor") 20; break;
+            case "sand": setAttr ($each + ".overrideColor") 21; break;
+            case "lightBrown": setAttr ($each + ".overrideColor") 10; break;
+            case "darkBrown": setAttr ($each + ".overrideColor") 11; break;
+            case "dullBrown": setAttr ($each + ".overrideColor") 25; break;
+            case "darkOrange": setAttr ($each + ".overrideColor") 12; break;
+            case "dullOrange": setAttr ($each + ".overrideColor") 22; break;
+            case "brightYellow": setAttr ($each + ".overrideColor") 17; break;
+            case "lightYellow": setAttr ($each + ".overrideColor") 23; break;
+            case "yellowGreen": setAttr ($each + ".overrideColor") 26; break;
+            case "darkGreen": setAttr ($each + ".overrideColor") 7; break;
+            case "brightGreen": setAttr ($each + ".overrideColor") 14; break;
+            case "lightGreen": setAttr ($each + ".overrideColor") 19; break;
+            case "treeGreen": setAttr ($each + ".overrideColor") 24; break;
+            case "dullGreen": setAttr ($each + ".overrideColor") 27; break;
+        }
+}
+/*-----------------------------------------------------( LOCK ATTRS )-----------------------------------------------------*/
+global proc kaRig_AttrLock(string $object, string $attr)
+{
+    string $objList[];
+    if($object == ""){ $objList = `ls -sl`; } else { $objList[0] = $object; }
+    
+    for($each in $objList)
+    {
+        switch($attr)
+        {
+            case "t": setAttr -lock 1 -keyable 0 ($object + ".tx"); setAttr -lock 1 -keyable 0 ($object + ".ty"); setAttr -lock 1 -keyable 0 ($object + ".tz"); break;
+            case "r": setAttr -lock 1 -keyable 0 ($object + ".rx"); setAttr -lock 1 -keyable 0 ($object + ".ry"); setAttr -lock 1 -keyable 0 ($object + ".rz"); break;
+            case "s": setAttr -lock 1 -keyable 0 ($object + ".sx"); setAttr -lock 1 -keyable 0 ($object + ".sy"); setAttr -lock 1 -keyable 0 ($object + ".sz"); break;
+            case "v": setAttr -lock 1 -keyable 0 ($object + "." + $attr); break;
+            
+            case "":
+                setAttr -lock 1 -keyable 0 ($object + ".tx"); setAttr -lock 1 -keyable 0 ($object + ".ty"); setAttr -lock 1 -keyable 0 ($object + ".tz");
+                setAttr -lock 1 -keyable 0 ($object + ".rx"); setAttr -lock 1 -keyable 0 ($object + ".ry"); setAttr -lock 1 -keyable 0 ($object + ".rz");
+                setAttr -lock 1 -keyable 0 ($object + ".sx"); setAttr -lock 1 -keyable 0 ($object + ".sy"); setAttr -lock 1 -keyable 0 ($object + ".sz");
+                setAttr -lock 1 -keyable 0 ($object + ".v");
+            break;
+        }
+    }
+}
+global proc kaRig_AttrUnlock(string $object, string $attr)
+{
+    string $objList[];
+    if($object == ""){ $objList = `ls -sl`; } else { $objList[0] = $object; }
+    
+    for($each in $objList)
+    {
+        switch($attr)
+        {
+            case "t": setAttr -lock 0 -keyable 1 ($object + ".tx"); setAttr -lock 0 -keyable 1 ($object + ".ty"); setAttr -lock 0 -keyable 1 ($object + ".tz"); break;
+            case "r": setAttr -lock 0 -keyable 1 ($object + ".rx"); setAttr -lock 0 -keyable 1 ($object + ".ry"); setAttr -lock 0 -keyable 1 ($object + ".rz"); break;
+            case "s": setAttr -lock 0 -keyable 1 ($object + ".sx"); setAttr -lock 0 -keyable 1 ($object + ".sy"); setAttr -lock 0 -keyable 1 ($object + ".sz"); break;
+            case "v": setAttr -lock 0 -keyable 1 ($object + "." + $attr); break;
+            
+            case "":
+                setAttr -lock 0 -keyable 1 ($object + ".tx"); setAttr -lock 0 -keyable 1 ($object + ".ty"); setAttr -lock 0 -keyable 1 ($object + ".tz");
+                setAttr -lock 0 -keyable 1 ($object + ".rx"); setAttr -lock 0 -keyable 1 ($object + ".ry"); setAttr -lock 0 -keyable 1 ($object + ".rz");
+                setAttr -lock 0 -keyable 1 ($object + ".sx"); setAttr -lock 0 -keyable 1 ($object + ".sy"); setAttr -lock 0 -keyable 1 ($object + ".sz");
+                setAttr -lock 0 -keyable 1 ($object + ".v");
+            break;
+        }
+    }
+}
+/*-----------------------------------------------------( HYPER GRAPH COMMANDS )-----------------------------------------------------*/
+/*
+global proc ka_hgAdd()
+{
+    string $CurrentPanel = `getPanel -withFocus`;
+    string $mainAttrs[] = `channelBox -q -selectedMainAttributes mainChannelBox`;
+    string $nodesConnectedToChannelAttrs[];
+    string $sel[] = `ls -sl`;
+    string $connections[];
+    int $dupFlag = 0;
+    
+    if(`size $mainAttrs` == 0)
+    {
+        if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+        {
+            hyperShadePanelGraphCommand($CurrentPanel, "addSelected");
+        }
+    }
+    else
+    {
+        for($each in $mainAttrs)
+        {
+            $connections  = `listConnections ($sel[0]  + "." + $each)`;
+
+            for($c in $connections)
+            {
+                for($n in $nodesConnectedToChannelAttrs)
+                {//duplicate check
+                    if($n == $c)
+                    {
+                        $dupFlag = 1;
+                    }
+                }
+                
+                if($dupFlag == 0)
+                {//if not a duplicate
+                    $nodesConnectedToChannelAttrs[`size($nodesConnectedToChannelAttrs)`] = $c;
+                }
+                $dupFlag = 0;
+            }
+        }
+
+        select $nodesConnectedToChannelAttrs;
+        hyperShadePanelGraphCommand($CurrentPanel, "addSelected");
+        select -r $sel;
+    }        
+}
+global proc ka_hgRemove()
+{
+   string $CurrentPanel = `getPanel -withFocus`;
+   if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+    {
+        hyperShadePanelGraphCommand($CurrentPanel, "removeSelected");
+    }
+}
+global proc ka_hgClear()
+{
+   string $CurrentPanel = `getPanel -withFocus`;
+   if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+    {
+        hyperShadePanelGraphCommand($CurrentPanel, "clearGraph");
+    }
+}
+global proc ka_hgInputsOutputs()
+{
+    string $CurrentPanel = `getPanel -withFocus`;
+    string $mainAttrs[] = `channelBox -q -selectedMainAttributes mainChannelBox`;
+    string $nodesConnectedToChannelAttrs[];
+    string $sel[] = `ls -sl`;
+    string $connections[];
+    int $dupFlag = 0;
+    
+    if(`size $mainAttrs` == 0)
+    {
+        if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+        {
+            hyperShadePanelGraphCommand($CurrentPanel, "showUpAndDownstream");
+        }
+    }
+    else
+    {
+        for($each in $mainAttrs)
+        {
+            $connections  = `listConnections ($sel[0]  + "." + $each)`;
+
+            for($c in $connections)
+            {
+                for($n in $nodesConnectedToChannelAttrs)
+                {//duplicate check
+                    if($n == $c)
+                    {
+                        $dupFlag = 1;
+                    }
+                }
+                
+                if($dupFlag == 0)
+                {//if not a duplicate
+                    $nodesConnectedToChannelAttrs[`size($nodesConnectedToChannelAttrs)`] = $c;
+                }
+                $dupFlag = 0;
+            }
+        }
+
+        select $nodesConnectedToChannelAttrs;
+        hyperShadePanelGraphCommand($CurrentPanel, "showUpAndDownstream");
+        select -r $sel;
+    }        
+}
+/*-----------------------------------------------------( MATCH CURVE SHAPE )-----------------------------------------------------*/
+global proc ka_matchCurveShape()
+{
+    string $sel[] = `ls -sl -l`;
+    if(`size($sel)`  != 2) { error "script only works when 2 items are selected"; }
+    string $shapes1[] = `listRelatives -shapes $sel[0]`;
+    string $shapes2[] = `listRelatives -shapes $sel[1]`;
+    float $cvs1[];
+    float $cvs2[];
+
+    int $i = 0;
+    int $cvCount;
+    for($each in $shapes1)
+    {
+        $cvs1 = (`getAttr ($each + ".cv[*]")`);
+        $cvCount = 0;
+        for($c in $cvs1)
+        {
+            setAttr ($shapes2[$i] + ".cv[" + $cvCount + "]") ($cvs1[$cvCount]);
+            $cvCount++;
+        }
+        $i++;
+    }
+    
+}
+//SAVE SCRIPT _______________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_save()
+{
+    string $filePath = `file -q -sn`;
+    string $currentScene = `file -q -sn -shn`;
+    string $oldSceneNumber = (`match "[0-9]+" $currentScene`);
+    string $newSceneNumber = (int($oldSceneNumber) + 1);
+    string $newFileName = `substitute $oldSceneNumber $currentScene $newSceneNumber`;
+    
+    string $nameComponents[];
+    tokenize $currentScene $oldSceneNumber  $nameComponents;
+    string $description = $nameComponents[(`size($nameComponents)` - 1)] ;
+    $description = $nameComponents[(`size($nameComponents)` - 1)] ;
+    $description = `substitute ".mb" $description ""`;
+    $description = `substitute ".ma" $description ""`;
+    $description = `substitute "_" $description ""`;
+
+    string $newDescription;
+    string $result = `promptDialog
+        -title "Optional Description Suffix"
+        -text $description
+        -message "Enter Description Suffix:"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+
+    if ($result == "OK") 
+    {
+        $newDescription = `promptDialog -query -text`;
+        $newFileName = `substitute $description $newFileName $newDescription`;
+        file -rename $newFileName;
+        file -save -type "mayaAscii";
+    }
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_rename()
+{
+    string $sel[] = `ls -sl`;
+    string $name = $sel[0];
+    string $newName;
+    
+    string $result = `promptDialog
+        -title "Rename Tool"
+        -text $name
+        -message "Rename"
+        -button "OK" -button "Cancel"
+        -defaultButton "OK" -cancelButton "Cancel"
+        -dismissString "Cancel"`;
+
+    if ($result == "OK") 
+    {
+        $newName = `promptDialog -query -text`;
+        for($each in $sel)
+        {
+            rename $each $newName;
+        }
+    }
+
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_attrEditor()
+{
+	if(`window -q -ex ka_attrEditorWindow`) { deleteUI ka_attrEditorWindow; }
+    window -title "ka Attr Editor Window" -widthHeight 300 600 -resizeToFitChildren 1 ka_attrEditorWindow;
+    
+    rowColumnLayout;
+    	text "Attribute Name";
+    	textField attrNamingTextField;
+    	        
+    	optionMenu -label "attribute Type";
+        menuItem -label "float";
+        menuItem -label "int";
+        menuItem -label "message";
+        button -l "Add Attribute";
+
+    	
+    
+    showWindow ka_attrEditorWindow;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_connectSameNameAttrs()
+{
+    string $sel[] = `ls -sl`;
+    string $attrList[] = `listAttr -k $sel[0]`;
+    print $attrList;
+    for($each in $attrList)
+    {
+        
+        if(`attributeExists $each $sel[1]`)
+        {
+            connectAttr -f ($sel[0] + "." + $each) ($sel[1] + "." + $each);
+        }
+    }
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+//this version of maya's ka_findRelatedSkinCluster script will not error if there are two objects in the scene with the same name, as it accepts long names
+global proc string ka_findRelatedSkinCluster(string $object)
+{
+    string $skinCluster;
+    string $history[] = `listHistory $object`;
+    for($each in $history)
+    {
+        if(`objectType -isType "skinCluster" $each`)
+        {
+            $skinCluster = $each;
+        }
+    }
+    
+    if($skinCluster == "")
+    {
+        error "was not able to determin the skinCluster";
+    }
+    return $skinCluster;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_tranferUVs(int $mode)
+//0 = world space
+//1 = local
+//3 = component
+{
+	string $sel[] = `ls -sl`;
+	string $sel1_shapes[] = `listRelatives -s -path $sel[0]`;
+	string $sel2_shapes[] = `listRelatives -s -path $sel[1]`;
+	string $sel2_history[] = `listHistory $sel2_shapes[0]`;
+	
+	string $possibleOrigMeshs[];
+	for($each in $sel2_history)
+	{
+		if(`nodeType $each` == "mesh")
+		{
+			$possibleOrigMeshs[`size($possibleOrigMeshs)`] = $each;
+		}
+	}
+
+	string $origMeshs[];
+	for($each in $possibleOrigMeshs)
+	{
+		if(`getAttr ($each + ".intermediateObject")` == 1)
+		{
+			$origMeshs[`size($origMeshs)`] = $each;
+		}
+	}
+	setAttr ($origMeshs[0] + ".intermediateObject") 0;
+	print $sel[0];
+	print $origMeshs[0];
+	transferAttributes -transferPositions 0 -transferNormals 0 -transferUVs 2 -transferColors 0 -sampleSpace 4 -flipUVs 0 -colorBorders 1 $sel[0] $origMeshs[0];
+	delete -ch $origMeshs[0];
+	setAttr ($origMeshs[0] + ".intermediateObject") 1;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_removeJointOrientation()
+{
+	string $sel[] = `ls -sl`;
+	float $tempFloat;
+	for($each in $sel)
+	{
+		float $tempFloat = `getAttr ($each + ".jointOrientX")`;
+		setAttr ($each + ".jointOrientX") 0;
+		setAttr ($each + ".rx") $tempFloat;
+		
+		float $tempFloat = `getAttr ($each + ".jointOrientY")`;
+		setAttr ($each + ".jointOrientY") 0;
+		setAttr ($each + ".ry") $tempFloat;
+		
+		float $tempFloat = `getAttr ($each + ".jointOrientZ")`;
+		setAttr ($each + ".jointOrientZ") 0;
+		setAttr ($each + ".rz") $tempFloat;
+
+	}
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+
+
+//________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+
+//global proc ka_PoseDriver()
+//{
+	//string $sel[] = `ls -sl`;
+	//string $mainVectorProduct[] = ``;
+	
+//}

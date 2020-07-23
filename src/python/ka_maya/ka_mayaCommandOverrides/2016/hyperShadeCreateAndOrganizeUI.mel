@@ -1,0 +1,201 @@
+// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+// Description:  This procedure is called to create the form for
+//     the render create bar UI.
+// 
+global proc createRenderCreateBarUIForm(string $parentForm)
+{
+    renderCreateBarUI($parentForm);
+}
+
+proc string createAndOrganizeTab_melToUI(string $mel)
+{
+	string $result = $mel;
+
+	if ( $mel == "Bins" ){
+		$result = (uiRes("m_hyperShadeCreateAndOrganizeUI.kBins"));
+	} else if ( $mel == "Create" ){
+		$result = (uiRes("m_hyperShadeCreateAndOrganizeUI.kCreate"));
+	} else { 
+		uiToMelMsg( "createAndOrganizeTab_melToUI", $mel, 1 );
+	}
+
+	return $result;
+}
+
+// Description:  This procedure is called to create the tab. 
+//      The parameter $callCreateTabContentProc allows us to
+//      choose either we want to create the tab content right away,
+//      or not to create the tab content yet.
+//      
+proc string createTab(
+    string $panel,
+    string $tabLayout,
+    string $tabLabel,
+    string $createTabContentProc,
+    int $callCreateTabContentProc)
+{
+    //
+    // Description:
+    //  This procedure is called when the user creates a new tab.
+    //
+    // Returns:
+    //  The name of the newly created tab.
+    //
+    string $oldParent = `setParent -q`;
+
+    setParent $panel;
+    setParent $tabLayout;
+        string $tab = `formLayout $tabLabel`;
+
+            // If we want the tab content to be created right away,
+            // we call the createTabContentProc.
+            //
+            if ($callCreateTabContentProc)
+            {
+                eval $createTabContentProc $tab;
+            }
+        setParent ..; // from $tab
+    setParent ..; // from $tabLayout
+
+    // Set the label on the tab
+    //
+    tabLayout
+        -edit
+        -tabLabel $tab `createAndOrganizeTab_melToUI $tabLabel`
+        $tabLayout;
+
+    setParent $oldParent;
+
+    // Return the name of the tab which was created.
+    //
+    return $tab;
+}
+
+// Description:  This procedure is called to create hyperShade
+//      . create bar 
+//      . and bin UI
+//  as tabs of their parent form.
+//  
+global proc hyperShadeCreateAndOrganizeUI(string $panel,
+    string $parentForm)
+{
+    string $oldParent = `setParent -q`;
+    setParent $parentForm;
+
+    string $tabLayout = `tabLayout
+        -manage false
+        -selectCommand
+            ("refreshHyperShadeCreateAndOrganizeTabs "
+                + $panel
+                + " createAndOrganizeTabs")
+        createAndOrganizeTabs`;
+    setParent ..; // from createAndOrganizeTabs
+
+    formLayout -edit 
+        -attachForm createAndOrganizeTabs top 0
+        -attachForm createAndOrganizeTabs bottom 0
+        -attachForm createAndOrganizeTabs left 0
+        -attachForm createAndOrganizeTabs right 0
+        $parentForm;
+
+    // Create the content of the createAndOrganizeTabs. 
+    //
+    createTab($panel, "createAndOrganizeTabs", "Create",
+        "createRenderCreateBarUIForm", true);
+    
+    createTab($panel, "createAndOrganizeTabs", "Bins",
+        "hyperShadeBinsUI", false);
+
+    tabLayout -edit -manage true $tabLayout;
+
+    setParent $oldParent; 
+}
+
+// Description:  This procedure is called to return the name of
+//  the create bar form.
+//
+global proc string hyperShadeCreateBarForm(string $panel)
+{
+    string $oldParent = `setParent -q`;
+
+    setParent $panel;
+    string $childArray[] = `tabLayout -q -childArray createAndOrganizeTabs`; 
+    string $createBarForm = $childArray[0]; 
+    
+    setParent $oldParent;
+    return $createBarForm;
+}
+
+// Description:  This procedure is called to return the name of
+//  the bin UI form.
+//
+global proc string hyperShadeBinUIForm(string $panel)
+{
+    string $oldParent = `setParent -q`;
+
+    setParent $panel;
+    string $childArray[] = `tabLayout -q -childArray createAndOrganizeTabs`; 
+    string $binUIForm = $childArray[1]; 
+    
+    setParent $oldParent;
+    return $binUIForm;
+}
+
+// Description:  This procedure is called to return which tab
+//  is currently active.
+// 
+proc string activeTab(string $panel, string $tabLayout)
+{
+    string $oldParent = `setParent -q`;
+    
+    setParent $panel;
+    string $tab = `tabLayout -q -selectTab $tabLayout`;
+
+    setParent $oldParent; 
+
+    return $tab;
+}
+
+// Description:  This procedure is called to refresh the
+//  visible hyper shade create and organize tab.
+//
+global proc refreshHyperShadeCreateAndOrganizeTabs ( 
+    string $panel,
+    string $tabLayout)
+{
+    string $oldParent = `setParent -q`;
+
+    setParent $panel;
+
+    // If the new visible tab is the bin tab, 
+    // then refresh the bin tab.
+    //
+    if (activeTab($panel, $tabLayout) == "Bins")
+    {
+        // Recompute bin list and refresh.
+        //
+        refreshHyperShadeBinsUI("Bins", false);
+    }
+
+    setParent $oldParent; 
+}

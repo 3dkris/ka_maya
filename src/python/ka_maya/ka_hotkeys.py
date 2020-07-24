@@ -117,7 +117,8 @@ def get_window_state(window_name):
         return False
     return cmds.window(window_name, q=1, vis=1)
 
-def closeWindow(window_name):
+
+def close_window(window_name):
     try:
         cmds.window(window_name, e=1, vis=0)
 
@@ -527,7 +528,7 @@ class Hotkeys(object):
             script_editor_window = "scriptEditorPanel1Window"
             script_editor_state = get_window_state(script_editor_window)
             if script_editor_state:
-                closeWindow(script_editor_window)
+                close_window(script_editor_window)
             else:
                 mel.eval('tearOffPanel "Script Editor" "scriptEditorPanel" true;')
 
@@ -543,7 +544,7 @@ class Hotkeys(object):
             script_editor_window = "componentEditorPanel1Window"
             script_editor_state = get_window_state(script_editor_window)
             if script_editor_state:
-                closeWindow(script_editor_window)
+                close_window(script_editor_window)
             else:
                 mel.eval('tearOffPanel "Component Editor" "componentEditorPanel" true;')
 
@@ -745,7 +746,11 @@ class Hotkeys(object):
         def command():
             window = "outlinerPanel1Window"
             state = get_window_state(window)
-            cmds.window(window, e=1, vis=(not state))
+            if state:
+                close_window(window)
+
+            else:
+                mel.eval('tearOffPanel "Outliner" "outlinerPanel" false;')
 
         @staticmethod
         def release_command():

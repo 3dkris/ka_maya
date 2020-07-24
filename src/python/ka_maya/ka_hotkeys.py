@@ -112,6 +112,18 @@ def undoHandler(object):
 
     return undoHandler
 
+def get_window_state(window_name):
+    if not cmds.window(window_name, q=1, exists=1):
+        return False
+    return cmds.window(window_name, q=1, vis=1)
+
+def closeWindow(window_name):
+    try:
+        cmds.window(window_name, e=1, vis=0)
+
+    except:
+        pass
+
 class undoable(object):
 
     def __init__(self, f):
@@ -512,11 +524,28 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            try:
-                mel.eval('deleteUI -window "componentEditorPanel1Window";')
-            except:
-                pass
-            mel.eval('tearOffPanel "Component Editor" "componentEditorPanel" true;')
+            script_editor_window = "scriptEditorPanel1Window"
+            script_editor_state = get_window_state(script_editor_window)
+            if script_editor_state:
+                closeWindow(script_editor_window)
+            else:
+                mel.eval('tearOffPanel "Script Editor" "scriptEditorPanel" true;')
+
+        @staticmethod
+        def release_command():
+            pass
+
+    class e_ctrl_alt():#keybind--------------------------------------------------------------------------
+        pushKey='e';  ctrl=True;  alt=True;
+
+        @staticmethod
+        def command():
+            script_editor_window = "componentEditorPanel1Window"
+            script_editor_state = get_window_state(script_editor_window)
+            if script_editor_state:
+                closeWindow(script_editor_window)
+            else:
+                mel.eval('tearOffPanel "Component Editor" "componentEditorPanel" true;')
 
         @staticmethod
         def release_command():
@@ -714,7 +743,9 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            mel.eval('tearOffPanel "Outliner" "outlinerPanel" false;')
+            window = "outlinerPanel1Window"
+            state = get_window_state(window)
+            cmds.window(window, e=1, vis=(not state))
 
         @staticmethod
         def release_command():

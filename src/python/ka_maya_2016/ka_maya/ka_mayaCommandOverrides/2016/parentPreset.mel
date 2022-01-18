@@ -1,0 +1,81 @@
+// Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+//
+//
+//  Creation Date:  September 19, 1997
+//
+//
+
+//
+//  Procedure Name:
+//      parentPreset
+//
+//  Description:
+//		Performs parent command.
+//
+//  Return Value:
+//      None.
+//
+global proc parentPreset(int $add, int $preserve)
+{
+	string $cmd = "parent";
+	if ($add) $cmd += " -add";
+	if (!$preserve) $cmd += " -r";
+
+	if ($preserve) {
+		string	$item;
+		int		$grouped = 0;
+		string	$obj[] = `ls -sl -type transform`;
+
+		//	Note: the following loop skips the last object (target object)
+		//
+		for ($i = 0; $i < size($obj)-1; ++$i) {
+			$item = $obj[$i];
+// KA_EDIT_001_START //this edit removes the auto group functionality for clusters
+			//string $conn[] = `listConnections -s false ($item+".wm")`;
+			//if (size($conn) > 0) {
+				//if (size(ls("-type","cluster",$conn)) > 0) {
+				//	string $groupMsg = "group "+$item+"; " ;
+				//	print($groupMsg);
+				//	$obj[$i] = `group $item`;
+				//	$grouped = 1;
+				//}
+			//}
+// KA_EDIT_001_END
+		}
+		if ($grouped) {
+			print "select";
+
+			for ($item in $obj){
+				 print (" " + $item);
+			}
+			print "; ";
+
+			select $obj;
+			print($cmd + ";\n");
+			eval($cmd);
+			warning (uiRes("m_parentPreset.kClustersGrouped"));
+			return;
+		}
+	}
+	evalEcho($cmd);
+}

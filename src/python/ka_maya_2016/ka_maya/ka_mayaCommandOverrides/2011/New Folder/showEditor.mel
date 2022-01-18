@@ -1,0 +1,2976 @@
+//MODIFIED BY KRIS ANDREWS TO BLOCK BEHAVIOUR MODIFICATION OF CONTAINERS IN THE ATTRIBUTE EDITOR
+//ALL MY MODIFICATIONS ARE TAGGED WITH A //KEDIT// SO THEY CAN BE EASILY FOUND
+
+
+// Copyright (C) 1997-2011 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+//	Procedure Name:
+//	showEditor
+//
+//	Description Name;
+//	builds all the base UI for the attribute editor
+//
+//	Input Value:
+//	nodeName
+//
+//	Output Value:
+//	None
+//
+
+global string	$gAttributeEditorWindowName = "AEWindow";
+global string	$gAENothingSelectedLayout = "AENothingSelectedLayout";
+global string 	$gAEMenuBarLayoutName = "AEmenuBarLayout";
+global string   $gAERootLayoutName = "AErootLayout";
+global string	$gAERootPaneLayoutName = "AErootLayoutPane";
+global string   $gAEHeaderLayoutName = "AEheaderLayout";
+global string   $gAETabLayoutName = "AEtabLayout";
+global string   $gAEBaseLayoutName = "AEbaseFormLayout";
+global string   $gAEControlLayoutName = "AEcontrolFormLayout";
+global string   $gAENodeStack[];
+global string	$gLastViewedAEType = "";
+global int		$gAutoUpdateAttrEdFlag;
+global string	$gRelatedNodes[];	// used to store full names for DAG objects
+global string	$gAECurrentTab = "";
+global string	$gAEPrevCurrentTab = "";
+global string	$gAETabMarker[];
+global int		$gAESelectionScriptJob = 0;
+global int		$gAEConstructionScriptJob = 0;
+global int		$gAERenamingNode = false;
+
+//	This global fixes a problem with double updates. The showEditor() 
+//	procedure may change the visibility of the AE in the main window.
+//	That will result in additional update of the AE. We need this flag
+//	to ignore the second update in attributeEditorVisibilityStateChange().
+//
+//	See bug #138766 and #145364.
+//
+global int		$gIgnoreAEUpdate = false;
+
+//	NOTE: shadingEngine nodes do not have documentation right now, so don't
+//	show them in the Attribute Editor > Help menu. When it does get 
+//	documentation, this statement can be removed.
+//
+//	By reading the documentation for addAttributeEditorNodeHelp() you
+//	will see that specifying an empty string second argument prevents
+//	a help menu item from being created for the specified node type.
+//
+addAttributeEditorNodeHelp("shadingEngine", "");
+
+global proc resetAEGlobalVariables()
+{
+	global string	$gAErenderGlobalsQualityLUT[];
+	global string	$gAErenderGlobalsResolutionLUT[];
+	global string   $gAENodeStack[];
+	global string   $gRelatedNodes[];
+	global string   $gLastViewedAEType;
+	global string   $gAETabMarker[];
+	global string	$gAEIKHandleMenus[];
+	global string	$gTransformLimitsUILUT[];
+	global string	$gAEmotionPathWorldUpWidgets[];
+	global string	$gAEmotionPathFollowCBG[];
+	global string	$gAEaimConstraintWorldUpWidgets[];
+	global string	$gAEnormalConstraintWorldUpWidgets[];
+	global string	$gAEtangentConstraintWorldUpWidgets[];
+
+	clear $gAErenderGlobalsQualityLUT;
+	clear $gAErenderGlobalsResolutionLUT;
+	clear $gAENodeStack;
+	clear $gRelatedNodes;
+	clear $gAETabMarker;
+	clear $gAEIKHandleMenus;
+	clear $gTransformLimitsUILUT;
+	clear $gAEmotionPathWorldUpWidgets;
+	clear $gAEmotionPathFollowCBG;
+	clear $gAEaimConstraintWorldUpWidgets;
+	clear $gAEnormalConstraintWorldUpWidgets;
+	clear $gAEtangentConstraintWorldUpWidgets;
+	
+	$gLastViewedAEType = "";
+}
+
+proc int haveAttributeEditorHelpCommand(string $nodeType)
+//
+//	Description:
+//		Determine if a help command is specified for the argument
+//		node type.
+//
+//	Returns:
+//		True if a help command is associated with the node type.
+//
+//	Notes:
+//		See addAttributeEditorNodeHelp.mel for adding nodes and
+//		help commands.
+//
+{
+	global string $gAttributeEditorNodeTypeArray[];
+
+	int $result = false, $index, $length;
+
+	$length = size($gAttributeEditorNodeTypeArray);
+
+	//	Search the array for the node type.
+	//
+	for ($index = 0; $index < $length; $index++) {
+		if ($nodeType == $gAttributeEditorNodeTypeArray[$index]) {
+			$result = true;
+			break;
+		}
+	}
+
+	return $result;
+}
+
+proc string getAttributeEditorHelpCommand(string $nodeType)
+//
+//	Description:
+//		Return the help command for the argument node type.
+//
+//	Returns:
+//		The help command or an empty string.
+//
+//	Notes:
+//		See addAttributeEditorNodeHelp.mel for adding nodes and
+//		help commands.
+//
+{
+	global string $gAttributeEditorNodeTypeArray[];
+	global string $gAttributeEditorHelpCommandArray[];
+
+	string $helpCommand = "";
+
+	int $index, $length;
+
+	$length = size($gAttributeEditorNodeTypeArray);
+
+	//	Search the array for the node type. If found then get the
+	//	associated help command.
+	//
+	for ($index = 0; $index < $length; $index++) {
+		if ($nodeType == $gAttributeEditorNodeTypeArray[$index]) {
+			$helpCommand = $gAttributeEditorHelpCommandArray[$index];
+			break;
+		}
+	}
+
+	return $helpCommand;
+}
+
+proc string AEnoSlash ( string $a )
+{
+    string  $buf[];
+    int     $size = `tokenize $a "|/-" $buf`;
+    string  $retval = "";
+
+    $retval = $buf[$size - 1];
+    return $retval;
+}
+
+
+proc string[] showEditorGetList()
+//
+// This private method returns the correct list of
+// objects, based on the value of the optionVar named
+// "attrEdListType".  If this variable does not yet
+// exist, it is created and set to "selected"
+//
+{
+    // Get the current list type from the option variables.
+    //
+    string $listType = "selected";
+    if ( `optionVar -exists "attrEdListType"` ){
+        $listType = `optionVar -q "attrEdListType"`;
+    }
+
+    string $outList[];
+
+	string $textures2D[] = { "bulge",
+							 "checker",
+							 "cloth",
+							 "file",
+							 "fractal",
+							 "grid",
+							 "mountain",
+							 "ramp",
+							 "water",
+							 "noise",
+							 "ocean",
+							 "fluidTexture2D" };
+	string $textures3D[] = { "brownian",
+							 "cloud",
+							 "crater",
+							 "granite",
+							 "leather",
+							 "marble",
+							 "rock",
+							 "snow",
+							 "solidFractal",
+							 "stucco",
+							 "wood",
+							 "volumeNoise",
+							 "fluidTexture3D" };
+	string $texturesEnv[] = {"envBall",
+							 "envChrome",
+							 "envCube",
+							 "envSky",
+							 "envSphere" };
+	string $texturesOther[] = {"layeredTexture" };
+
+    // Depending on the list type, get the right list
+    // of objects.
+    //
+    switch( $listType ){
+      case "selected":
+      case "auto":
+        $outList = `ls -sl`;
+        break;
+      case "particle":
+        $outList = `ls -type particle`;
+        break;
+      case "emitter":
+        $outList = `ls -type pointEmitter`;
+        break;
+      case "spring":
+        $outList = `ls -type spring`;
+        break;
+      case "air":
+        $outList = `ls -type airField`;
+        break;
+      case "drag":
+        $outList = `ls -type dragField`;
+        break;
+      case "gravity":
+        $outList = `ls -type gravityField`;
+        break;
+      case "newton":
+        $outList = `ls -type newtonField`;
+        break;
+      case "radial":
+        $outList = `ls -type radialField`;
+        break;
+      case "turbulence":
+        $outList = `ls -type turbulenceField`;
+        break;
+      case "uniform":
+        $outList = `ls -type uniformField`;
+        break;
+      case "vortex":
+        $outList = `ls -type vortexField`;
+        break;
+      case "rigidSolver":
+        $outList = `ls -type rigidSolver`;
+        break;
+      case "rigidBody":
+        $outList = `ls -type rigidBody`;
+        break;
+      case "rigidConstraint":
+        $outList = `ls -type rigidConstraint`;
+        break;
+      case "rigidSolver":
+        $outList = `ls -type rigidSolver`;
+        break;
+      case "rigidBody":
+        $outList = `ls -type rigidBody`;
+        break;
+      case "rigidConstraint":
+        $outList = `ls -type rigidConstraint`;
+        break;
+      case "fluidShape":
+        $outList = `ls -type fluidShape`;
+        break;
+      case "hairSystem":
+        $outList = `ls -type hairSystem`;
+        break;
+      case "nCloth":
+        $outList = `ls -type nCloth`;
+        break;
+      case "nParticle":
+        $outList = `ls -type nParticle`;
+        break;
+      case "nRigid":
+        $outList = `ls -type nRigid`;
+        break;
+      case "dynamicConstraint":
+        $outList = `ls -type dynamicConstraint`;
+        break;
+      case "joint":
+        $outList = `ls -type joint`;
+        break;
+      case "handle":
+        $outList = `ls -type ikHandle`;
+        break;
+      case "ikSystem":
+        $outList = `ls -type ikSystem`;
+        break;
+      case "ikSolver":
+        $outList = `ikSystem -q -ls`;
+        break;
+      case "blendShape":
+        $outList = `ls -type blendShape`;
+        break;
+      case "geometryFilter":
+	    $outList = `ls -type geometryFilter`;		// all deformers
+        break;
+      case "cluster":
+        $outList = `ls -type cluster`;
+        break;
+      case "flexor":
+        $outList = `ls -type flexorShape`;
+        break;
+      case "lattice":
+        $outList = `ls -type lattice`;
+        break;
+      case "jiggle":
+        $outList = `ls -type jiggle`;
+        break;
+      case "sculpt":
+        $outList = `ls -type sculpt`;
+        break;
+      case "wire":
+        $outList = `ls -type wire`;
+        break;
+      case "nonLinear":
+        $outList = `ls -type nonLinear`;
+        break;
+      case "wrap":
+        $outList = `ls -type wrap`;
+        break;
+      case "allLights":
+        $outList = `ls -type spotLight -type directionalLight
+            -type ambientLight -type areaLight -type volumeLight
+			-type pointLight`;
+        break;
+      case "spotLight":
+        $outList = `ls -type spotLight`;
+        break;
+      case "pointLight":
+        $outList = `ls -type pointLight`;
+        break;
+      case "directionalLight":
+        $outList = `ls -type directionalLight`;
+        break;
+      case "ambientLight":
+        $outList = `ls -type ambientLight`;
+        break;
+      case "volumeLight":
+        $outList = `ls -type volumeLight`;
+        break;
+      case "areaLight":
+        $outList = `ls -type areaLight`;
+        break;
+      case "shadingGrp":
+        $outList = `ls -type shadingEngine`;
+        break;
+      case "allTextures":
+        string $cmd = "ls ";
+        for( $texture in $textures2D ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        for( $texture in $textures3D ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        for( $texture in $texturesEnv ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        for( $texture in $texturesOther ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        $outList = `eval $cmd`;
+        break;
+      case "textures2D":
+        string $cmd = "ls ";
+        for( $texture in $textures2D ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        $outList = `eval $cmd`;
+        break;
+      case "textures3D":
+        string $cmd = "ls ";
+        for( $texture in $textures3D ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        $outList = `eval $cmd`;
+        break;
+      case "texturesEnv":
+        string $cmd = "ls ";
+        for( $texture in $texturesEnv ) {
+            $cmd = ( $cmd + " -type " + $texture + " " );
+        }
+        $outList = `eval $cmd`;
+        break;
+    }
+
+    return $outList;
+}
+
+global proc showEditorHelpMenu()
+//
+//  Description:
+//		Called right before the help menu is shown.
+//		A "Help on <node type>" menu item is built for each 
+//		type of	node currently shown in the Attribute Editor.
+//		
+//  Return Value:
+//      None
+{
+	global string	$gRelatedNodes[];
+	global string	$gAEBaseLayoutName;
+
+	// Clear out the current help menu.
+	//
+	setParent -menu AEhelpMenu;
+	menu -edit -deleteAllItems AEhelpMenu;
+
+
+	// Create first item that opens help for the window.
+	//
+	menuItem -label (uiRes("m_showEditor.kHelponAttributeEditor"))
+		-enableCommandRepeat false
+		-command "showHelp AttributeEditor";
+
+	menuItem -divider true;
+
+	// If there are tabs showing (i.e. something's showing
+	// in the Attribute Editor) then build help items for
+	// each node type shown.
+	//
+	if (`formLayout -query -visible $gAEBaseLayoutName`) {
+
+		string $nodeTypes[];
+		int	$numNodes = size($gRelatedNodes);
+		int $numTypes = 0;
+		int $i;
+		int $j;
+
+		// For each node in the AE, get it's type and if it's not a duplicate
+		// then add it to the $nodeTypes[] array.
+		//
+		for ($i = 0; $i < $numNodes; $i++) {
+
+			string $type = `nodeType $gRelatedNodes[$i]`;
+			int $found = false;
+
+			for ($j = 0; $j < $numTypes; $j++) {
+				if ($type == $nodeTypes[$j]) {
+					$found = true;
+					break;
+				}
+			}
+
+			if (!$found) {
+				$nodeTypes[$numTypes] = $type;
+				$numTypes++;
+			}
+		}
+
+		$nodeTypes = `sort $nodeTypes`;
+
+		// Create a menu item for each type that was found.
+		//
+		for ($i = 0; $i < $numTypes; $i++) {
+
+			string $type = $nodeTypes[$i];
+			string $fmt = (uiRes("m_showEditor.kHelpFormat"));
+			//	Check if a help command has been specified 
+			//	by the user.
+			//
+			if (haveAttributeEditorHelpCommand($type)) {
+				string $helpCommand = getAttributeEditorHelpCommand($type);
+				//
+				//	Help command may be set to empty string if user does
+				//	not want menu item entry for node type.
+				//
+				if ("" != $helpCommand) {
+					menuItem -label (`format -s $type $fmt`)
+						-enableCommandRepeat false
+						-command ($helpCommand);
+				}
+
+			} else {
+				//	Provide a menu item pointing to our default location
+				//	for node documentation.
+				//
+				string $cmd = "showHelp -docs \"Nodes/" + $type + ".html\"";
+				menuItem -label (`format -s $type $fmt`)
+					-enableCommandRepeat false
+					-command ($cmd);
+			}
+		}
+
+		menuItem -divider true;
+	}
+
+	// Create last item that opens help for all nodes.
+	//
+	menuItem -label (uiRes("m_showEditor.kNodeAttriburte"))
+		-enableCommandRepeat false
+		-command "showHelp -docs \"Nodes/index.html\"";
+}
+
+global proc showEditorCreateMenu()
+//
+// This is called just before the object menu on the
+// attribute editor is posted.  It looks to see what
+// kind of objects need to be listed, then updates
+// the menu to contain the appropriate list.
+//
+{
+    string $nameList[] = showEditorGetList();
+
+    int $limit = size($nameList);
+    if ( $limit > 30 ){
+        $limit = 30;
+    }
+    int $i;
+
+    string $listType = "Nothing selected";
+    if ( `optionVar -exists "attrEdListType"` ){
+        $listType = `optionVar -q "attrEdListType"`;
+    }
+
+    setParent -menu objectMenu;
+    menu -e -dai objectMenu;
+
+    if( $limit == 0 ) {
+        if( $listType == "auto" || $listType == "selected" ) {
+            menuItem -label (uiRes("m_showEditor.kNothingSelected"))
+		-enable false;
+        } else {
+			string $fmt = (uiRes("m_showEditor.kNoObjects"));
+            menuItem -label ( `format -s $listType $fmt` );
+        }
+    } else {
+        for ( $i=0; $i<$limit; $i++ ){
+            menuItem
+                -c ("commitAENotes($gAECurrentTab);showEditor \"" + $nameList[$i] + "\";")
+                -label $nameList[$i];
+        }
+    }
+}
+
+
+global proc showEditorFocusMenu()
+// This proc is called just before the Focus menu on the attribute
+// editor is posted.  It looks to see what objects are on the
+// focus stack, then updates the menu to contain the apprpriate
+// list
+//
+{
+	global string	$gAENodeStack[];
+
+	setParent -menu focusMenu;
+
+	int $i = 0;
+	string $mI;
+
+	for ($i = 0; $i < size($gAENodeStack); $i++) {
+		$mI = ("SEFM"+$i);
+		if (`menuItem -exists $mI`) {
+			if ( `objExists $gAENodeStack[$i]` ) {
+				menuItem -e
+					-label ($gAENodeStack[$i])
+					-c ("commitAENotes($gAECurrentTab);showEditorExact \"" + $gAENodeStack[$i] + "\"")
+					$mI;
+			} else {
+				deleteUI $mI;
+			}
+		} else {
+			if ( `objExists $gAENodeStack[$i]` ) {
+				menuItem
+					-label ($gAENodeStack[$i])
+					-c ("commitAENotes($gAECurrentTab);showEditorExact \"" + $gAENodeStack[$i] + "\"")
+					$mI;
+			}
+		}
+	}
+
+	// Remove any excess items
+	int $notDone = true;
+	$i = size($gAENodeStack);
+	while ($notDone) {
+		$mI = ("SEFM"+$i);
+		if (`menuItem -exists $mI`) {
+			deleteUI -menuItem $mI;
+			$i++;
+		} else {
+			$notDone = false;
+		}
+	}
+}
+
+
+
+// Iterates over all the children in the formLayout and
+// attaches them all accordingly
+//
+proc AEattachEditor( string $formLayoutName )
+{
+	setParent $formLayoutName;
+	// attach the internal layouts
+    string $formChildren[] = `formLayout -q -ca $formLayoutName`;
+    if (size($formChildren) > 0) {
+        string $attachCmd = "formLayout -e ";
+        $attachCmd += (" -af " + $formChildren[0] + " top 5 ");
+        for ($i = 0; $i < size($formChildren); $i++) {
+            if ($i != 0) {
+                $attachCmd += (" -ac " + $formChildren[$i] +
+                                " top 5 " + $formChildren[$i-1]);
+            }
+            $attachCmd += (" -af " + $formChildren[$i] +
+                            " left 0 ");
+            $attachCmd += (" -af " + $formChildren[$i] +
+                            " right 0 ");
+        }
+    if (`scrollLayout -exists $formChildren[$i-1]`)
+            $attachCmd += (" -af " + $formChildren[$i-1] + " bottom 0 ");
+        $attachCmd += $formLayoutName;
+        eval $attachCmd;
+    }
+	setParent ..;
+}
+
+
+// Updates the title of tear off windows when the
+// node their displaying is renamed.  Also rebuild
+// the contained attribute editor to ensure that
+// all the callbacks are correct.
+//
+global proc updateTearOffTitle( string $windowName, string $edLayout )
+{
+	// get the previous UI parent
+	//
+	string $prevUIParent = `setParent -q`;
+
+	// set the parent to this tear-off window
+	// so that we get the correct nameField
+	//
+	setParent $windowName;
+
+	// get the name
+	//
+	string $name = `nameField -q -o tearOffNameField`;
+
+	// we only want to display the last item, not the
+	// full path name
+	//
+	string $tokens[];
+	tokenize($name,"|",$tokens);
+	string $shortName = $tokens[size($tokens)-1];
+
+	// update the window's title
+	//
+	window -e -title $shortName -in $shortName $windowName;
+	
+	// replace script job executed upon deletion
+	scriptJob 
+		-uiDeleted $windowName ("AEupdateNode(\"" + $shortName + "\", \"\")")
+		-replacePrevious -parent $windowName;
+		
+
+	// rebuild the attribute editor
+	//
+	createEditor $edLayout $name;
+
+	// reset the UI parent
+	//
+	setParent $prevUIParent;
+}
+
+global proc changeAEVisibility(int $newState)
+{
+    global string   $gAECurrentTab;
+	// When show/hide AE, increase/decrease reference count respectively
+	if($newState) {
+		AEupdateNode("", $gAECurrentTab);
+	} else {
+		AEupdateNode($gAECurrentTab, "");
+	}
+}
+
+// This method duplicates the current attribute editor into
+// another window.  The new window doens't have all the fancy
+// features, and cannot be switched.
+//
+global proc copyAEWindow()
+{
+    global string   $gAECurrentTab;
+	global string	$gAttributeEditorWindowName;
+	global string	$gAEMenuBarLayoutName;
+
+    if ( $gAECurrentTab != "" ) {
+
+        int $width = `menuBarLayout -q -width $gAEMenuBarLayoutName`;
+        int $height = `menuBarLayout -q -height $gAEMenuBarLayoutName`;
+
+        // create the window
+		string $tokens[];
+		tokenize($gAECurrentTab,"|",$tokens);
+		string $windowTitle = $tokens[size($tokens)-1];
+        $windowName = `window
+			-t $windowTitle
+			-in $windowTitle
+			-w $width -h $height`;
+
+        setUITemplate -pushTemplate attributeEditorTemplate;
+
+	string $topLayout = `formLayout`;
+
+        // Create the AE controls
+		string $layoutName = rebuildCopiedAEWindow( $topLayout, $gAECurrentTab );
+
+	// Increase poly cache reference count
+	AEupdateNode("", $gAECurrentTab);
+	// Create a script job for decreasing reference count
+	scriptJob -uiDeleted $windowName ("AEupdateNode(\"" + $windowTitle + "\", \"\")");
+	
+	// Create the Select and Close buttons at the bottom of the
+	// tear-off window.
+	//
+	setParent $topLayout;
+	string $selectButtonName = $windowTitle + "AECopySelectButton";
+	string $selectButton = `button -label (uiRes("m_showEditor.kSelect"))
+		-command ("select " + $gAECurrentTab) $selectButtonName`;
+	
+	string $closeButtonName = $windowTitle + "AECopyCloseButton";
+	string $closeButton = `button -label (uiRes("m_showEditor.kClose"))
+		-command ("deleteUI "+$windowName) $closeButtonName`;
+		
+	formLayout -edit
+		-attachForm	$selectButton	"bottom"  5
+		-attachForm	$selectButton	"left"    5
+		-attachPosition	$selectButton	"right"   2 50
+		-attachForm	$closeButton	"bottom"  5
+		-attachForm	$closeButton	"right"   5
+		-attachPosition	$closeButton	"left"    3 50
+
+		-attachControl	$layoutName	"bottom"  5 $selectButton
+		-attachForm	$layoutName	"top"     5
+		-attachForm	$layoutName	"left"    5
+		-attachForm	$layoutName	"right"   5
+		$topLayout;
+
+        setUITemplate -popTemplate;
+
+        showWindow $windowName;
+    }
+}
+
+global proc string rebuildCopiedAEWindow( string $parent, string $node )
+//
+//	Description:
+//		Builds and lays out the attribute controls of
+//		the copied Attribute Editor tab window.
+//
+//	Returns:
+//		The layout containing the created AE controls.
+//
+{
+	setUITemplate -pushTemplate attributeEditorTemplate;
+
+	string $layoutName = `formLayout -parent $parent`;
+
+	// create a nameField so that the window's
+	// title gets updated correctly if the node is
+	// renamed
+	//
+	string $fmt = (uiRes("m_showEditor.kNodeType"));
+	string $nodeType = `nodeType $node`;
+	string $buffer[];
+	tokenize($parent,"|",$buffer);
+	string $windowName = $buffer[0];
+
+	separator -style none -h 10;
+	rowLayout -nc 2;
+		text -label (`format -s $nodeType $fmt`);
+		nameField -o $node -ncc ("updateTearOffTitle " + $windowName + " " + $layoutName ) tearOffNameField;
+	setParent ..;
+	separator -style none -h 10;
+
+	// create the editor in the window
+	createEditor $layoutName $node;
+
+	AEattachEditor $layoutName;
+
+	string $windowTitle = `window -q -title $windowName`;
+	string $selectButtonName = $parent + "|" + $windowTitle + "AECopySelectButton";
+	if(`button -exists $selectButtonName`) {
+		formLayout -edit
+			-attachControl	$layoutName	"bottom"  5 $selectButtonName
+			-attachForm	$layoutName	"top"     5
+			-attachForm	$layoutName	"left"    5
+			-attachForm	$layoutName	"right"   5
+		$parent;
+	}
+
+	setUITemplate -popTemplate;
+
+	return $layoutName;
+}
+
+
+// Post the Rename Attribute window. 
+//
+global proc  showRenameAttrWin()
+{
+    global string   $gAECurrentTab;
+	if ( $gAECurrentTab != "" )
+	    dynRenameAttrWin( {} );	
+}
+
+// Post the Delete Attribute window. 
+//
+global proc  showDeleteAttrWin()
+{
+    global string   $gAECurrentTab;
+	if ( $gAECurrentTab != "" )
+	    dynDeleteAttrWin( {} );
+}
+
+// Post the Add Attribute window. 
+//
+global proc  showAddAttrWin()
+{
+    global string   $gAECurrentTab;
+	if ( $gAECurrentTab != "" )
+	    dynAddAttrWin( {} );
+}
+
+global proc showEditorAttrMenu()
+//
+//	Description:
+//		Build the attributes menu
+//
+{
+	setParent -menu addMenu;
+	menu -e -dai addMenu;
+
+	menuItem -label (uiRes("m_showEditor.kAddAttributes")) -c "showAddAttrWin";
+	menuItem -label (uiRes("m_showEditor.kDeleteAttributes")) -c "showDeleteAttrWin";
+	menuItem -label (uiRes("m_showEditor.kEditAttributes")) -c "showRenameAttrWin";
+}
+
+global proc showEditorShowMenu( string $showMenu )
+//
+//	Description:
+//		Build the show menu
+//
+{
+	setParent -menu $showMenu;
+	menu -e -dai $showMenu;
+
+	string $filterTypes[];
+	if( `optionVar -exists activeAEShowFilterTypes` ){
+		$filterTypes = `optionVar -query activeAEShowFilterTypes`;
+	}
+	int $numFilterTypes = size($filterTypes);
+
+	int $filterStates[];
+	if( `optionVar -exists activeAEShowFilterStates` ){
+		$filterStates = `optionVar -query activeAEShowFilterStates`;
+	}
+	int $numFilterStates = size($filterStates);
+
+	int $enable = ( $numFilterTypes > 0 );
+		
+	// Add the show menu
+	//
+
+	string $toggleMenu = `menuItem
+		-label (uiRes("m_showEditor.kShowTypes"))
+		-annotation (uiRes("m_showEditor.kShowTypesAnnot"))
+		-subMenu true -tearOff true -allowOptionBoxes false`;
+
+	setParent -menu $toggleMenu;
+
+	menuItem -enable $enable -label (uiRes("m_showEditor.kEnableAll")) -c ("toggleAEFilter \"\" 1 1");
+	menuItem -enable $enable -label (uiRes("m_showEditor.kToggleAll")) -c ("toggleAEFilter \"\" 1 2");
+	menuItem -enable $enable -label (uiRes("m_showEditor.kDisableAll")) -c ("toggleAEFilter \"\" 1 0");
+	menuItem -divider true;
+
+	// 0th entry is "Other", but we add it to the end, so start at 1
+	//
+	int $filterIndex = 1;
+	while( $filterIndex < $numFilterTypes ){
+		string $nodeType = $filterTypes[$filterIndex];
+		int $show = 1;	// Default value, just in case...
+		if( $filterIndex < $numFilterStates ){
+			$show = $filterStates[$filterIndex];
+		}
+		string $itemName = ($nodeType + "OnOff");
+		menuItem -label $nodeType -cb $show -c ("toggleAEFilter " + $nodeType + " 0 2") $itemName;
+		$filterIndex++;
+	}
+	int $show = 1;
+	if( $numFilterStates > 0 ){
+		menuItem -divider true;
+		$show = $filterStates[0];
+		menuItem -enable $enable -label (uiRes("m_showEditor.kOtherNodeTypes")) -cb $show -c ("toggleAEFilter \"\" 0 2") OtherOnOff;
+	}
+	setParent -menu ..;
+
+	menuItem -divider true;
+
+	menuItem -label (uiRes("m_showEditor.kAddNewType"))
+		-annotation (uiRes("m_showEditor.kAddNewTypeAnnot"))
+		-c "addAEFilter \"\"";
+
+	menuItem -label (uiRes("m_showEditor.kAddSelectedTypes"))
+		-annotation (uiRes("m_showEditor.kAddSelectedTypesAnnot"))
+		-c "addSelectedAEFilter";
+
+	menuItem -label (uiRes("m_showEditor.kAddRelatedTypes"))
+		-annotation (uiRes("m_showEditor.kAddRelatedTypesAnnot"))
+		-c "addRelatedAEFilter";
+
+	menuItem -divider true;
+
+	// Now add the remove submenu
+	//
+	string $removeMenu = `menuItem
+		-enable $enable -label (uiRes("m_showEditor.kRemoveNodeType"))
+		-annotation (uiRes("m_showEditor.kRemoveFilterAnnot"))
+		-subMenu true -tearOff false -allowOptionBoxes false`;
+
+	setParent -menu $removeMenu;
+	if( $enable ){
+		// Can't remove "Other", so skip it by starting at 1.
+		//
+		int $filterIndex = 1;
+		while( $filterIndex < $numFilterTypes ){
+			string $nodeType = $filterTypes[$filterIndex];
+			menuItem -label $nodeType -c ("removeAEFilter " + $nodeType);
+			$filterIndex++;
+		}
+		menuItem -divider true;
+		menuItem -label (uiRes("m_showEditor.kAll")) -c ("removeAEFilter \"\"");
+	}
+	setParent -menu ..;
+	menuItem -divider true;
+
+	menuItem -label (uiRes("m_showEditor.kSavePreset"))
+			-annotation (uiRes("m_showEditor.kSavePresetAnnot"))
+			-enable $enable -c "saveAEFilterPreset";
+	string $presets[];
+	if( `optionVar -exists AEshowPresets` ){
+		$presets = `optionVar -query AEshowPresets`;
+	}
+	int $numPresets = size($presets);
+	$enable = ($numPresets > 0);
+
+	string $loadPresetMenu = `menuItem -label (uiRes("m_showEditor.kLoadPreset"))
+			-annotation (uiRes("m_showEditor.kLoadPresetAnnot"))
+			-enable $enable -subMenu true -tearOff true -allowOptionBoxes false`;
+	if( $enable ){
+		setParent -menu $loadPresetMenu;
+		int $presetIndex = 0;
+		while( $presetIndex < $numPresets ){
+			string $presetName = $presets[$presetIndex];
+			menuItem -label $presetName -c ("loadAEFilterPreset " + $presetName);
+			$presetIndex++;
+		}
+	}
+}
+
+global proc buildAEdynamicsSubMenu(string $parent, string $listCluster, string $listType)
+{
+	setParent -menu $parent;
+
+	if( `menu -q -ni $parent` != 0 ) {
+		//
+		//	Menu is already built - just return
+		//
+		return;
+	}
+
+	menuItem -label (uiRes("m_showEditor.kParticles"))
+		-rb ($listType == "particle")
+		-cl $listCluster
+		-c "showEditorSetListType(\"particle\")";
+	menuItem -label (uiRes("m_showEditor.kEmitters"))
+		-rb ($listType == "emitter")
+		-cl $listCluster
+		-c "showEditorSetListType(\"emitter\")";
+	menuItem -label (uiRes("m_showEditor.kSprings"))
+		-rb ($listType == "spring")
+		-cl $listCluster
+		-c "showEditorSetListType(\"spring\")";
+	menuItem -label (uiRes("m_showEditor.kGravityFields"))
+		-rb ($listType == "gravity")
+		-cl $listCluster
+		-c "showEditorSetListType(\"gravity\")";
+	menuItem -label (uiRes("m_showEditor.kDragFields"))
+		-rb ($listType == "drag")
+		-cl $listCluster
+		-c "showEditorSetListType(\"drag\")";
+	menuItem -label (uiRes("m_showEditor.kAirFields"))
+		-rb ($listType == "air")
+		-cl $listCluster
+		-c "showEditorSetListType(\"air\")";
+	menuItem -label (uiRes("m_showEditor.kNewtonFields"))
+		-rb ($listType == "newton")
+		-cl $listCluster
+		-c "showEditorSetListType(\"newton\")";
+	menuItem -label (uiRes("m_showEditor.kRadialFields"))
+		-rb ($listType == "radial")
+		-cl $listCluster
+		-c "showEditorSetListType(\"radial\")";
+	menuItem -label (uiRes("m_showEditor.kTurbulenceFields"))
+		-rb ($listType == "turbulence")
+		-cl $listCluster
+		-c "showEditorSetListType(\"turbulence\")";
+	menuItem -label (uiRes("m_showEditor.kUniformFields"))
+		-rb ($listType == "uniform")
+		-cl $listCluster
+		-c "showEditorSetListType(\"uniform\")";
+	menuItem -label (uiRes("m_showEditor.kVortexFields"))
+		-rb ($listType == "vortex")
+		-cl $listCluster
+		-c "showEditorSetListType(\"vortex\")";
+	menuItem -label (uiRes("m_showEditor.kRigidSolver"))
+		-rb ($listType == "rigidSolver")
+		-cl $listCluster
+		-c "showEditorSetListType(\"rigidSolver\")";
+	menuItem -label (uiRes("m_showEditor.kRigidBodies"))
+		-rb ($listType == "rigidBody")
+		-cl $listCluster
+		-c "showEditorSetListType(\"rigidBody\")";
+	menuItem -label (uiRes("m_showEditor.kRigidConstraints"))
+		-rb ($listType == "rigidConstraint")
+		-cl $listCluster
+		-c "showEditorSetListType(\"rigidConstraint\")";
+	if( fluidEditLicenseFound() ) {
+		menuItem -label (uiRes("m_showEditor.kFluids"))
+			-rb ($listType == "fluidShape")
+			-cl $listCluster
+			-c "showEditorSetListType(\"fluidShape\")";
+		menuItem -label (uiRes("m_showEditor.kHair"))
+			-rb ($listType == "hairSystem")
+			-cl $listCluster
+			-c "showEditorSetListType(\"hairSystem\")";
+	}
+	if( nClothEditLicenseFound() ) {
+		menuItem -label (uiRes("m_showEditor.kNCloths"))
+			-rb ($listType == "nCloth")
+			-cl $listCluster
+			-c "showEditorSetListType(\"nCloth\")";
+		menuItem -label (uiRes("m_showEditor.kNParticles"))
+			-rb ($listType == "nParticle")
+			-cl $listCluster
+			-c "showEditorSetListType(\"nParticle\")";
+		menuItem -label (uiRes("m_showEditor.kNRigids"))
+			-rb ($listType == "nRigid")
+			-cl $listCluster
+			-c "showEditorSetListType(\"nRigid\")";
+		menuItem -label (uiRes("m_showEditor.kDynamicConstraints"))
+			-rb ($listType == "dynamicConstraint")
+			-cl $listCluster
+			-c "showEditorSetListType(\"dynamicConstraint\")";
+	}
+}
+
+global proc buildAEkinematicsSubMenu(string $parent, string $listCluster, string $listType)
+{
+	setParent -menu $parent;
+
+	if( `menu -q -ni $parent` != 0 ) {
+		//
+		//	Menu is already built - just return
+		//
+		return;
+	}
+
+	menuItem -label (uiRes("m_showEditor.kJoints"))
+		-rb ($listType == "joint")
+		-cl $listCluster
+		-c "showEditorSetListType(\"joint\")";
+	menuItem -label (uiRes("m_showEditor.kHandels"))
+		-rb ($listType == "handle")
+		-cl $listCluster
+		-c "showEditorSetListType(\"handle\")";
+	menuItem -label (uiRes("m_showEditor.kIKSystems"))
+		-rb ($listType == "ikSystem")
+		-cl $listCluster
+		-c "showEditorSetListType(\"ikSystem\")";
+	menuItem -label (uiRes("m_showEditor.kIKSolvers"))
+		-rb ($listType == "ikSolver")
+		-cl $listCluster
+		-c "showEditorSetListType(\"ikSolver\")";
+}
+
+global proc buildAEdeformersSubMenu(string $parent, string $listCluster, string $listType)
+{
+	setParent -menu $parent;
+
+	if( `menu -q -ni $parent` != 0 ) {
+		//
+		//	Menu is already built - just return
+		//
+		return;
+	}
+
+	menuItem -label (uiRes("m_showEditor.kAllDeformers"))
+		-rb ($listType == "geometryFilter")
+		-cl $listCluster
+		-c "showEditorSetListType(\"geometryFilter\")";
+	menuItem -label (uiRes("m_showEditor.kBlendShape"))
+		-rb ($listType == "blendShape")
+		-cl $listCluster
+		-c "showEditorSetListType(\"blendShape\")";
+	menuItem -label (uiRes("m_showEditor.kCluster"))
+		-rb ($listType == "cluster")
+		-cl $listCluster
+		-c "showEditorSetListType(\"cluster\")";
+	menuItem -label (uiRes("m_showEditor.kFlexor"))
+		-rb ($listType == "flexorShape")
+		-cl $listCluster
+		-c "showEditorSetListType(\"flexor\")";
+	menuItem -label (uiRes("m_showEditor.kJiggle"))
+		-rb ($listType == "jiggle")
+		-cl $listCluster
+		-c "showEditorSetListType(\"jiggle\")";
+	menuItem -label (uiRes("m_showEditor.kLattice"))
+		-rb ($listType == "lattice")
+		-cl $listCluster
+		-c "showEditorSetListType(\"lattice\")";
+	menuItem -label (uiRes("m_showEditor.kNonlinear"))
+		-rb ($listType == "nonLinear")
+		-cl $listCluster
+		-c "showEditorSetListType(\"nonLinear\")";
+	menuItem -label (uiRes("m_showEditor.kSculpt"))
+		-rb ($listType == "sculpt")
+		-cl $listCluster
+		-c "showEditorSetListType(\"sculpt\")";
+	menuItem -label (uiRes("m_showEditor.kWire"))
+		-rb ($listType == "wire")
+		-cl $listCluster
+		-c "showEditorSetListType(\"wire\")";
+	menuItem -label (uiRes("m_showEditor.kWrap"))
+		-rb ($listType == "wrap")
+		-cl $listCluster
+		-c "showEditorSetListType(\"wrap\")";
+}
+
+global proc buildAElightSubMenu(string $parent, string $listCluster, string $listType)
+{
+	setParent -menu $parent;
+
+	if( `menu -q -ni $parent` != 0 ) {
+		//
+		//	Menu is already built - just return
+		//
+		return;
+	}
+
+	menuItem -label (uiRes("m_showEditor.kAllLights"))
+		-rb ($listType == "allLights")
+		-cl $listCluster
+		-c "showEditorSetListType(\"allLights\")";
+	menuItem -label (uiRes("m_showEditor.kSpotLight"))
+		-rb ($listType == "spotLight")
+		-cl $listCluster
+		-c "showEditorSetListType(\"spotLight\")";
+	menuItem -label (uiRes("m_showEditor.kDirectionLight"))
+		-rb ($listType == "directionalLight")
+		-cl $listCluster
+		-c "showEditorSetListType(\"directionalLight\")";
+	menuItem -label (uiRes("m_showEditor.kPointLight"))
+		-rb ($listType == "pointLight")
+		-cl $listCluster
+		-c "showEditorSetListType(\"pointLight\")";
+	menuItem -label (uiRes("m_showEditor.kAmbientLight"))
+		-rb ($listType == "ambientLight")
+		-cl $listCluster
+		-c "showEditorSetListType(\"ambientLight\")";
+	menuItem -label (uiRes("m_showEditor.kVolumeLight"))
+		-rb ($listType == "volumeLight")
+		-cl $listCluster
+		-c "showEditorSetListType(\"volumeLight\")";
+	menuItem -label (uiRes("m_showEditor.kAreaLight"))
+		-rb ($listType == "areaLight")
+		-cl $listCluster
+		-c "showEditorSetListType(\"areaLight\")";
+}
+
+global proc buildAEshadingSubMenu(string $parent, string $listCluster, string $listType)
+{
+	setParent -menu $parent;
+
+	if( `menu -q -ni $parent` != 0 ) {
+		//
+		//	Menu is already built - just return
+		//
+		return;
+	}
+
+	menuItem -label (uiRes("m_showEditor.kShadingGroups"))
+		-rb ($listType == "shadingGrp")
+		-cl $listCluster
+		-c "showEditorSetListType(\"shadingGrp\")";
+	menuItem -d true;
+	menuItem -label (uiRes("m_showEditor.kAllTextures"))
+		-rb ($listType == "allTextures")
+		-cl $listCluster
+		-c "showEditorSetListType(\"allTextures\")";
+	menuItem -label (uiRes("m_showEditor.kTwoDTextures"))
+		-rb ($listType == "textures2D")
+		-cl $listCluster
+		-c "showEditorSetListType(\"textures2D\")";
+	menuItem -label (uiRes("m_showEditor.kThreeDTextures"))
+		-rb ($listType == "textures3D")
+		-cl $listCluster
+		-c "showEditorSetListType(\"textures3D\")";
+	menuItem -label (uiRes("m_showEditor.kEnvironmentTextures"))
+		-rb ($listType == "texturesEnv")
+		-cl $listCluster
+		-c "showEditorSetListType(\"texturesEnv\")";
+}
+
+// Build the menus.  The optionVar attrEdListType is used to
+// retain the list type.
+//
+proc buildAEMenus ( string $parent )
+{
+    setParent $parent;
+
+    string $listType = "auto";
+    if ( `optionVar -exists "attrEdListType"` ) {
+        $listType = `optionVar -q "attrEdListType"`;
+    }
+
+    menu -label (uiRes("m_showEditor.kList")) 
+	-familyImage "menuIconList.png"
+	listMenu;
+        string $listCluster = `radioMenuItemCollection`;
+        menuItem -label (uiRes("m_showEditor.kAutoLoad"))
+            -cb ($listType == "auto")
+            -c "showEditorSetListType(\"auto\")"
+			AEautoUpdateMenuItem;
+		menuItem -label (uiRes("m_showEditor.kLoadSelected"))
+			-c ("editSelected")
+			AEreloadSelectedMenuItem;
+        menuItem -label (uiRes("m_showEditor.kSelectedItems"))
+            -rb ($listType == "selected")
+            -cl $listCluster
+            -c "showEditorSetListType(\"selected\")"
+			AEselectedItemsMenuItem;
+        menuItem -d true;
+        $parent = `menuItem -label (uiRes("m_showEditor.kDynamics")) -subMenu true AEdynamicsSubMenu`;
+	    menuItem -e -postMenuCommand ("buildAEdynamicsSubMenu(\"" + $parent + "\", \"" + $listCluster + "\", \"" + $listType + "\")") -postMenuCommandOnce true $parent;
+            setParent -menu ..;
+        $parent = `menuItem -label (uiRes("m_showEditor.kKinematics")) -subMenu true AEkinematicsSubMenu`;
+	    menuItem -e -postMenuCommand ("buildAEkinematicsSubMenu(\"" + $parent + "\", \"" + $listCluster + "\", \"" + $listType + "\")") -postMenuCommandOnce true $parent;
+            setParent -menu ..;
+        $parent = `menuItem -label (uiRes("m_showEditor.kDeformers")) -subMenu true AEdeformersSubMenu`;
+	    menuItem -e -postMenuCommand ("buildAEdeformersSubMenu(\"" + $parent + "\", \"" + $listCluster + "\", \"" + $listType + "\")") -postMenuCommandOnce true $parent;
+	    setParent -menu ..;
+	$parent = `menuItem -label (uiRes("m_showEditor.kLights")) -subMenu true AElightSubMenu`;
+	    menuItem -e -postMenuCommand ("buildAElightSubMenu(\"" + $parent + "\", \"" + $listCluster + "\", \"" + $listType + "\")") -postMenuCommandOnce true $parent;
+            setParent -m ..;
+        $parent = `menuItem -label (uiRes("m_showEditor.kShading")) -subMenu true AEshadingSubMenu`;
+	    menuItem -e -postMenuCommand ("buildAEshadingSubMenu(\"" + $parent + "\", \"" + $listCluster + "\", \"" + $listType + "\")") -postMenuCommandOnce true $parent;
+            setParent -m ..;
+    menu -label (uiRes("m_showEditor.kObjects")) 
+	-pmc "showEditorCreateMenu" 
+	-familyImage "menuIconObject.png"
+	objectMenu;
+            // contents will be created when the menu is posted.
+    menu -label (uiRes("m_showEditor.kFocus")) 
+	-pmc "showEditorFocusMenu" 
+	-familyImage "menuIconFocus.png"
+	focusMenu;
+            // contents will be created when the menu is posted.
+    menu -label (uiRes("m_showEditor.kAttributes")) 
+	-familyImage "menuIconAdd.png"
+	-pmc "showEditorAttrMenu"
+	addMenu;
+
+            // contents will be created when the menu is posted.
+    string $showMenu = `menu -label (uiRes("m_showEditor.kShow")) 
+		-familyImage "menuIconShow.png"`;
+	menu -e -pmc ("showEditorShowMenu " +$showMenu ) $showMenu;
+
+    menu -label (uiRes("m_showEditor.kHelp"))
+	-helpMenu true
+	-pmc "showEditorHelpMenu"
+	AEhelpMenu;
+}
+
+
+// Expands the names of objects to their full path names
+//
+proc string[] AEexpandNames(string $array[])
+{
+	string	$retval[];
+	string	$buffer[];
+
+	for ($i = 0; $i < size($array); $i++) {
+		$buffer = `ls -l $array[$i]`;
+		for ($j = 0; $j < size($buffer); $j++) {
+			$retval[size($retval)] = $buffer[$j];
+		}
+		clear $buffer;
+	}
+	return $retval;
+}
+
+// Remove certain nodes (e.g. renderGlobals) from a list
+// so that user won't be able to tab to them
+// 
+global proc string[] AEfilterUnwantedNodes( string $array[],
+											int $inPairs )
+{   
+
+    string  $retVal[];
+    string  $nodeType;
+    int     $count, 
+			$i, 
+			$j = 0;
+    
+	$count = size( $array );
+    for ( $i = 0; $i < $count; $i++ )
+    {                  
+        		
+	    //Sometimes things in the array passed in doesn't actually exist.  An example is
+	    // a selected anim layer node in the layer editor.  It is added to a selection connection
+	    //which adds this animLayer node to an internal object set.  defaultNavigation and
+	    //listHistory will all show this temporary internal set, but the scene will not even
+	    // recognize this set as existing.  We have to filter out this internal set here.
+	    // See bug 304207 for more details.		    		
+	    
+        if(!`objExists  $array[$i]`)
+            continue;
+            
+		if( $inPairs ){
+			$i++;
+		}
+        $nodeType = `nodeType $array[$i]`;
+        
+        string $inheritedTypes[] = `nodeType -i $array[$i]`;
+        if( stringArrayContains( "animBlendNodeBase", $inheritedTypes ) ){
+            //Ignore all anim blend nodes.
+            continue;
+        }
+                
+        if($nodeType == "animLayer") {
+            string $currAffectingAnimLayers[] = `animLayer -q -affectedLayers`;
+            if( !stringArrayContains( $array[$i], $currAffectingAnimLayers ) ){
+                //Ignore all anim layers that aren't affecting the current selection
+                continue;
+            }
+            
+        }
+        
+	// Remove Referenced Fur Globals from a list
+        int $refFurGlobal = `reference -q -inr $array[$i]`;
+        if ( !($nodeType == "renderGlobals"  || ( $nodeType == "FurGlobals" && $refFurGlobal) ) )
+        {   
+			if( $inPairs ){
+				$retVal[$j++] = $array[$i-1];
+			}
+            $retVal[$j] = $array[$i];
+            $j++;
+        }
+    }
+    
+    return $retVal;
+}
+
+// Determines a node's related nodes and returns them in a
+// string array
+//
+proc string[] AEgetRelatedNodes( string $node )
+{
+	string	$rNodes[], $retval[], $tmpNodes[];
+	string	$nodeNameType = `nodeType $node`;
+	string	$apiNodeNameType = `nodeType -api $node`;
+
+	if ( $apiNodeNameType == "kPluginTransformNode" ) {
+		$nodeNameType = "transform";
+	}
+
+	string	$relatedScript = ("AE"+$nodeNameType+"Related");
+	
+	if (`exists $relatedScript`) {
+		$tmpNodes = `eval($relatedScript + " \"" + $node + "\"")`;
+		$tmpNodes = AEfilterUnwantedNodes( $tmpNodes, false );
+		$rNodes = `AEexpandNames($tmpNodes)`;
+	} else {
+		string $focusNode[];
+		$tmpNodes = `defaultNavigation -ren -d $node`;		
+		$tmpNodes = AEfilterUnwantedNodes( $tmpNodes, false );
+		$rNodes = `AEexpandNames($tmpNodes)`;
+		$focusNode[0] = `defaultNavigation -dwn -d $node`;
+		clear $tmpNodes;
+		$tmpNodes = `AEexpandNames($focusNode)`;
+		$rNodes[size($rNodes)] = $tmpNodes[0];
+	}
+	// Add the original node at the end
+	//
+	$rNodes[size($rNodes)] = $node;
+	//KEDIT//$rNodes = filterBlackBoxNodes( $rNodes, false );
+	print "noway";
+	// the first item in the return string array is the node itself, unless
+	// this node is part of a container, in which case the first node is the
+	// container.
+	//
+	clear $tmpNodes;
+	//KEDIT//if( `nodeType $node` != "container" ){
+	//KEDIT//	string $container = `container -q -fc $node`;
+	//KEDIT//	if( $container != "" ){
+	//KEDIT//		$tmpNodes[0] = $container;
+	//KEDIT//	}
+	//KEDIT//}
+	//KEDIT//$tmpNodes[size($tmpNodes)] = $node;
+	//KEDIT//$retval = `AEexpandNames($tmpNodes)`;
+
+	// need to go through the string array and remove unwanted
+	// duplicates
+	//
+	for ($i = 0; $i < size($rNodes)-1; $i++) {
+		$duplicated = false;
+		for ($j = 0; $j < size($retval); $j++) {
+			if ($rNodes[$i] == $retval[$j]) {
+				$duplicated = true;
+				break;
+			}
+		}
+		if (!$duplicated) $retval[size($retval)] = $rNodes[$i];
+	}
+	// now search for the last item in the $retval for a duplicate
+	//
+	string $lastNode;
+	$duplicated = false;
+	if (size($rNodes) > 0) {
+		$lastNode = $rNodes[size($rNodes)-1];	
+		for ($i = 0; $i < size($retval); $i++) {
+			if ($lastNode == $retval[$i]) {
+				$duplicated = true;
+				break;
+			}
+		}
+	}
+
+	if (!$duplicated) $retval[size($retval)] = $node;
+	else $retval[size($retval)] = $lastNode;
+
+	// Now go through the list, and keep only nodes of desired types
+	//
+	if( `optionVar -exists activeAEShowFilterTypes` ){
+		string $lastNode = $retval[size($retval)-1];
+
+		string $filterTypes[];
+		if( `optionVar -exists activeAEShowFilterTypes` ){
+			$filterTypes = `optionVar -query activeAEShowFilterTypes`;
+		}
+		int $numFilterTypes = size($filterTypes);
+
+		int $filterStates[];
+		if( `optionVar -exists activeAEShowFilterStates` ){
+			$filterStates = `optionVar -query activeAEShowFilterStates`;
+		}
+		int $numFilterStates = size($filterStates);
+
+		// Build a string array of the filter types that are currently active
+		//
+		string $activeShow[];
+		string $activeHide[];
+		int $showOthers = 1;
+		if( $numFilterTypes > 0 ){
+			if( $numFilterStates > 0 ){
+				$showOthers = $filterStates[0];
+			}
+		}
+		int $filterIndex = 1;
+		while( $filterIndex < $numFilterTypes ){
+			int $show = 1;	// Default value is 1 (i.e., on)
+			if( $filterIndex < $numFilterStates ){
+				$show = $filterStates[$filterIndex];
+			}
+			if( $show ){
+				$activeShow[size($activeShow)] = $filterTypes[$filterIndex];
+			} else {
+				$activeHide[size($activeHide)] = $filterTypes[$filterIndex];
+			}
+			$filterIndex++;
+		}
+		// Filter the nodes
+		//
+		string $filteredRetval[];
+		int $numIncluded = 0;
+		int $retvalSize = size($retval);
+		for ($i = 0; $i < $retvalSize; $i++) {
+			string $currNode = $retval[$i];
+			if( ($currNode != $node) && ($currNode != $lastNode) ){
+				string $nodeType = `nodeType $currNode`;
+				if( stringArrayContains( $nodeType, $activeHide ) ){
+					// If we're explicitly hiding this type, skip node
+					//
+					continue;
+				}
+				if( !$showOthers ){
+					// If we're not showing "other" node types, skip this node
+					// if it's type is not one of the ones that we are actively
+					// showing.
+					//
+					if( !stringArrayContains( $nodeType, $activeShow ) ){
+						continue;
+					}
+				}
+			}
+			$filteredRetval[$numIncluded] = $retval[$i];
+			$numIncluded++;
+		}
+		return $filteredRetval;
+	}
+
+	return $retval;
+
+}
+
+
+global proc AEbuildAllTabs( string $node )
+//
+//	Description:
+//		Build the tabs and their contents for the node specified and
+//		all the nodes related to the argument node.
+//
+{
+	global string	$gAETabLayoutName;
+	global string	$gRelatedNodes[];
+	global string	$gAETabMarker[];
+
+	//	Get all the nodes related to this node.
+	//
+	//	Note that the last item is a duplicate and is considered
+	//	to be the default item whose tab should be selected in the
+	//	Attribute Editor.
+	//
+	clear $gRelatedNodes;
+    $gRelatedNodes = AEgetRelatedNodes( $node );
+
+	//	The number of related nodes (and tabs to show) is one less than the 
+	//	number of nodes returned from AEgetRelatedNodes().
+	//	
+	//	The last item in the related node array is a duplicate and
+	//	is considered to be the default node to show in the Attribute
+	//	Editor.
+	//
+    int     $nRNodes = size($gRelatedNodes)-1;
+    int     $rNodeIndex = 0;
+
+	//	Get the array position of the default node we want.
+	//
+	//	The default node is the very last one in the related node array.
+	//	This node is duplicated in the list. For example, for a sphere 
+	//	the related node array probably looks something like:
+	//
+	//	|nurbsSphere1
+	//	|nurbsSphere1|nurbsSphereShape1
+	//	makeNurbSphere1
+	//	initialShadingGroup
+	//	lambert1
+	//	|nurbsSphere1|nurbsSphereShape1
+	//
+	//	Notice that the last node is the default node to show and it
+	//	is a duplicate of the 2nd item in the array.
+	//
+	//	The following loop will determine where the last item is
+	//	duplicated in the array.
+	//
+	//	This is the index of tab that should be selected after all
+	//	the tabs are built.
+	//
+    for ($i = 0; $i < $nRNodes; $i++) {
+        if ($gRelatedNodes[$nRNodes] == $gRelatedNodes[$i]) {
+            $rNodeIndex = $i;
+            break;
+        }
+    }
+	//	Be sure to add 1 to this index because tab layout indecies are
+	//	1-based while array indecies are 0-based.
+	//
+	$rNodeIndex++;
+
+	int $autoSelectContainer =( $nRNodes > 0 &&
+								`nodeType $gRelatedNodes[0]` == "container" &&
+								`optionVar -q containerAutoSelectContainer` &&
+								`optionVar -q containerCentricSelection` );
+    if( $autoSelectContainer ) {
+		// If selected node is not a container, see if it's the root
+		// transform. If it is the container, and auto-select container
+		// is on, then we always want to have the container tab show up
+		// selected.
+		//
+        
+		if( `nodeType $node` != "container" ) {
+			$autoSelectContainer = false;
+			string $container = `container -q -fc $node`;
+			string $rootNode = "";
+			if( $container != "" ) {
+				$rootNode = `container -q -publishAsRoot $container`;
+				if ( $node == $rootNode ) {
+					$rNodeIndex = 1; // layout indices are 1-based
+					$autoSelectContainer = true;
+				}
+			}
+		}
+	}
+
+	//	The global array gAETabMarker keeps track of node types and for
+	//	each node type the name of the last node of that type whose tab
+	//	was selected in the Attribute Editor.
+	//
+	//	Check if the user has already brought up an AE of this
+	//	nodeType and if so, what the last tab viewed was.
+	//
+	string $nodeTypeName = `nodeType $node`;
+	string $lastViewedTab = "";
+	if( !$autoSelectContainer ) {	// if we're auto-selecting container, bypass the last type check
+		for ($tabMarker in $gAETabMarker) {
+			string $buffer[];
+			tokenize($tabMarker,",",$buffer);
+			string $tabMarkerType = $buffer[0];
+			if ( $tabMarkerType == $nodeTypeName ) {
+				$lastViewedTab = $buffer[1];
+				break;
+			}
+		}
+	}
+
+	// now, check if the new set of tabs has the one that was
+	// last viewed (of the same type).  Don't count nodes
+	// that are marked "internal", unless you have no other choice
+	//
+	int $prevSelectedTabIndex = -1;
+	int $secondBestIndex = -1;
+	if ( $lastViewedTab != "" && `objExists $lastViewedTab`) {
+
+		string $lastViewedTabType = `nodeType $lastViewedTab`;
+
+		//	Fix for bug #162559:
+		//
+		//	Catch the condition where the argument node type is
+		//	related to a node of the same type. When this happens
+		//	we want to show the tab of the argument node in the AE
+		//	rather than the tab of the related node.
+		//	
+		//	Say you have two nodes in your scene both of type lambert.
+		//	You connect lambert2.outColor to lambert3.color. 
+		//
+		//	If you were to select lambert2 the Attribute Editor will
+		//	remember (in gAETabMarker) that the last active tab of 
+		//	type lambert was lambert2. Select lambert3 and we have
+		//	the situation where lambert3 is related to lambert2, both
+		//	have the same node type, and lambert2 was the last tab
+		//	of this type shown in the AE. However, the user does not
+		//	want lambert2 to be the selected tab. It should be lambert3.
+		//
+		int $nodesDiffTypesSame = (($node != $lastViewedTab) && 
+								($lastViewedTabType == $nodeTypeName));
+		// Note: If $nodesDiffTypesSame is true, there's no need to look for
+		// a related node that matches the last viewed tab, because if we
+		// did find one, this would mean that both the argument node and the
+		// related node would have the same type, and so two or more related
+		// nodes who have the same type as the argument node. This is precisely
+		// the type of situation we're trying to avoid for bug #162559, and so
+		// we couldn't choose the related node as the exposed node.
+		//
+		if( !$nodesDiffTypesSame ){
+
+			// Fix for BUG 143284, its more important to consider the name of
+			// the last viewed tab, than the type of node last viewed. The
+			// AE may flip between nodes if there is more than once choice
+			// in the list of related nodes.
+			//
+			for ( $i = 0; $i < $nRNodes && $prevSelectedTabIndex == -1; $i++ ) {
+				if ($lastViewedTab == $gRelatedNodes[$i]) {
+					string $rNodeType = `nodeType $gRelatedNodes[$i]`;
+					if ($rNodeType == $lastViewedTabType) {
+						$prevSelectedTabIndex = $i+1;
+					}
+				}
+			}
+        }
+		//	If the argument node type matches the node type of the
+		//	last selected tab, and it's the only one that matches, go with it.
+		//	This still avoids bug #162559 as described above, but solves the
+		//	regression introduced and logged as bug #206501.
+		//
+		int $typeMatchCount = 0;
+		for ( $i = 0; $i < $nRNodes &&
+			($nodesDiffTypesSame || ($prevSelectedTabIndex == -1)); $i++ ){
+			string $rNodeType = `nodeType $gRelatedNodes[$i]`;
+			if ( $rNodeType == $lastViewedTabType) {
+				$typeMatchCount++;
+				if( $nodesDiffTypesSame && ($typeMatchCount > 1) ){
+					// The argument node is not the same as the last
+					// viewed tab, but their types match *and* there
+					// is more than one related nodes whose type
+					// matches the argument node's type, so use the
+					// supplied preferred node index to avoid
+					// bug #162559.
+					//
+					$prevSelectedTabIndex = $rNodeIndex;
+					break;
+				}
+				$secondBestIndex = $i+1;
+				// if the object has an "intemediateObject" attribute...
+				if ( `attributeQuery -ex -node $gRelatedNodes[$i] intermediateObject` ){
+					// then it must be FALSE to allow this object on the list
+					if ( !`getAttr ($gRelatedNodes[$i] + ".intermediateObject")` ){
+						$prevSelectedTabIndex = $i+1;
+					}
+				} else { // if it has no such attribute, we can accept it.
+					$prevSelectedTabIndex = $i+1;
+				}
+			}
+		}
+	}
+	
+	// If we had no first choice, use the second choice
+	//
+	if ( $prevSelectedTabIndex == -1 ) $prevSelectedTabIndex = $secondBestIndex;
+
+	// set the selected tab index
+	//
+	if ( $prevSelectedTabIndex == -1 ) {
+		// no previously recorded selected tab for this nodeType
+		// so use the default
+		$prevSelectedTabIndex = $rNodeIndex;
+	}
+
+
+	// now, actually rebuild the tabs
+	//
+    setParent $gAETabLayoutName;
+
+    string  $currentTabs[] = `tabLayout -q -ca $gAETabLayoutName`;
+    int     $nCurrentTabs = size($currentTabs);
+
+    int     $i;
+	string	$label;
+	tabLayout -e -visible false $gAETabLayoutName;
+    if ($nRNodes >= $nCurrentTabs) {
+        for ( $i = 0; $i < $nCurrentTabs; $i++ ) {
+			$label = `AEnoSlash($gRelatedNodes[$i])`;
+            // swap these tabs
+            tabLayout -e
+                -tabLabel ("formTab"+$i) $label
+                $gAETabLayoutName;
+			nameField -e
+				-o $gRelatedNodes[$i]
+				-ncc ("AErenameChangedCommand " + $i)
+				("tabNameField"+$i);
+        }
+        for ( $i = $nCurrentTabs; $i < $nRNodes; $i++ ) {
+            // create new tabs
+			$label = `AEnoSlash($gRelatedNodes[$i])`;
+            formLayout ("formTab"+$i);
+				nameField
+					-vis false
+					-h 5
+					-o $gRelatedNodes[$i]
+					-ncc ("AErenameChangedCommand " + $i)
+					("tabNameField"+$i);
+            setParent ..;
+            tabLayout -e
+                -tabLabel ("formTab"+$i) $label
+                $gAETabLayoutName;
+        }
+    } else {
+        for ( $i = 0; $i < $nRNodes; $i++ ) {
+            // swap these tabs
+			$label = `AEnoSlash($gRelatedNodes[$i])`;
+            tabLayout -e
+                -tabLabel ("formTab"+$i) $label
+                $gAETabLayoutName;
+			nameField -e
+				-o $gRelatedNodes[$i]
+				-ncc ("AErenameChangedCommand " + $i)
+				("tabNameField"+$i);
+        }
+        for ( $i = $nRNodes; $i < $nCurrentTabs; $i++ ) {
+            // delete these tabs
+            deleteUI -layout $currentTabs[$i];
+        }
+    }
+
+	// select the tab which was duplicated
+	tabLayout -e -selectTabIndex $prevSelectedTabIndex $gAETabLayoutName;
+	tabLayout -e -visible true $gAETabLayoutName;
+}
+
+global proc int AEpresetMenuForDir( int $numPresetsInMenu[], // arrays pass by reference
+									string $ppath, 
+									string $node, 
+									int $callWithFullPath )
+{
+	int $numItems =
+        presetMenuForDir( $numPresetsInMenu, 
+									$ppath, 
+									$node, 
+									$callWithFullPath,
+                                    "", "" );
+
+	return $numItems;
+
+}
+
+global proc AEshowPresetMenu( string $presetMenu, string $node )
+{
+    setParent -menu $presetMenu;
+
+    int $i = 0;
+    string $mI;
+
+	popupMenu -e -deleteAllItems $presetMenu;
+
+	string $ntype = `nodeType $node`;
+        string $labelName = (uiRes("m_showEditor.kSavePresets"));
+        string $fmt1 = `format -s $ntype $labelName`;
+	menuItem
+		-label $fmt1
+		-c ("saveAttrPresetWin " + $node);
+	menuItem
+		-label (uiRes("m_showEditor.kEditPresets"))
+		-c ("attrPresetEditWin " + $ntype);
+
+	menuItem -d true;
+	int $numPresets = 0;
+	int $numPresetsInMenu[] = { 0 };
+	int $numNonLocalPresets = 0;
+
+	// first show the released presets
+	string $fpath = `getenv "MAYA_LOCATION"`;
+	$fpath = $fpath + "/presets/attrPresets/" + $ntype;
+	$numPresets = AEpresetMenuForDir( $numPresetsInMenu, $fpath, $node, 1);
+
+	$numNonLocalPresets += $numPresets;
+	if($numPresets > 0)
+		menuItem -d true;
+
+	// then show any presets specified by MAYA_PRESET_PATH 
+	// each entry in the path points at equivalents to the presets directory
+	string $mayaPresetPath = `getenv MAYA_PRESET_PATH`;
+	string $presetPaths[];
+	if (`about -nt`) 
+		tokenize $mayaPresetPath ";" $presetPaths;
+	else
+		tokenize $mayaPresetPath ":" $presetPaths;
+	for($presetPath in $presetPaths) {
+		$fpath = $presetPath;
+		$fpath = $fpath + "/attrPresets/" + $ntype;
+		$numPresets = AEpresetMenuForDir( $numPresetsInMenu, $fpath, $node, 1);
+
+		$numNonLocalPresets += $numPresets;
+		if($numPresets > 0)
+			menuItem -d true;
+	}
+	menuItem -d true;
+
+	// finally show any local presets that the user has created
+	string $ppath = `internalVar -userPrefDir`;
+	$ppath = substitute( "prefs", $ppath, "presets/attrPresets");
+	$ppath  = $ppath + $ntype; 
+	AEpresetMenuForDir( $numPresetsInMenu, $ppath, $node, 0);
+}
+
+proc AEattachTabHeader (string $node)
+{
+	string $parent = `setParent AEnodeNameHeaderLayout`;
+	string $ntype = `nodeType $node`;
+	text -e -label ($ntype + ":") AEnodeTypeLabel;
+
+	nameField -e
+		-object $node
+		AEnodeNameField;
+
+	// Setup the backward
+	symbolButton -e
+		-c ("AEpropagateMenuCB -backward \"\" \""+$node+"\"")
+		AEbackwardButton;
+	string $backwardMenu = $parent+"|AEbackwardButton|menu";
+	popupMenu -e
+		-pmc ("AEpropagateMenuCB -backward "+$backwardMenu+" \""+$node+"\"")
+		$backwardMenu;
+
+	// Setup the forward
+	symbolButton -e
+		-c ("AEpropagateMenuCB -forward \"\" \""+$node+"\"")
+		AEforwardButton;
+	string $forwardMenu = $parent+"|AEforwardButton|menu";
+	popupMenu -e
+		-pmc ("AEpropagateMenuCB -forward "+$forwardMenu+" \""+$node+"\"")
+		$forwardMenu;
+
+	if( 0 == isValidAttrPresetNodeType( $ntype )){
+		button -e -en 0 AEpresetButton;
+	} else {
+		int $hasPresets = false;
+
+		// first check the local and release presets
+		string $ppath = `internalVar -userPrefDir`;
+		$ppath = substitute( "prefs", $ppath, "presets/attrPresets");
+		$ppath  = $ppath + $ntype; 
+		string $fpath = `getenv "MAYA_LOCATION"`;
+		$fpath = $fpath + "/presets/attrPresets/" + $ntype;
+		if( `file -q -ex $ppath` || `file -q -ex $fpath` )
+			$hasPresets = true;
+
+		// if we didnt find any, see if the preset path has some
+		if(!$hasPresets) {
+			// MAYA_PRESET_PATH points at equivalents to the presets directory
+			string $mayaPresetPath = `getenv MAYA_PRESET_PATH`;
+			string $presetPaths[];
+			if (`about -nt`) 
+				tokenize $mayaPresetPath ";" $presetPaths;
+			else
+				tokenize $mayaPresetPath ":" $presetPaths;
+			for($presetPath in $presetPaths) {
+				$fpath = $presetPath;
+				$fpath = $fpath + "/attrPresets/" + $ntype;
+				if( `file -q -ex $fpath` ) {
+					$hasPresets = true;
+					break;
+				}
+			}
+		}
+
+		int $enable = true;
+		if (`about -evalVersion`) $enable = false;
+
+		// if any presets exist for node type, indicate with a "*"
+		if( $hasPresets ){
+			button -e -enable $enable -label (uiRes("m_showEditor.kPresetsStar")) -w 70 -h 20 AEpresetButton;
+		} else {
+			button -e -enable $enable -label (uiRes("m_showEditor.kPresets"))  -w 70 -h 20 AEpresetButton;
+		}
+	}
+
+	string $presetMenu = $parent+"|AEpresetButton|menu";
+	popupMenu -e
+		-pmc ("commitAENotes($gAECurrentTab);AEshowPresetMenu \""+$presetMenu+"\" \""+$node+"\"")
+		$presetMenu;
+
+	// Setup the Focus button
+	button -e
+		-c ("commitAENotes($gAECurrentTab);showEditor \"" + $node + "\"")
+		AEfocusButton;
+
+	// Setup the Show All button
+	button -e
+		-c ("toggleAEFilter \"\" 1 1")
+		AEshowAllButton;
+
+	// Setup the HideByType button
+	button -e
+		-c ("hideNodeTypeAEFilter \"" + $node + "\"")
+		AEhideByTypeButton;
+
+	setParent ..;
+
+}
+
+
+proc AEattachSelectButton( string $node )
+{
+	// Setup the Select button
+	setParent AEselectAndCloseButtonLayout;
+	string $command = "commitAENotes($gAECurrentTab);";
+	if(`objectType -isa animLayer $node` == 1) {
+	    $command += "select -noExpand \""+$node+"\""; 
+	}
+	else {
+	    $command += "select \""+$node+"\"";
+    }
+	button -e
+		-c $command
+		AEselectButton;
+}
+
+global proc AEupdateNode(string $prevNode, string $currentNode)
+{
+	global int $gAERenamingNode;
+	
+	// Do not change reference count if we just renaming the current node
+	if( $gAERenamingNode ) {
+		return;
+	}
+
+	if( $prevNode == $currentNode )
+	{
+		return ;
+	}
+	
+	// check if the cacheInput flag exists on the node 
+	if( size($prevNode) > 0 && `objExists $prevNode` && 
+		`attributeQuery -node $prevNode -exists "cacheInput"` )
+	{
+		polyCacheMonitor -nodeName $prevNode -cacheValue false ;
+	}
+
+	if( size($currentNode) > 0 && `objExists $currentNode` &&  
+		`attributeQuery -node $currentNode -exists "cacheInput"` )
+	{
+		polyCacheMonitor -nodeName $currentNode -cacheValue true ;
+	}
+}
+
+global proc AEbuildControls()
+{
+	global string	$gAETabLayoutName;
+	global string	$gAENothingSelectedLayout;
+	global string	$gAEControlLayoutName;
+	global string	$gLastViewedAEType;
+	global string	$gRelatedNodes[];
+	global string	$gAECurrentTab;
+	global string	$gAEPrevCurrentTab;
+	global string	$gAETabMarker[];
+
+	if(`tabLayout -q -nch $gAETabLayoutName` <= 0 || `formLayout -q -visible $gAENothingSelectedLayout`) return;
+
+	// get the tab info
+    //
+	string $tab = `tabLayout -q -selectTab $gAETabLayoutName`;
+    int $tabIndex = `tabLayout -q -selectTabIndex $gAETabLayoutName`;
+	string $node = $gRelatedNodes[$tabIndex-1];
+
+	if (!`objExists $node`) return;
+
+    string $nodeTypeForm = ("AttrEd"+`nodeType $node`+"FormLayout");
+	string $focusNode = $gRelatedNodes[0];
+	string $focusNodeType = `nodeType $focusNode`;
+
+	// build the formLayout if it doesn't already exist
+	//
+	setParent $gAEControlLayoutName;
+    if (!`formLayout -exists $nodeTypeForm`) {
+        formLayout -vis false $nodeTypeForm;
+        setParent ..;
+    }
+
+    // Attach and setup the name field, focus, and preset buttons before
+    // invoking createEditor. This will allow the AE template to make
+    // further customizations to the header (for example, the render layer
+    // AE can implement a custom pop-up menu for the preset button).
+    //
+	AEattachTabHeader $node;
+
+	// create the attribute editor
+	//
+	createEditor -qfd $nodeTypeForm $node;
+
+	formLayout -e -vis true $nodeTypeForm;
+
+    // attach everything else
+    //
+    AEattachEditor $nodeTypeForm;
+	AEattachSelectButton($node);
+
+	$gLastViewedAEType = `nodeType $node`;
+
+	// keep track of the tab for this node
+	//
+	setTabMarker( $focusNodeType, $node );
+
+	// display the built AE
+	//
+	tabLayout -e -st $nodeTypeForm $gAEControlLayoutName;
+	$gAEPrevCurrentTab = $gAECurrentTab;
+	$gAECurrentTab = $node;
+	
+	AEupdateNode($gAEPrevCurrentTab, $gAECurrentTab);
+
+	// Update any Notes 
+	{
+		// Try committing the previously showing node before showing this AE.
+		// This will apply whatever was in the Notes section to the
+		// previously showing node.
+		//
+		// Checking gAEPrevCurrentTab !="" avoids very first time AE is opened.
+		// Checking gAEPrevCurrentTab != gAECurrentTab avoids redundant commits.
+		//
+		killScriptJobAENotes();
+		if( ($gAEPrevCurrentTab != "") && 
+	    	($gAEPrevCurrentTab != $gAECurrentTab) ) {
+			commitAENotes($gAEPrevCurrentTab );
+		}
+	
+		// Update the AE notes section to display the notes of the
+		// current node.
+		// 
+		updateAENotes( $gAECurrentTab, "notes" );
+		setupScriptJobAENotes( $gAECurrentTab, "notes" );
+	}
+}
+
+
+global proc AErenameChangedCommand( int $nameFieldIndex )
+{
+	global string	$gAETabLayoutName;
+	global string	$gAEFocusNode;
+	global string	$gAttributeEditorWindowName;
+	global string	$gAECurrentTab;
+	global int		$gAERenamingNode;
+	
+	// Set the flag
+	$gAERenamingNode = true;
+
+	// first, find the tab index to the current tab
+	//
+	int	$currentTabIndex = `tabLayout -q -sti $gAETabLayoutName`;
+
+	// rebuild the tabs	
+	//
+	string $node = `nameField -q -object "tabNameField0"`;
+	if( `nameField -exists "tabNameField1"` ){
+		// The focus node is not necessarily from tabNameField0
+		//
+		// First, make sure $gAEFocusNode is up to date
+		//
+		$secondTab = `nameField -q -o "tabNameField1"`;
+		if( ($gAEFocusNode != $node) && ($gAEFocusNode != $secondTab) ){
+			// The focus node is either the first or second tab, so if it's
+			// neither, if must be because we're in the process of renaming it,
+			// thus it corresponds to the tab with index $nameFieldIndex.
+			//
+			if( $nameFieldIndex == 1 ){
+				$gAEFocusNode = $secondTab;
+			} else {
+				$gAEFocusNode = $node;
+			}
+		}
+		if( $gAEFocusNode == $secondTab ){
+			$node = $secondTab;
+		}
+	}
+
+	AEbuildAllTabs $node;
+
+	// update the title bar and focus node, if the attribute
+	// editor is in a separate window
+	//
+	if ( `window -exists $gAttributeEditorWindowName` ){
+		$gAEFocusNode = $node;
+		string $tokens[];
+		tokenize($node,"|",$tokens);
+		$node = $tokens[size($tokens)-1];
+		window -e
+			-title ( `format -stringArg $node (uiRes("m_showEditor.kAttributeEditor"))` )
+			$gAttributeEditorWindowName;
+	}
+
+	// now reselect the original tab
+	//
+	tabLayout -e -sti $currentTabIndex $gAETabLayoutName;
+
+	// build this tab's controls
+	//
+	AEbuildControls;
+
+	// Update the Notes section with the node that
+	// is the front tab.  This is not necessarily the
+	// selected object.
+	{
+		updateAENotes( $gAECurrentTab, "notes");
+	}
+	
+	// Reset flag
+	$gAERenamingNode = false;
+}
+
+
+global proc AEbuildTabHeader ( string $node, string $parent )
+{
+	setParent $parent;
+	formLayout AEnodeNameHeaderLayout;
+	global int $gTextColumnWidthIndex;
+	global int $gAENameTextFieldIndex;
+
+        text AEnodeTypeLabel;
+
+        nameField AEnodeNameField;
+
+        symbolButton -i "inArrow.png"
+            -annotation (uiRes("m_showEditor.kLMBToInputRMBAnnot"))
+            -w 30
+            -h 20
+            AEforwardButton;
+		popupMenu menu;
+		setParent -m ..;
+
+        symbolButton -i "outArrow.png"
+            -annotation (uiRes("m_showEditor.kLMBGoToOutputRMBAnnot"))
+            -w 30
+            -h 20
+            AEbackwardButton;
+		popupMenu menu;
+		setParent -m ..;
+
+		button
+			-annotation (uiRes("m_showEditor.kSetAttributeEdFocusAnnot"))
+			-w 70 
+			-h 20 
+			-label (uiRes("m_showEditor.kFocusButton"))
+			AEfocusButton;
+
+		button
+			-annotation (uiRes("m_showEditor.kShowAllAnnot"))
+			-w 34 
+			-h 20 
+			-label (uiRes("m_showEditor.kShowAllButton"))
+			AEshowAllButton;
+
+		button
+			-annotation (uiRes("m_showEditor.kHideByTypeAnnot"))
+			-w 34 
+			-h 20 
+			-label (uiRes("m_showEditor.kHideByTypeButton"))
+			AEhideByTypeButton;
+
+		int $enable = true;
+		if (`about -evalVersion`) $enable = false;
+		button
+			-annotation (uiRes("m_showEditor.kAttributePresetsAnnot"))
+			-w 70
+			-h 20
+			-label (uiRes("m_showEditor.kPresetsButton"))
+			-enable $enable
+			AEpresetButton;
+		popupMenu -button 1 menu;
+		setParent -m ..;
+
+    setParent ..;
+   
+    formLayout -e
+        -aof AEnodeTypeLabel right (-$gTextColumnWidthIndex)
+        -af AEnodeTypeLabel top 0
+        -af AEnodeTypeLabel bottom 0
+        -an AEnodeTypeLabel left
+        -ac AEnodeNameField left 5 AEnodeTypeLabel
+        -aoc AEnodeNameField right (-$gAENameTextFieldIndex) AEnodeTypeLabel
+        -af AEnodeNameField top 20
+        -af AEnodeNameField bottom 20
+        -af AEforwardButton top 10
+        -an AEforwardButton bottom
+        -ac AEforwardButton left 5 AEnodeNameField
+        -an AEforwardButton right
+        -ac AEbackwardButton top 2 AEforwardButton
+        -an AEbackwardButton bottom
+        -ac AEbackwardButton left 5 AEnodeNameField
+        -an AEbackwardButton right
+		-ac AEfocusButton left 5 AEforwardButton
+		-af AEfocusButton top 0
+		-an AEfocusButton bottom 
+		-an AEfocusButton right
+		-ac AEpresetButton top 2 AEfocusButton
+		-an AEpresetButton bottom 
+		-ac AEpresetButton left 5 AEforwardButton 
+		-an AEpresetButton right
+		-ac AEshowAllButton top 2 AEpresetButton
+		-an AEshowAllButton bottom 
+		-ac AEshowAllButton left 5 AEforwardButton 
+		-an AEshowAllButton right
+		-ac AEhideByTypeButton top 2 AEpresetButton
+		-an AEhideByTypeButton bottom 
+		-ac AEhideByTypeButton left 2 AEshowAllButton 
+		-an AEhideByTypeButton right
+        AEnodeNameHeaderLayout;
+
+	updateAEshowAllButton();
+	if ($node != "")
+		AEattachTabHeader($node);
+}
+
+
+
+global proc createAEWindowContents( string $parent, string $node, string $listType )
+{
+    global string	$gAttributeEditorWindowName;
+	global int		$gStandardWindowWidthIndex;
+	global string	$gAENothingSelectedLayout;
+	global string 	$gAEMenuBarLayoutName;
+	global string	$gAERootLayoutName;
+	global string	$gAERootPaneLayoutName;
+	global string	$gAEBaseLayoutName;
+	global string	$gAEHeaderLayoutName;
+	global string	$gAETabLayoutName;
+	global string	$gAEControlLayoutName;
+	global int		$gAutoUpdateAttrEdFlag;
+	global string	$gLastViewedAEType;
+	global string	$gRelatedNodes[];
+	global int		$gAESelectionScriptJob;
+	global int		$gAEConstructionScriptJob;
+
+	// reset global variables
+	//
+	resetAEGlobalVariables(); // in resetAE.mel
+
+	setUITemplate -pushTemplate attributeEditorTemplate;
+
+	setParent $parent;
+
+	int $inWindow = ( $parent == "AEWindow" );
+
+	//	Need a menuBarLayout here
+
+	menuBarLayout $gAEMenuBarLayoutName;
+
+	formLayout $gAERootLayoutName;
+		
+		// Add a separator to fix the window width
+		// This is necessary ONLY to having the AE appear
+		// the correct width  within the main Maya window
+		// on NT.  This only became necessary with
+		// the addition of a paneLayout to contain
+		// the attributes and the Notes section.
+		//
+		separator -style none -h 1 -width 425;
+
+		formLayout $gAENothingSelectedLayout;
+			text
+				-label (uiRes("m_showEditor.kMakeSelection"))
+				AEnothingSelectedText;
+			formLayout -e
+				-af AEnothingSelectedText left 5
+				-af AEnothingSelectedText top 5
+				-an AEnothingSelectedText right
+				-an AEnothingSelectedText bottom 
+				$gAENothingSelectedLayout;
+		setParent ..;
+
+		// Create a pane layout with a top pane and
+		// a bottom pane.  The top pane will show
+		// the attribiutes.  The bottom pane will
+		// have a section for editing Notes.
+		//
+
+		// Set the pane size based on option var
+		// Note that if the option var does not exist
+		// yet, we don't overwrite it here.  See showEditor()
+		//
+		int $paneSize = 85;
+    	if ( `optionVar -exists "attrEdPaneRatio"` ) {
+    		$paneSize = `optionVar -q "attrEdPaneRatio"`;
+		}
+		paneLayout -configuration "horizontal2" 
+			-paneSize 1 100 $paneSize
+			-paneSize 2 100 (100 - $paneSize) 
+			$gAERootPaneLayoutName;
+
+			formLayout $gAEBaseLayoutName;
+	
+				formLayout $gAEHeaderLayoutName;
+	
+					tabLayout
+						-preSelectCommand "AEbuildControls"
+						$gAETabLayoutName;
+   		   	    	setParent ..;
+	
+				setParent ..;
+
+				// attach the header formLayout
+				//
+				formLayout -e
+					-af $gAETabLayoutName top 10
+					-af $gAETabLayoutName left 0
+					-af $gAETabLayoutName right 0
+					-af $gAETabLayoutName bottom 0
+					$gAEHeaderLayoutName;
+	
+				AEbuildTabHeader($node,`setParent -q`);
+	
+				tabLayout -tabsVisible false $gAEControlLayoutName;
+				setParent ..;
+	
+			setParent ..;
+	
+			// attach the base formLayout
+			//
+			formLayout -e
+				-af $gAEHeaderLayoutName left 0
+				-af $gAEHeaderLayoutName top 0
+				-af $gAEHeaderLayoutName right 0
+				-an $gAEHeaderLayoutName bottom
+				-af AEnodeNameHeaderLayout left 0
+				-ac AEnodeNameHeaderLayout top 5 $gAEHeaderLayoutName
+				-af AEnodeNameHeaderLayout right 0
+				-an AEnodeNameHeaderLayout bottom
+				-af $gAEControlLayoutName left 0
+				-ac $gAEControlLayoutName top 5 AEnodeNameHeaderLayout
+				-af $gAEControlLayoutName right 0
+				-af $gAEControlLayoutName bottom 0
+				$gAEBaseLayoutName;
+
+			// add controls for editing Notes
+			//
+			formLayout AEaddOrEditNotesLayout;
+				flowLayout AEaddOrEditNotesFlow;
+				text -font "boldLabelFont"
+					-align "left" 
+					-label (uiRes("m_showEditor.kNotes")) AENotesTextLabel;
+				text -font "boldLabelFont"
+					-align "right" 
+					-label "*" AENotesTextLabel2;
+				setParent ..;
+				scrollField -wordWrap true -editable true
+								-text "" AENotesScrollField;
+			setParent..;
+	
+			formLayout -edit 
+				-af AEaddOrEditNotesFlow top 0
+				-af AEaddOrEditNotesFlow right 0
+				-an AEaddOrEditNotesFlow bottom
+				-af AEaddOrEditNotesFlow left 0 
+
+				-af AENotesScrollField left 0
+				-ac AENotesScrollField top 0 AEaddOrEditNotesFlow
+				-af AENotesScrollField right 0
+				-af AENotesScrollField bottom 0
+					AEaddOrEditNotesLayout;
+
+		setParent ..;		// for the paneLayout
+
+		// Add a callback when the pane is resized
+		//
+		paneLayout -e -smc "paneSizeAttrEd();" $gAERootPaneLayoutName;
+
+
+		// add buttons for Select, Load, Copy Tab and Close
+		//
+		formLayout -nd 100 AEselectAndCloseButtonLayout;
+			button
+				-annotation (uiRes("m_showEditor.kSelectCurrentDispNodeAnnot"))
+				-label (uiRes("m_showEditor.kSelectButton"))
+				AEselectButton;
+			button
+				-annotation (uiRes("m_showEditor.kLoadCurrentSelectionAnnot"))
+				-label (uiRes("m_showEditor.kLoadAttrButton"))
+				-c "commitAENotes($gAECurrentTab);editSelected"
+				AEreloadButton;
+
+			button
+				-annotation (uiRes("m_showEditor.kCopyTheContentsAnnot"))
+				-label (uiRes("m_showEditor.kCopyTabButton"))
+				-c "commitAENotes($gAECurrentTab);copyAEWindow"
+				AEcopyButton;
+			button
+				-annotation (uiRes("m_showEditor.kCloseTheAttributeEditorAnnot"))
+				-label (uiRes("m_showEditor.kCloseButton"))
+				-c ("commitAENotes($gAECurrentTab);ToggleAttributeEditor")
+				AEcloseButton;
+		setParent ..;
+
+		if( $inWindow ) {
+			//	The AE is in a window - setup the close, 
+			//	select, and reload buttons
+
+			formLayout -e
+				-af AEselectButton top 5
+				-ap AEselectButton right 2 25
+				-af AEselectButton left 5
+				-af AEselectButton bottom 5
+				
+				-af AEreloadButton top 5
+				-ap AEreloadButton left 3 25
+				-ap AEreloadButton right 2 50
+				-af AEreloadButton bottom 5
+				
+				-af AEcopyButton top 5
+				-ap AEcopyButton left 3 50
+				-ap AEcopyButton right 2 75
+				-af AEcopyButton bottom 5
+				
+				-af AEcloseButton top 5
+				-ap AEcloseButton left 3 75
+				-af AEcloseButton right 5
+				-af AEcloseButton bottom 5
+				AEselectAndCloseButtonLayout;
+				button -e -vis true AEcloseButton;
+		} else {
+			//	The AE is in the main window - setup the 
+			//	select and reload buttons only
+
+			formLayout -e
+				-af AEselectButton top 1
+				-ap AEselectButton right 1 33
+				-af AEselectButton left 1
+				-af AEselectButton bottom 2
+				
+				-af AEreloadButton top 1
+				-ap AEreloadButton left 1 33 
+				-ap AEreloadButton right 1 67
+				-af AEreloadButton bottom 2
+
+				-af AEcopyButton top 1
+				-ap AEcopyButton left 1 67
+				-af AEcopyButton right 1
+				-af AEcopyButton bottom 2
+				
+				AEselectAndCloseButtonLayout;
+
+				//	Bug fix #146360.
+				//	Unmanage this widget so it does not affect the size
+				//	of the rest of the layout. I believe this is what was
+				//	causing the Attribute Editor in the main window to be 
+				//	extra wide.
+				//
+				button -e -manage false AEcloseButton;
+		}
+			
+	setParent ..;
+
+	// now attach the root
+	//
+	formLayout -e
+		-af $gAENothingSelectedLayout left 0
+		-af $gAENothingSelectedLayout top 0
+		-af $gAENothingSelectedLayout right 0
+		-ac $gAENothingSelectedLayout bottom 0 AEselectAndCloseButtonLayout
+		-an $gAERootPaneLayoutName top
+		-af $gAERootPaneLayoutName left 0
+		-af $gAERootPaneLayoutName right 0
+		-ac $gAERootPaneLayoutName bottom 0 AEselectAndCloseButtonLayout
+		-an AEselectAndCloseButtonLayout top
+		-af AEselectAndCloseButtonLayout left 0
+		-af AEselectAndCloseButtonLayout right 0
+		-af AEselectAndCloseButtonLayout bottom 0
+		$gAERootLayoutName;
+
+	// create the process to auto-update the attribute editor
+	//
+	$gAutoUpdateAttrEdFlag = ($listType == "auto");
+
+	$gAESelectionScriptJob = `scriptJob -protected
+							-parent $gAEMenuBarLayoutName
+							-event "SelectionChanged" "autoUpdateAttrEd"`;
+	$gAEConstructionScriptJob = `scriptJob -protected
+							-parent $gAEMenuBarLayoutName
+							-event "constructionHistoryChanged" "autoUpdateAttrEd"`;
+
+	// build the menuBarLayouts menubar
+	//
+	buildAEMenus $gAERootLayoutName;
+	if ( $listType != "auto" ) {
+		// enable all of the other menu items
+		menuItem -e -en true AEreloadSelectedMenuItem;
+		menuItem -e -en true AEselectedItemsMenuItem;
+		menuItem -e -en true AEdynamicsSubMenu;
+		menuItem -e -en true AEkinematicsSubMenu;
+		menuItem -e -en true AEdeformersSubMenu;
+		menuItem -e -en true AElightSubMenu;
+		menuItem -e -en true AEshadingSubMenu;
+	} else {
+		// disable all of the other menu items
+		menuItem -e -en false AEreloadSelectedMenuItem;
+		menuItem -e -en false AEselectedItemsMenuItem;
+		menuItem -e -en false AEdynamicsSubMenu;
+		menuItem -e -en false AEkinematicsSubMenu;
+		menuItem -e -en false AEdeformersSubMenu;
+		menuItem -e -en false AElightSubMenu;
+		menuItem -e -en false AEshadingSubMenu;
+	}
+	if ( $listType == "auto" || $listType == "selected" ) {
+		menu -e -label (uiRes("m_showEditor.kSelectedAuto")) objectMenu;
+	} else {
+		menu -e -label (uiRes("m_showEditor.kObjectLabel")) objectMenu;
+	}
+
+	setUITemplate -popTemplate;
+	
+    formLayout -e -visible ($node == "") $gAENothingSelectedLayout;
+    formLayout -e -visible ($node != "") $gAEBaseLayoutName;
+
+}
+
+// Update the AE layout to show or hide the close button
+// depending on the AE's floating state.
+//
+global proc updateAEButtons(string $aeDockControl)
+{
+	global string $gAERootLayoutName;
+	string $currParent = `setParent -q`;
+	setParent $gAERootLayoutName;
+	if(`dockControl -q -floating $aeDockControl`) {
+		//	The AE is undocked - setup the close, 
+		//	select, and reload buttons
+		formLayout -e
+			-af AEselectButton top 5
+			-ap AEselectButton right 2 25
+			-af AEselectButton left 5
+			-af AEselectButton bottom 5
+
+			-af AEreloadButton top 5
+			-ap AEreloadButton left 3 25
+			-ap AEreloadButton right 2 50
+			-af AEreloadButton bottom 5
+
+			-af AEcopyButton top 5
+			-ap AEcopyButton left 3 50
+			-ap AEcopyButton right 2 75
+			-af AEcopyButton bottom 5
+
+			-af AEcloseButton top 5
+			-ap AEcloseButton left 3 75
+			-af AEcloseButton right 5
+			-af AEcloseButton bottom 5
+
+			AEselectAndCloseButtonLayout;
+
+		button -e -vis true AEcloseButton;
+	} else {
+		//	The AE is in the main window - setup the 
+		//	select and reload buttons only
+
+		formLayout -e
+			-af AEselectButton top 1
+			-ap AEselectButton right 1 33
+			-af AEselectButton left 1
+			-af AEselectButton bottom 2
+
+			-af AEreloadButton top 1
+			-ap AEreloadButton left 1 33 
+			-ap AEreloadButton right 1 67
+			-af AEreloadButton bottom 2
+
+			-af AEcopyButton top 1
+			-ap AEcopyButton left 1 67
+			-af AEcopyButton right 1
+			-af AEcopyButton bottom 2
+
+			AEselectAndCloseButtonLayout;
+
+		//	Bug fix #146360.
+		//	Unmanage this widget so it does not affect the size
+		//	of the rest of the layout. I believe this is what was
+		//	causing the Attribute Editor in the main window to be 
+		//	extra wide.
+		//
+		button -e -manage false AEcloseButton;
+	}
+	setParent $currParent;
+}
+
+global proc createAEWindow( string $node, string $listType )
+{
+    global string	$gAttributeEditorWindowName;
+	global int		$gStandardWindowWidthIndex;
+	global string	$gAENothingSelectedLayout;
+	global string	$gAERootLayoutName;
+	global string	$gAEBaseLayoutName;
+	global string	$gAEHeaderLayoutName;
+	global string	$gAETabLayoutName;
+	global string	$gAEControlLayoutName;
+	global int		$gAutoUpdateAttrEdFlag;
+	global string	$gLastViewedAEType;
+	global string	$gRelatedNodes[];
+	global int		$gAESelectionScriptJob;
+	global int		$gAEConstructionScriptJob;
+
+	// reset global variables
+	//
+	resetAEGlobalVariables(); // in resetAE.mel
+
+	window
+		-retain
+		-menuBar false
+		-width $gStandardWindowWidthIndex
+		-height 650
+		-title (localizedUIComponentLabel("Attribute Editor"))
+		-iconName (uiRes("m_showEditor.kAttrEditorShort"))
+		$gAttributeEditorWindowName;
+
+	createAEWindowContents( $gAttributeEditorWindowName, $node, $listType );
+}
+
+global proc showEditor( string $node )
+{
+    global string $gAttributeEditorWindowName;
+	global string $gAttributeEditorForm;
+	global int    $gIgnoreAEUpdate;
+
+	// firewall
+	//
+	if ($node != "" && !`objExists $node`) {
+                string $warningMsg = (uiRes("m_showEditor.kShowEditorWarn"));
+		warning `format -s $node $warningMsg`;
+		return;
+	}
+
+	// set up the auto-update variables
+
+    string $listType = "auto";
+    if ( `optionVar -exists "attrEdListType"` ) {
+        $listType = `optionVar -q "attrEdListType"`;
+    } else {
+    	optionVar -sv "attrEdListType" $listType;
+	}
+
+	if (!isAttributeEditorVisible()) {
+		//
+		//	Need to ignore the second update of the AE that will
+		//	occur in attributeEditorVisibilityStateChange().
+		//
+		//	See bug #138766 and #145364.
+		//
+		$gIgnoreAEUpdate = true;
+		setAttributeEditorVisible(true);
+		$gIgnoreAEUpdate = false;
+	} else {
+		raiseAttributeEditor();
+	}
+
+	// set up the option var that specifies the size of the AE pane
+	// and the Notes section.  The main AE window is a paneLayout with
+	// two panes: top for showing Attributes, and the bottom for
+	// showing Notes.  The ratio here is the top has 85 and the
+	// bottom has (100-85) = 15
+	//
+    if ( !`optionVar -exists "attrEdPaneRatio"` ) {
+    	optionVar -intValue "attrEdPaneRatio" 85;
+	}
+
+	updateAE($node);
+}
+
+
+global proc showEditorExact ( string $nodeName )
+//
+// Sometimes showEditor will not go to the exact specified node.
+// This happens when the editor is currently showing a related node
+// and you try to showEditor on a node that is currently shown
+// in the tab layout.  This method calls showEditor first, and
+// then ensures that the correct tab is at the front.
+//
+{
+	global string $gAETabLayoutName;
+	global string $gAECurrentTab;
+
+	showEditor $nodeName;
+	
+	if ( $nodeName != "" && `objExists $nodeName` ){
+	
+		// get the tail of the node name, in case it is a path.
+		//
+		string $tokens[];
+		tokenize($nodeName,"|",$tokens);
+		$nodeName = $tokens[size($tokens)-1];
+	
+		if ( $gAECurrentTab != $nodeName ){
+		
+			// we need to switch tabs
+			//
+			string $tabs[] = `tabLayout -q -tabLabel $gAETabLayoutName`;
+			int $found = 0;
+			int $i;
+			for ( $i=0; $i<size($tabs) && $found == 0; $i++ ){
+				if ( $tabs[$i] == $nodeName ){
+					$found = $i+1;
+				}
+			}
+			if ( $found > 0 ){
+				tabLayout -e -selectTabIndex $found $gAETabLayoutName;
+				AEbuildControls;
+			}
+		}
+	}
+}
+	
+
+global proc showEditorSetListType( string $listType )
+//
+// This call sets the option var to say what kind of
+// list should be displayed, and displays the first element
+// of this kind of list in the attribute editor.  If the
+// new list is empty, the attribute editor isn't changed.
+//
+{
+    // If toggling to auto update, set the flag.  Otherwise reset it.
+    //
+    global int $gAutoUpdateAttrEdFlag;
+    if ( $listType == "auto" ){
+        if ($gAutoUpdateAttrEdFlag) {
+        	$gAutoUpdateAttrEdFlag = false;
+			// enable all of the other menu items
+			menuItem -e -en true AEreloadSelectedMenuItem;
+			menuItem -e -en true AEselectedItemsMenuItem;
+			menuItem -e -en true AEdynamicsSubMenu;
+			menuItem -e -en true AEkinematicsSubMenu;
+			menuItem -e -en true AEdeformersSubMenu;
+			menuItem -e -en true AElightSubMenu;
+			menuItem -e -en true AEshadingSubMenu;
+		} else {
+        	$gAutoUpdateAttrEdFlag = true;
+			// disable all of the other menu items
+			menuItem -e -en false AEreloadSelectedMenuItem;
+			menuItem -e -en false AEselectedItemsMenuItem;
+			menuItem -e -en false AEdynamicsSubMenu;
+			menuItem -e -en false AEkinematicsSubMenu;
+			menuItem -e -en false AEdeformersSubMenu;
+			menuItem -e -en false AElightSubMenu;
+			menuItem -e -en false AEshadingSubMenu;
+		}
+    }
+
+	if ( $listType == "auto" || $listType == "selected" ) {
+		menu -e -label (uiRes("m_showEditor.kSelectedMenu")) 
+			-familyImage "menuIconSelected.png"
+			objectMenu;
+	} else {
+		menu -e -label (uiRes("m_showEditor.kObjectMenu")) 
+			-familyImage "menuIconObject.png"
+			objectMenu;
+	}
+
+    optionVar -sv "attrEdListType" $listType;
+
+    string $itemList[] = showEditorGetList();
+
+    if ( size($itemList) > 0 && $gAutoUpdateAttrEdFlag ){
+        showEditor($itemList[0]);
+    }
+}
+
+
+
+// This procedure is called every time the selected list
+// changes.  If we are in auto-update mode, the attribute
+// editor is updated.  (Unless, of course, nothing is
+// selected.)
+//
+global proc autoUpdateAttrEd()
+{
+    global int      $gAutoUpdateAttrEdFlag;
+    global string   $gAttributeEditorWindowName;
+    global string   $gAEMenuBarLayoutName;
+    global string   $gAECurrentTab;
+    global string	$gAEPrevCurrentTab ;
+	global string	$gAEDeferredNode;
+    
+    string $tempCurrentTab = $gAECurrentTab ;
+    
+    if ( $gAutoUpdateAttrEdFlag ) {
+
+        // 	Also make sure the window is visible or if the 
+		//	menuBarLayout within the AE is being shown, AND
+		//	it's being managed.  No point in updating if 
+		//	it otherwise
+
+		if( `window -exists $gAttributeEditorWindowName` &&
+			`window -q -visible $gAttributeEditorWindowName`  ||
+			isAttributeEditorVisible() ) {
+
+			$gAEDeferredNode = "";
+
+            // Get the list of nodes, and find the last one.
+            //
+            string $nodes[] = `selectedNodes`;
+			int $count = size($nodes);
+			if ($count > 0){
+				// If the attribute editor is a dock control, and it's not
+				// raised, we don't want to do the (potentially expensive)
+				// update. We'll save the node name, and if the attribute
+				// editor becomes truly visible, then we'll do the update. This
+				// update will be triggered in updateEditorToggleCheckboxes.
+				// See bug #346864.
+				//
+				if( !`exists getUIComponentDockControl` ) {
+					eval("source \"UIComponents.mel\"");
+				}
+				int $deferUpdate = false;
+				string $component =
+					getUIComponentDockControl("Attribute Editor", false);
+				if( size($component) > 0 ){
+					if(!`dockControl -q -raise $component` ){
+						$deferUpdate = true;
+					}
+				}
+				if( $deferUpdate ){
+					$gAEDeferredNode = $nodes[$count-1];
+				} else {
+					updateAE($nodes[$count-1]);
+				}
+			} else {
+				updateAE "";
+			}
+		}
+    } else if ( !`objExists $gAECurrentTab` ) {
+		updateAE "";
+	}
+	
+	if( !( `window -exists $gAttributeEditorWindowName` &&
+			`window -q -visible $gAttributeEditorWindowName`  ||
+			isAttributeEditorVisible() ) ) 
+	{
+			AEupdateNode($gAECurrentTab, "");
+			$gAECurrentTab = "" ;
+	}
+	else
+	{
+		if( size($gAECurrentTab) == 0 )
+			AEupdateNode($tempCurrentTab, "");
+	}
+}
+
+// This procedure is called whenever the paneLayout in
+// the Attr Ed window is changed, ie. when the panes are resized
+// The appropriate optionVar is updated.
+//
+global proc paneSizeAttrEd() 
+{
+	global string	$gAERootPaneLayoutName;
+	int $paneSize[] = `paneLayout -q -paneSize $gAERootPaneLayoutName`;
+
+	// Top pane size is returned as width, height.  We only really
+	// want the height, because width is constrained by the window.
+	// So save the height of the top pane size in an option var.
+	//
+	if( size($paneSize) > 1 ) {
+   		optionVar -intValue "attrEdPaneRatio" $paneSize[1];
+	}
+}
+
+global proc setTabMarker( string $nodeType, string $prefNode )
+//
+//	Description:
+//
+//		This procedure sets the preferred node for the given node type in the
+// $gAETabMarker array. To clear a node type, set $prefNode to "".
+//
+{
+	global string	$gAETabMarker[];
+	int	$found = false;
+	for ( $i = 0; $i < size($gAETabMarker); $i++ ) {
+		string $buffer[];
+		tokenize($gAETabMarker[$i],",",$buffer);
+		string $tabMarker = $buffer[0];
+		if ( $tabMarker == $nodeType) {
+			$gAETabMarker[$i] = $nodeType+ "," + $prefNode;
+			$found = true;
+			break;
+		}
+	}
+	if (!$found) {
+		// add this nodeType to the $gAETabMarker
+		//
+		$gAETabMarker[size($gAETabMarker)] = $nodeType+","+$prefNode;
+	}
+}

@@ -1,0 +1,939 @@
+/* [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]
+[]
+[]	Written By: Kris Andrews
+[]	Contact: KrisAndrews@3dkris.com
+[]
+[]	Synopsis:
+[]				a marking menu to simplify connecting in the hypershade
+
+				use the following as a button/ hotkey to open the hypershade:
+				
+				tearOffPanel "Hypershade" "hyperShadePanel" true;
+				hyperShadePanelMenuCommand("hyperShadePanel1", "showBottomTabsOnly");
+				source ka_hyperGraphMM;
+				ka_hyperGraphMM();
+				
+				-hold Ctrl down and right click while mousing over a node in the hypershade to define a source attriubute.
+				-hold Ctrl+Shift and right click to define a destination attribute, and connect the earlier defined source attribute to it.
+				-hold Ctrl + and right click over empty space for additional hypershade commands and set the connection type.
+				-using the "smart mode" from "multi mode:" will make connection type depend on your selection. If the source object is NOT
+				in the selection then the source objects attribute will be connected to everything in your selection, otherwise it will connect the first
+				half of your selection to the second based on their height in the hypergraph, like a DNA double helix (for best results arrange in two roughly vertical lines)
+
+[]
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]*/
+ 
+
+global proc ka_hyperGraphMM()
+{
+	if( `popupMenu -exists ka_hgSourceMM` ){ deleteUI ka_hgSourceMM; }
+	popupMenu
+	-ctrlModifier 1
+	-button 3
+	-mm 1
+	-p "hyperShadePanel1"
+	-pmc "ka_hgMM_buildMenu \"source\""
+	ka_hgSourceMM;
+	
+	if( `popupMenu -exists ka_hgTargetMM` ){ deleteUI ka_hgTargetMM; }
+	popupMenu
+	-shiftModifier 1
+	-ctrlModifier 1
+	-button 3
+	-mm 1																				  
+	-p "hyperShadePanel1"
+	-pmc "ka_hgMM_buildMenu \"target\""
+	ka_hgTargetMM;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_hgMM_buildMenu(string $mode)
+{		 
+	string $hypershade = "hyperShadePanel1";
+	string $hypergraph = "graph1HyperShadeEd";
+	int $modifiers = `getModifiers`;
+	string $feedBackNode = `hyperGraph -q -fbn $hypergraph`;
+	int $count;
+	int $menuCapacityBeforeOverflow;
+	
+	if($feedBackNode != "")
+	{
+		string $type = `nodeType $feedBackNode`;
+		string $menuItems = `ka_hgMM_getTemplate $mode $type $feedBackNode`;
+		string $menuItemList[];
+		if($menuItems != "")
+		{
+			tokenize $menuItems $menuItemList;
+		}
+		string $userDefinedAttrs[] = `listAttr -userDefined $feedBackNode`;
+		for($each in $userDefinedAttrs) 
+		{ 
+			if($each != "attributeAliasList")
+			{//exclude the attributeAliasList present in any object with an alias attribute (such as blendShape Nodes)
+				$menuItemList[`size($menuItemList)`] = $each;			  
+			}
+		}
+		string $otherAttrs = `ka_hgMM_getTemplate $mode "other" $feedBackNode`;
+		string $otherAttrsList[];
+		tokenize $otherAttrs $otherAttrsList;
+		$otherAttrsList = sort($otherAttrsList);
+		
+		string $menuItemLabel;
+		
+		//---------------------SOURCE MODE-------------------------------
+		if($mode == "source")
+		{
+			popupMenu -e -deleteAllItems ka_hgTargetMM;
+			popupMenu -e -deleteAllItems ka_hgSourceMM;
+			setParent -menu ka_hgSourceMM;
+			
+			$count = 0;
+			$menuCapacityBeforeOverflow = 50;
+			for($each in $menuItemList)
+			{//add each item to menu
+				$menuItemLabel = $each;
+				if(`connectionInfo -isDestination ($feedBackNode + "." + $each)`) { $menuItemLabel = (">> " + $menuItemLabel); } else { $menuItemLabel = ("    " + $menuItemLabel); }
+				if(`connectionInfo -isSource ($feedBackNode + "." + $each)`) { $menuItemLabel = ($menuItemLabel + "    >>"); }
+			 
+				if($count == $menuCapacityBeforeOverflow){ menuItem -label "    Overflow" -subMenu 1 -p "ka_hgSourceMM" ka_hgOverflowSM; } 
+				if($count >= $menuCapacityBeforeOverflow)
+				{//if greater then the capacity of the menu, add it to the overflow menu
+					menuItem -label $menuItemLabel	-p "ka_hgOverflowSM"-c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $each + "\"");
+				}
+				else
+				{
+					menuItem -label $menuItemLabel	-p "ka_hgSourceMM" -c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $each + "\"");
+				}
+				$count++;
+			}
+			
+			menuItem -label "    Other" -subMenu 1 ka_hgOtherSM;
+			for($o in $otherAttrsList)
+			{
+				menuItem -label $o	-italicized 0 -boldFont 0 -p "ka_hgOtherSM" -c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $o + "\";");
+			}
+		}
+		
+		//---------------------TARGET MODE-------------------------------
+		else if($mode == "target")
+		{
+			popupMenu -e -deleteAllItems ka_hgTargetMM;
+			popupMenu -e -deleteAllItems ka_hgSourceMM;
+			setParent -menu ka_hgTargetMM;
+			
+			string $sourceAttr = `optionVar -q "ka_hgMM_sourceAttr"`;
+			string $menuItem;
+			
+			$count = 0;
+			$menuCapacityBeforeOverflow = 50;
+			for($each in $menuItemList)
+			{
+				$menuItemLabel = $each;
+				if(`connectionInfo -isDestination ($feedBackNode + "." + $each)`) { $menuItemLabel = (">> " + $menuItemLabel); } else { $menuItemLabel = ("    " + $menuItemLabel); }
+				if(`connectionInfo -isSource ($feedBackNode + "." + $each)`) { $menuItemLabel = ($menuItemLabel + "    >>"); }
+							
+				if($count == $menuCapacityBeforeOverflow){ menuItem -label "    Overflow" -subMenu 1 -p "ka_hgTargetMM" ka_hgOverflowSM; } 
+				if($count >= $menuCapacityBeforeOverflow)
+				{//if greater then the capacity of the menu, add it to the overflow menu
+					menuItem -label $menuItemLabel	-italicized 0 -boldFont 0 -p "ka_hgOverflowSM" -c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $each + "\"; ka_hgMM_DefineConnection;");
+				}
+				else
+				{
+					menuItem -label $menuItemLabel	-italicized 0 -boldFont 0 -p "ka_hgTargetMM" -c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $each + "\"; ka_hgMM_DefineConnection;");
+				}
+				$count++;
+			}
+
+			//transform special submenu
+			menuItem -label "    Transform Special"	 -p ka_hgTargetMM -subMenu 1 ka_hgTransformSpecialSM;
+			string $transformSpecial = `ka_hgMM_getTemplate $mode "transformSpecial" $feedBackNode`;
+			string $transformSpecialList[];
+			if($transformSpecial != "")
+			{
+				tokenize $transformSpecial $transformSpecialList;
+			}
+			for($t in $transformSpecialList)
+			{
+				menuItem -label $t	-italicized 0 -boldFont 0 -p ka_hgTransformSpecialSM -c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $t + "\"; ka_hgMM_DefineConnection;");
+			}		 
+			
+			//other submenu
+			menuItem -label "    Other" -p ka_hgTargetMM -subMenu 1 ka_hgOtherSM;
+			for($o in $otherAttrsList)
+			{
+				menuItem -label $o	-italicized 0 -boldFont 0 -p ka_hgOtherSM -c ("ka_hgMM_storeAttr \"" + $mode + "\" \"" + $feedBackNode + "\" \"" + $o + "\"; ka_hgMM_DefineConnection;");
+			}
+			
+			
+			if($type == "plusMinusAverage")
+			{//if source is add node
+				setParent -menu ka_hgTargetMM;
+				menuItem -label "setManually" -italicized 0 -boldFont 0 -c ("ka_hgMM_setAddNodeManuallyWindow(\"" + $feedBackNode + "\");");
+				menuItem -label "add attriubute to offset input.1D[0]" -italicized 0 -boldFont 0 -c ("ka_hgMM_setAddNodeAddAttr(\"" + $feedBackNode + "\");");
+			}
+
+		}
+		//if in either target or source mode
+        string $attr;
+        string $attrConnectionInputs[];
+        string $attrConnectionOutputs[];
+        string $lable;
+        string $popupMenu;
+        if($mode == "source")
+        {
+            if(`optionVar -exists "ka_hgMM_sourceAttr"`){ $attr = `optionVar -q "ka_hgMM_sourceAttr"`; }
+            $popupMenu = "ka_hgSourceMM";
+        }
+        if($mode == "target")
+        {
+            if(`optionVar -exists "ka_hgMM_targetAttr"`){ $attr = `optionVar -q "ka_hgMM_targetAttr"`; }
+            $popupMenu = "ka_hgTargetMM";
+        }
+        
+        $lable = `match "[^|]*$" $feedBackNode`;
+        
+        if(`attributeQuery -exists -node $feedBackNode $attr`)
+        {
+            menuItem -label ($lable + "." + $attr) -radialPosition "N" -p $popupMenu;
+            $attrConnectionInputs = `listConnections -plugs 1 -skipConversionNodes 1 -source 1 -destination 0 ($feedBackNode + "." + $attr)`;
+        $attrConnectionOutputs = `listConnections -plugs 1  -skipConversionNodes 1 -source 0 -destination 1 ($feedBackNode + "." + $attr)`;
+        }
+        
+        if(`size $attrConnectionInputs` > 0)
+        {
+            $attrConnectionInputs[0] = `match "^[^\.]*" $attrConnectionInputs[0]`;
+            menuItem -label ($attrConnectionInputs[0] + "  >>") -radialPosition "NW" -c ("ka_hgMM_navigateConnections(\"source\", \"" + $feedBackNode +"\", \"" + $attr + "\");") -p $popupMenu;
+        }
+        
+
+        if(`size $attrConnectionOutputs` > 0)
+        {
+            $attrConnectionOutputs[0] = `match "^[^\.]*" $attrConnectionOutputs[0]`;
+            menuItem -label ("  >> " + $attrConnectionOutputs[0]) -radialPosition "NE" -c ("select -r " + $attrConnectionInputs[0] + ";") -p $popupMenu;
+        }
+	}	
+	//---------------------OVER NOTHING MODE-------------------------------
+	else
+	{//when popup is not over a node
+		popupMenu -e -deleteAllItems ka_hgSourceMM;
+		setParent -menu ka_hgSourceMM;
+		
+		menuItem -label "create Node:"	-subMenu 1 -p "ka_hgSourceMM" ka_hgCreateNodeSM;	 
+		menuItem -divider 1	 -p "ka_hgSourceMM";
+		
+		menuItem -label "create Shader:"	-subMenu 1 -p "ka_hgSourceMM" ka_hgCreateShaderSM;	 
+		menuItem -divider 1	 -p "ka_hgSourceMM";
+		
+		menuItem -label "Clear Graph"  -c "ka_hgClear" -p "ka_hgSourceMM";
+		menuItem -label "Add Selected to Graph"	 -c "ka_hgAdd" -p "ka_hgSourceMM"; 
+		menuItem -divider 1	 -p "ka_hgSourceMM";
+		
+		menuItem -label "Connect Same Name Attributes"	 -c "ka_connectedSameNameAttrs" -p "ka_hgSourceMM"; 
+		menuItem -divider 1	 -p "ka_hgSourceMM";
+		
+		menuItem -label "lockNode" -subMenu 1 -p "ka_hgSourceMM" ka_hglockNodeSM; 
+		menuItem -label "lockNode on Selection ON"	 -c "ka_lockNode 1" -p "ka_hglockNodeSM"; 
+		menuItem -label "lockNode on Selection OFF"	 -c "ka_lockNode 0" -p "ka_hglockNodeSM"; 
+		menuItem -divider 1	 -p "ka_hgSourceMM";
+		//menuItem -label "select oppositely named object"	-c "ka_selectMirrorObject" -p "ka_hgSourceMM";
+		
+		
+		string $multiModeOptionVar = 1; //set default if not yet an option var
+		if(`optionVar -exists "ka_hgMM_multiMode"`)
+		{ 
+			$multiModeOptionVar = `optionVar -q "ka_hgMM_multiMode"`; 
+		}
+		else
+		{
+			optionVar -intValue "ka_hgMM_multiMode" 5; 
+		}
+		
+		int $multiModeRadio1 = 0;	 if($multiModeOptionVar == 1){ $multiModeRadio1 = 1; }
+		int $multiModeRadio2 = 0;	 if($multiModeOptionVar == 2){ $multiModeRadio2 = 1; }
+		int $multiModeRadio3 = 0;	 if($multiModeOptionVar == 3){ $multiModeRadio3 = 1; }
+		int $multiModeRadio4 = 0;	 if($multiModeOptionVar == 4){ $multiModeRadio4 = 1; }
+		int $multiModeRadio5 = 0;	 if($multiModeOptionVar == 5){ $multiModeRadio5 = 1; }
+		 
+		menuItem -label "Multi Mode:"  -subMenu 1 -p "ka_hgSourceMM" ka_hgMultiModeSM;	   
+		menuItem -label "connect to all in selection"  -checkBox $multiModeRadio1 -c "optionVar -intValue \"ka_hgMM_multiMode\" 1;" -p ka_hgMultiModeSM ka_multiConstrainMode1MI;
+		menuItem -label "connect to first half to second"  -checkBox $multiModeRadio2 -c "optionVar -intValue \"ka_hgMM_multiMode\" 2;" -p ka_hgMultiModeSM ka_multiConstrainMode2MI;
+		menuItem -label "connect odds to evens"	 -checkBox $multiModeRadio3 -c "optionVar -intValue \"ka_hgMM_multiMode\" 3;" -p ka_hgMultiModeSM ka_multiConstrainMode3MI;
+		menuItem -label "connect doubleHelix"	 -checkBox $multiModeRadio4 -c "optionVar -intValue \"ka_hgMM_multiMode\" 4;" -p ka_hgMultiModeSM ka_multiConstrainMode4MI;
+		menuItem -label "smart mode"	 -checkBox $multiModeRadio5 -c "optionVar -intValue \"ka_hgMM_multiMode\" 5;" -p ka_hgMultiModeSM ka_multiConstrainMode5MI;
+		
+		string $createNodes = `ka_hgMM_getTemplate $mode "createNodes" $feedBackNode`;
+		string $createNodeList[];
+		tokenize $createNodes $createNodeList;
+		sort $createNodeList;
+		for($each in $createNodeList)
+		{
+			menuItem -label $each  -p ka_hgCreateNodeSM -c ("shadingNode -asUtility " + $each + "; hyperShadePanelGraphCommand(\`getPanel -withFocus\`, \"addSelected\"); ka_postNodeCreationCommand(\"" + $each + "\");");
+		}
+		
+		string $createShaders = `ka_hgMM_getTemplate $mode "createShaders" $feedBackNode`;
+		string $createShadersList[];
+		tokenize $createShaders $createShadersList;
+		sort $createShadersList;
+		for($each in $createShadersList)
+		{
+			menuItem -label $each  -p ka_hgCreateShaderSM -c ("shadingNode -asUtility " + $each + "; hyperShadePanelGraphCommand(\`getPanel -withFocus\`, \"addSelected\");");
+		}
+	}
+}
+
+global proc string ka_hgMM_getTemplate(string $mode, string $type, string $feedBackNode)
+{
+	string $menuItems = "";
+
+	switch($type)
+	{
+		case "joint":
+			if($mode == "source") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ scale scaleX scaleY scaleZ visibility radius rotatePivot rotatePivotX rotatePivotY rotatePivotZ"; }
+			if($mode == "target") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ scale scaleX scaleY scaleZ visibility radius rotatePivot rotatePivotX rotatePivotY rotatePivotZ"; }
+		break;
+		
+		case "transform":
+			if($mode == "source") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ scale scaleX scaleY scaleZ visibility rotatePivot rotatePivotX rotatePivotY rotatePivotZ"; }
+			if($mode == "target") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ scale scaleX scaleY scaleZ visibility rotatePivot rotatePivotX rotatePivotY rotatePivotZ"; }
+		break;
+		
+		case "multiplyDivide":
+			if($mode == "source") { $menuItems = "output outputX outputY outputZ"; }
+			if($mode == "target") { $menuItems = "input1 input1X input1Y input1Z input2 input2X input2Y input2Z"; }
+		break;
+		
+		case "plusMinusAverage":
+			string $inputs[] = `listAttr  -multi -k $feedBackNode`;
+
+			int $i = (`size $inputs` + 1);
+			int $count = 1;
+			if($mode == "target") { $menuItems	= ($menuItems + "input1D[0] "); }
+			if($mode == "target") { $menuItems	= ($menuItems + "input1D[1] "); }
+			while($i > 1)
+			{
+				if($mode == "target") { $menuItems	= ($menuItems + "input1D[" + ($count + 1) + "] "); }
+				$count++;
+				$i--;
+			}
+			
+			$i = (`size $inputs` + 1);
+			$count = 1;
+			if($mode == "target") { $menuItems	= ($menuItems + "input3D[0] "); }
+			if($mode == "target") { $menuItems	= ($menuItems + "input3D[1] "); }
+			while($i > 1)
+			{
+				if($mode == "target") { $menuItems	= ($menuItems + "input3D[" + ($count + 1) + "] "); }
+				$count++;
+				$i--;
+			}		 
+
+			if($mode == "source") { $menuItems = "output1D output2D output3D"; }
+		  //  if($mode == "target") { $menuItems = "input1D[0] input1D[1] input1D[2] input1D[3] input1D[4] input1D[5] input1D[6] input1D[7] input1D[8] input1D[9] input2D[0] input3D[0] input3D[1] input3D[2] input3D[3]"; }
+		break;
+		
+		case "condition":
+			if($mode == "source") { $menuItems = "outColor outColorR outColorG outColorB"; }
+			if($mode == "target") { $menuItems = "operation firstTerm secondTerm colorIfTrue colorIfTrueR colorIfTrueG colorIfTrueB colorIfFalse colorIfFalseR colorIfFalseG colorIfFalseB"; }
+		break;
+		
+		case "setRange":
+			if($mode == "source") { $menuItems = "outValue outValueX outValueY outValueZ"; }
+			if($mode == "target") { $menuItems = "value valueX valueY valueZ min minX minY minZ max maxX maxY maxZ oldMin oldMinX oldMinY oldMinZ oldMax oldMaxX oldMaxY oldMaxZ"; }
+		break;
+		
+		case "blendColors":
+			if($mode == "source") { $menuItems = "output outputR outputG outputB"; }
+			if($mode == "target") { $menuItems = "blender color1 color1R color1G color1B color2 color2R color2G color2B"; }
+		break;
+		
+		case "blendShape":
+			string $blendShapes[] = `listAttr  -multi -k $feedBackNode`;
+			$blendShapes = sort($blendShapes);
+			$menuItems = "";
+			for($each in $blendShapes)
+			{
+				if($mode == "source") { $menuItems	= ($menuItems + " " + $each); }
+				if($mode == "target") { $menuItems	= ($menuItems + " " + $each); }
+			}
+		break;
+		
+		case "vectorProduct":
+			if($mode == "source") { $menuItems = "output outputX outputY outputZ"; }
+			if($mode == "target") { $menuItems = "input1 input1X input1Y input1Z input2 input2X input2Y input2Z matrix"; }
+		break;
+		
+		case "angleBetween":
+			if($mode == "source") { $menuItems = "vector1 vector1X vector1Y vector1Z vector2X vector2Y vector2Z euler eulerX eulerY eulerZ axis angle"; }
+			if($mode == "target") { $menuItems = "vector1 vector1X vector1Y vector1Z vector2 vector2X vector2Y vector2Z"; }
+		break;
+		
+		case "distanceBetween":
+			if($mode == "source") { $menuItems = "distance"; }
+			if($mode == "target") { $menuItems = "point1 point1X point1Y point1Z point2 point2X point2Y point2Z"; }
+		break;
+		
+		case "ikHandle":
+			if($mode == "source") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ roll visibility"; }
+			if($mode == "target") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ roll  twist ikBlend offset visibility inCurve"; }
+		break;		  
+	
+		case "pointOnCurveInfo":
+			if($mode == "source") { $menuItems = "position positionX positionY positionZ normal normalX normalY normalZ tangent tangentX tangentY tangentZ normalizedNormal normalizedNormalX normalizedNormalY normalizedNormalZ normalizedTangent normalizedTangentX normalizedTangentY normalizedTangentZ"; }
+			if($mode == "target") { $menuItems = "inputCurve parameter turnOnPercentage"; }
+		break;		  
+	
+		case "mesh":
+			if($mode == "source") { $menuItems = "visibility worldMatrix[0] outMesh"; }
+			if($mode == "target") { $menuItems = "visibility outMesh"; }
+		break;		  
+		
+		case "nurbsCurve":
+			if($mode == "source") { $menuItems = "visibility worldSpace[0]"; }
+			if($mode == "target") { $menuItems = "visibility"; }
+		break;		  
+	
+		case "polySmoothFace":
+			if($mode == "source") { $menuItems = "divisions"; }
+			if($mode == "target") { $menuItems = "divisions"; }
+		break;		  
+
+		case "animCurveUU":
+		case "animCurveUL":
+		case "animCurveUA":
+		case "animCurveUT":
+		case "animCurveTU":
+		case "animCurveTL":
+		case "animCurveTA":
+		case "animCurveTT":
+			if($mode == "source") { $menuItems = "output"; }
+			if($mode == "target") { $menuItems = "input"; }
+		break;
+		
+		case "curveInfo":
+			if($mode == "source") { $menuItems = "arcLength"; }
+			if($mode == "target") { $menuItems = "inputCurve"; }
+		break;
+		
+		case "locator":
+		if($mode == "source") { $menuItems = "visibility localPosition localPositionX localPositionY localPositionZ localScale localScaleX localScaleY localScaleZ worldPosition worldPosition.worldPositionX worldPosition.worldPositionY worldPosition.worldPositionZ"; }
+			if($mode == "target") { $menuItems = "visibility localPosition localPositionX localPositionY localPositionZ localScale localScaleX localScaleY localScaleZ"; }
+		break;	
+		
+		case "place3dTexture":
+			if($mode == "source") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ scale scaleX scaleY scaleZ visibility rotatePivot rotatePivotX rotatePivotY rotatePivotZ"; }
+			if($mode == "target") { $menuItems = "translate translateX translateY translateZ rotate rotateX rotateY rotateZ scale scaleX scaleY scaleZ visibility rotatePivot rotatePivotX rotatePivotY rotatePivotZ"; }
+		break;	
+
+		case "pointConstraint":
+			if($mode == "source") { $menuItems = "constraintTranslate constraintTranslateX constraintTranslateY constraintTranslateZ"; }
+			if($mode == "target") { $menuItems = "constraintTranslate constraintTranslateX constraintTranslateY constraintTranslateZ"; }
+		break;
+		
+		case "closestPointOnSurface":
+			if($mode == "source") { $menuItems = "position parameterU parameterV"; }
+			if($mode == "target") { $menuItems = "inputSurface inPosition"; }
+		break;
+
+		case "pointOnSurfaceInfo":
+			if($mode == "source") { $menuItems = "position normal normalizedNormal tangentU normalizedTangentU tangentV normalizedTangentV"; }
+			if($mode == "target") { $menuItems = "inputSurface parameterU parameterV"; }
+		break;
+		
+		case "orientConstraint":
+			if($mode == "source") { $menuItems = "constraintRotate constraintRotateX constraintRotateY constraintRotateZ"; }
+			if($mode == "target") { $menuItems = "target[0].targetParentMatrix target[0].targetRotateOrder target[0].targetRotate constraintRotateOrder constraintParentInverseMatrix"; }
+		break;
+		
+		case "file":
+			if($mode == "source") { $menuItems = "outColor outColorR outColorB outColorG outTransparency"; }
+			if($mode == "target") { $menuItems = "colorGain colorOffset"; }
+		break;	
+		
+		case "lambert":
+			if($mode == "source") { $menuItems = "outColor outColorR outColorB outColorG"; }
+			if($mode == "target") { $menuItems = "color colorR colorG colorB ambientColor ambientColorR ambientColorG ambientColorB incandescence incandescenceR incandescenceB incandescenceG transparency "; }
+		break;
+
+		case "phong":
+			if($mode == "source") { $menuItems = "outColor outColorR outColorB outColorG"; }
+			if($mode == "target") { $menuItems = "color colorR colorG colorB ambientColor ambientColorR ambientColorG ambientColorB incandescence incandescenceR incandescenceB incandescenceG transparency "; }
+		break;	
+		
+		case "nurbsSurface":
+			if($mode == "source") { $menuItems = "worldSpace"; }
+			if($mode == "target") { $menuItems = ""; }
+		break;	
+		
+		case "surfaceShader":
+			if($mode == "source") { $menuItems = "outColor outTransparency"; }
+			if($mode == "target") { $menuItems = "outColor outTransparency"; }
+		break;
+
+		case "samplerInfo":
+			if($mode == "source") { $menuItems = "facingRatio flippedNormal"; }
+			if($mode == "target") { $menuItems = ""; }
+		break;	
+
+		case "reverse":
+			if($mode == "source") { $menuItems = "output"; }
+			if($mode == "target") { $menuItems = "input"; }
+		break;	
+		
+		case "pfxToon":
+			if($mode == "source") { $menuItems = ""; }
+			if($mode == "target") { $menuItems = "lineWidthMap lineOpacityMap lineOffsetMap profileColor profileColorR profileColorG profileColorB cameraPoint inputSurface[0].inputWorldMatrix inputSurface[0].surface inputSurface[1].inputWorldMatrix inputSurface[1].surface inputSurface[2].inputWorldMatrix inputSurface[2].surface"; }
+		break;	
+		
+		case "gammaCorrect":
+			if($mode == "source") { $menuItems = "outValue"; }
+			if($mode == "target") { $menuItems = "value gamma gammaX gammaY gammaZ"; }
+		break;
+
+		case "rgbToHsv":
+			if($mode == "source") { $menuItems = "outValue"; }
+			if($mode == "target") { $menuItems = "inRgb"; }
+		break;
+
+		case "shadingEngine":
+			if($mode == "source") { $menuItems = ""; }
+			if($mode == "target") { $menuItems = "surfaceShader"; }
+		break;
+
+		case "useBackground":
+			if($mode == "source") { $menuItems = "outColor outTransparency outMatteOpacity"; }
+			if($mode == "target") { $menuItems = "out"; }
+		break;
+		
+		case "projection":
+			if($mode == "source") { $menuItems = "outColor outAlpha"; }
+			if($mode == "target") { $menuItems = "image outSize frameOffset"; }
+		break;
+
+		case "rampShader":
+			string $inputList[];
+			
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".color" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.color_Color"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" color[" + $tokens[1] + "].color_Color" )); }
+				 }
+			}
+
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".transparency" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.transparency_Color"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" transparency[" + $tokens[1] + "].transparency_Color" )); }
+				 }
+			}
+			
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".incandescence" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.incandescence_Color"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" incandescence[" + $tokens[1] + "].incandescence_Color" )); }
+				 }
+			}
+			
+			if($mode == "source") { $menuItems = ($menuItems + " outColor"); }
+			if($mode == "target") { $menuItems = ($menuItems + " ambientColor diffuse forwardScatter translucenceFocus translucenceDepth"); }
+		break;	
+		
+		case "ramp":
+			string $inputList[];
+			
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".colorEntryList" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.color"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" colorEntryList[" + $tokens[1] + "].color" )); }
+				 }
+			}
+			
+			if($mode == "source") { $menuItems = ($menuItems + " outColor outColorR outColorG outColorB"); }
+			if($mode == "target") { $menuItems = ($menuItems + " colorGain colorOffset"); }
+		break;
+		
+		case "layeredShader":
+			string $inputList[];
+			
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".inputs" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.color"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" inputs[" + $tokens[1] + "].color" )); }
+				 }
+			}
+			
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".inputs" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.transparency"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" inputs[" + $tokens[1] + "].transparency" )); }
+				 }
+			}
+
+			string $multiAttr[] = `listAttr -multi ( $feedBackNode + ".inputs" )`;
+			for ( $each in $multiAttr )
+			{
+				 if ( `gmatch $each "*.glowColor"` )
+				 {
+					 string $tokens[];
+					 tokenize $each "[]" $tokens;
+					 if($mode == "target") { $menuItems = ($menuItems + (" inputs[" + $tokens[1] + "].glowColor" )); }
+				 }
+			}
+			
+			if($mode == "source") { $menuItems = ($menuItems + "outColor"); }
+			if($mode == "target") { $menuItems = ($menuItems + ""); }
+		break;
+		
+		//________________________________________________________________________________________________//
+
+		case "transformSpecial":
+			$menuItems = "shear shearXY shearXZ shearYZ rotatePivot rotatePivotX rotatePivotY rotatePivotZ scalePivot scalePivotX scalePivotY scalePivotZ rotateAxis rotateAxisX rotateAxisY rotateAxisZ rotatePivotTranslate rotatePivotTranslateX rotatePivotTranslateY rotatePivotTranslateZ scalePivotTranslate scalePivotTranslateX scalePivotTranslateY scalePivotTranslateZ ";
+		break;
+
+		case "other":
+			if($mode == "source") { $menuItems = "visibility template ghosting message drawOverride.overrideEnabled overrideColor worldSpace nodeState overrideDisplayType envelope"; }
+			if($mode == "target") { $menuItems = "visibility template ghosting message drawOverride.overrideEnabled overrideColor worldSpace nodeState overrideDisplayType envelope"; }
+		break;
+
+		case "createNodes":
+			$menuItems = "multiplyDivide blendColors condition setRange plusMinusAverage blendTwoAttr distanceBetween pointOnCurveInfo curveInfo pointOnSurfaceInfo surfaceInfo closestPointOnSurface angleBetween vectorProduct arrayMapper bump2d bump3d heightField lightInfo place2dTexture place3dTexture projection reverse samplerInfo stencil uvChooser  animCurveUU animCurveUA animCurveUL animCurveUT closestPointOnMesh furPointOnMeshInfo furPointOnMeshInfo";
+		break;
+		
+		case "createShaders":
+			$menuItems = "phong lambert layeredShader blinn anisotropic phongE rampShader shadingMap surfaceShader useBackground";
+		break;
+	}
+	return $menuItems;
+}
+
+global proc ka_hgMM_storeAttr(string $mode, string $object, string $attr)
+{
+	if($mode == "source")
+	{
+		optionVar -stringValue "ka_hgMM_sourceObject" $object;
+		optionVar -stringValue "ka_hgMM_sourceAttr" $attr;
+	}
+	if($mode == "target")
+	{
+		optionVar -stringValue "ka_hgMM_targetObject" $object;
+		optionVar -stringValue "ka_hgMM_targetAttr" $attr;
+	}
+}
+
+global proc ka_hgMM_DefineConnection()
+{
+	string $hypergraph = "graph1HyperShadeEd";
+	string $sourceObject = `optionVar -q "ka_hgMM_sourceObject"`;
+	string $targetObject = `optionVar -q "ka_hgMM_targetObject"`;
+	string $sourceAttr = `optionVar -q "ka_hgMM_sourceAttr"`;
+	string $targetAttr = `optionVar -q "ka_hgMM_targetAttr"`;
+	string $multiModeOptionVar = `optionVar -q "ka_hgMM_multiMode"`; 
+	int $notLoadedFlag = 0;
+	string $sel[] = `ls -sl`;
+	string $destinationConnectionObjectList[];
+	string $sourceConnectionObjectList[];
+	int $lockedFlag;
+	
+	if(`size($sel)` >= 2)
+	{//multi connect
+		string $nodeList[] = `hyperGraph -q -getNodeList graph1HyperShadeEd`;
+		for($each in $sel)
+		{//check if selection is loaded in hypershade to avoid accedental multi connections
+			if(!(stringArrayContains($each, $nodeList))) 
+			{ 
+				error "items being connected are not loaded into hypershade, please load them in if you intend to connect to multiple objects";
+				$notLoadedFlag = 1;
+			}
+		}
+		
+		//CREATE LISTS BASED OF MULTI MODE-------------------------------------------------------------------
+		int $i = 0;
+		if($multiModeOptionVar == 5)//if in smart mode
+		{// SMART DEFINE MODE
+			int $typeDefinedFlag = 1;
+			
+			$shortSourceObject = `shortNameOf $sourceObject`;
+			$typeDefinedFlag = `stringArrayContains $shortSourceObject $sel`;
+
+			if($typeDefinedFlag == 0)
+			{
+				$multiModeOptionVar = 1;
+				print "kaHyperGraph Smart Mode connects in connectAll mode\n";
+			}
+			if($typeDefinedFlag == 1)
+			{
+				$multiModeOptionVar = 4;
+				print "kaHyperGraph Smart Mode connects in doubleHelix mode\n";
+			}		
+		}//END SMART DEFINE MODE
+		
+		
+		if($multiModeOptionVar == 1)
+		{//connect to all in selection
+			$destinationConnectionObjectList = $sel;
+			for($each in $destinationConnectionObjectList)
+			{
+				$sourceConnectionObjectList[`size($sourceConnectionObjectList)`]  = $sourceObject;
+			}
+		}
+		else if($multiModeOptionVar == 2)
+		{//connect to first half to second
+			for($each in $sel)
+			{
+				if($i < (`size $sel`/2))
+				{
+					$sourceConnectionObjectList[`size($sourceConnectionObjectList)`] = $each;
+				}
+				else
+				{
+					$destinationConnectionObjectList[`size($destinationConnectionObjectList)`] = $each;
+				}
+				$i++;
+			}
+		}
+		else if($multiModeOptionVar == 3)
+		{//connect odds to evens
+			int $toggle = 0;
+			for($each in $sel)
+			{
+				if($toggle == 0)
+				{
+					$sourceConnectionObjectList[`size($sourceConnectionObjectList)`] = $each;
+				}
+				else if($toggle == 1)
+				{
+					$destinationConnectionObjectList[`size($destinationConnectionObjectList)`] = $each;
+				}
+				$toggle = (1 - $toggle);
+				$i++;
+			}
+		}
+		else if($multiModeOptionVar == 4)
+		{//double helix connection
+			float $transforms[];
+			float $sourceNodePosY[];
+			float $destinationNodePosY[];
+			for($each in $sel)
+			{
+				$transforms = `hyperGraph -getNodePosition $each -q $hypergraph`;
+				
+				if($i < (`size $sel`/2))
+				{
+					$sourceConnectionObjectList[`size($sourceConnectionObjectList)`] = $each;
+					$sourceNodePosY[`size($sourceNodePosY)`] = $transforms[1];
+				}
+				else
+				{
+					$destinationConnectionObjectList[`size($destinationConnectionObjectList)`] = $each;
+					$destinationNodePosY[`size($destinationNodePosY)`] = $transforms[1];
+				}
+				$i++;
+			}
+			$sourceConnectionObjectList = ka_sortStringArrayByFloatAray($sourceConnectionObjectList, $sourceNodePosY);
+			$destinationConnectionObjectList = ka_sortStringArrayByFloatAray($destinationConnectionObjectList, $destinationNodePosY);
+		}
+		//END CREATE LISTS BASED OF MULTI MODE-------------------------------------------------------------------
+	}
+	else
+	{
+		$sourceConnectionObjectList[0] = $sourceObject;
+		$destinationConnectionObjectList[0] = $targetObject;
+	}
+				
+		$i = 0;
+		for($each in $destinationConnectionObjectList)
+		{
+			if(`getAttr -lock ($each+ "." + $targetAttr)`) 
+			{//if locked, unlock for connection
+				$lockedFlag = 1;
+				setAttr -lock 0 ($each+ "." + $targetAttr);
+			}
+		   		connectAttr -f ($sourceConnectionObjectList[$i] + "." + $sourceAttr) ($each+ "." + $targetAttr);
+		   	
+			if($lockedFlag == 1)
+			{
+				setAttr -lock 1 ($each+ "." + $targetAttr);
+				$lockedFlag = 0;//reset locked flag
+			}
+			$i++;
+		}
+}
+global proc ka_hgMM_navigateConnections(string $direction, string $object, string $attr)
+{
+    string $sel[] = `ls -sl`;
+    string $newSel[];
+    string $connections[];
+    
+    for($each in $sel)
+    {
+        $connections = `listConnections -plugs 0 -skipConversionNodes 1 -source 1 -destination 0 ($each + "." + $attr)`;
+        $newSel[`size($newSel)`] = $connections[0];
+    }
+    print $newSel;
+    select -r $newSel;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><HYPERSHADE WINDOW COMMANDS><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_hgAdd()
+{
+   string $CurrentPanel = `getPanel -withFocus`;
+   if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+	{
+		hyperShadePanelGraphCommand($CurrentPanel, "addSelected");
+	}
+}
+global proc ka_hgRemove()
+{
+   string $CurrentPanel = `getPanel -withFocus`;
+   if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+	{
+		hyperShadePanelGraphCommand($CurrentPanel, "removeSelected");
+	}
+}
+global proc ka_hgClear()
+{
+   string $CurrentPanel = `getPanel -withFocus`;
+   if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+	{
+		hyperShadePanelGraphCommand($CurrentPanel, "clearGraph");
+	}
+}
+global proc ka_hgInputsOutputs()
+{
+   string $CurrentPanel = `getPanel -withFocus`;
+   if(`match "hyperShadePanel" $CurrentPanel` == "hyperShadePanel")
+	{
+		hyperShadePanelGraphCommand($CurrentPanel, "showUpAndDownstream");
+	}
+}  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+
+global proc ka_hgMM_setAddNodeManuallyWindow(string $addNode)
+{
+	if(`window -exists ka_hgMM_setAddNodeManuallyWindowWindow`){ deleteUI ka_hgMM_setAddNodeManuallyWindowWindow; }
+	string $window = `window -title "input value" -iconName "input value" -widthHeight 200 100 ka_hgMM_setAddNodeManuallyWindowWindow`;
+		columnLayout -adjustableColumn true;
+
+		string $floatField = `floatField ka_hgMM_setAddNodeManuallyWindowFloatField`;
+		floatField -e -value `getAttr ($addNode + ".input1D[0]")` $floatField;
+		//floatField -e -enterCommand "ka_hgMM_setAddNodeManually" $floatField;
+		floatField -e -changeCommand "ka_hgMM_setAddNodeManually" $floatField;
+		
+		text -l $addNode ka_hgMM_setAddNodeManuallyWindowText;
+		setParent ..;
+showWindow $window;
+}
+global proc ka_hgMM_setAddNodeManually()
+{
+	float $value = `floatField -q -v ka_hgMM_setAddNodeManuallyWindowFloatField`;
+	string $addNode = `text -q -l ka_hgMM_setAddNodeManuallyWindowText`;
+	setAttr ($addNode + ".input1D[0]") $value;
+	
+	deleteUI ka_hgMM_setAddNodeManuallyWindowWindow;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_hgMM_setAddNodeAddAttr(string $addNode)
+{
+	addAttr -ln "input0" -at "double" $addNode;
+	setAttr -k 1 ($addNode + ".input0");
+	connectAttr ($addNode + ".input0") ($addNode + ".input1D[0]");
+}
+global proc ka_hgMM_setAnimCurveDefaultKeys(string $animCurve)
+{
+	setKeyframe -insert -float 0 $animCurve;
+	setKeyframe -insert -float 1 $animCurve;
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_postNodeCreationCommand(string $type)
+{
+	string $sel[] = `ls -sl`;
+	string $node = $sel[0];
+	
+	if($type == "pointOnSurfaceInfo")
+	{
+		setAttr -k on ($node + ".parameterU");
+		setAttr -k on ($node + ".parameterV");
+		setAttr -k on ($node + ".turnOnPercentage");
+		setAttr ($node + ".turnOnPercentage") 1;
+	}
+	if($type == "pointOnCurveInfo")
+	{
+		setAttr -k on ($node + ".parameter");
+		setAttr -k on ($node + ".turnOnPercentage");
+		setAttr ($node + ".turnOnPercentage") 1;
+	}
+	if($type == "animCurveUU" || $type == "animCurveUL" || $type == "animCurveUA" || $type == "animCurveUT")
+	{          
+		setKeyframe -insert -float 0 $node;
+		setKeyframe -insert -float 1 $node;
+	}
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+global proc ka_lockNode(int $state)
+{
+	string $sel[] = `ls -sl`;
+	for($each in $sel)
+	{
+		lockNode -l $state $each;
+	}
+}
+  //________________________________________________________________________________________________//
+/*<><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><><>*/
+
+global proc string[] ka_sortStringArrayByFloatAray(string $listOfStrings[], float $listOfFloats[])
+{
+	int $index;
+	int $i;
+	int $count;
+	 
+	string $sortedlistOfStrings[];
+	
+	float $sortedListOfFloats[];
+
+	$sortedListOfFloats = `sort $listOfFloats`;
+
+	$i = 0;
+	for($each in $sortedListOfFloats)
+	{
+		$count = 0;
+		for($s in $listOfFloats)
+		{
+			if($each == $s)
+			{//then i is correct
+				$sortedlistOfStrings[`size($sortedlistOfStrings)`] = $listOfStrings[$count];
+			}
+			$count++;
+		}
+		$i++;
+	}
+		
+	return $sortedlistOfStrings;
+}
+
+

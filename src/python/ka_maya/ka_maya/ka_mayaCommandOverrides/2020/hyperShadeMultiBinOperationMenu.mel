@@ -1,0 +1,206 @@
+// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+//========================================
+// Global multi-bin operation procedures
+//========================================
+// Description:  This procedure is called to create a new bin 
+//      from the selected objects.
+//
+global proc createBinFromSelectedObject (string $gridLayout)
+{
+    // Ask for a new bin name.
+    //
+    string $binName = promptForNewBinName();
+
+    if ($binName == "")
+    {
+        // No new bin name provided.  The user must have cancelled
+        // the operation.  
+        //
+        return;
+    }
+
+    // Make a new bin.
+    //
+    $binName = hyperShadeCreateNewBin($gridLayout, $binName);
+
+    // Get selection.
+    //
+    string $selectedNodes[]; 
+    hyperShadeGetSelectedNodes($selectedNodes); 
+
+    string $node;
+    for ($node in $selectedNodes)
+    {
+        // Add the node and its upstream nodes to the bin.
+        //
+        hyperShadeAddNodeAndUpstreamNodesToBin($binName, $node);
+    }
+
+    // Add the new bin to the selected ones.
+    //
+    global string $gHyperShadeSelectedBinList[];
+    $gHyperShadeSelectedBinList[size($gHyperShadeSelectedBinList)] = $binName;
+    markOneBinUI($binName, $gridLayout, true);
+
+    refreshHyperShadePaneFrontTab("", true);
+}
+
+// Description:  This procedure is called to select all the
+//  nodes which does not belong to any bin.
+//
+global proc selectUnassignedNodes(string $gridLayout)
+{
+    // Make a list of nodes.
+    //
+    string $allNodes[]; 
+    getAllShadingNodes($allNodes); 
+    string $unassignedNodes[];
+
+    // Find the nodes which is not assigned to any bin.
+    //
+    string $node;
+    int $unassignedNodeCount = 0;
+    for ($node in $allNodes)
+    {
+        string $bins[] = `binMembership -q -listBins $node`;
+        if (size($bins) == 0)
+        {
+            // Do not include shading engines.
+            //
+            if (`nodeType $node` == "shadingEngine")
+            {
+                continue;
+            }
+            $unassignedNodes[$unassignedNodeCount] = $node;
+            $unassignedNodeCount++;
+        }
+    } 
+        
+    select -ne $unassignedNodes;
+}
+        
+// Description:  This procedure is called to create a new empty
+//  bin by asking the user for the new bin name.
+//
+global proc hyperShadeCreateEmptyNewBin (string $gridLayout)
+{
+    // Ask for a new bin name.
+    //
+    string $binName = promptForNewBinName();
+
+    if ($binName != "")
+    {
+        // Make a new bin.
+        //
+        hyperShadeCreateNewBin($gridLayout, $binName);
+    }
+}
+
+// Description:  This procedure is called to create the bin tab
+//  tool bar icons. 
+//
+global proc hyperShadeMultiBinOperationMenu(
+    string $binsToolbarForm, string $gridLayout)
+{
+    string $oldParent = `setParent -q`;
+
+    setParent $binsToolbarForm; 
+
+    int $iconWidth = 26;
+    int $iconHeight = 26;
+        
+    // Create a bin.
+    //
+    iconTextButton
+        -image1 "createBin.png"
+        -width $iconWidth
+        -height $iconHeight
+        -annotation (uiRes("m_hyperShadeMultiBinOperationMenu.kCreateEmptyBinAnnot")) 
+        -command ("hyperShadeCreateEmptyNewBin "+$gridLayout)
+        createBinBarButton;
+
+    // Create a new bin from the selected items. 
+    //
+    iconTextButton
+        -image1 "createBinFromSelectedNodes.png"
+        -width $iconWidth
+        -height $iconHeight
+        -annotation (uiRes("m_hyperShadeMultiBinOperationMenu.kCreateBinFromSelectedAnnot")) 
+        -command ("createBinFromSelectedObject "+$gridLayout)
+        createBinFromSelectedBarButton;
+
+    // Select unsorted nodes 
+    //
+    iconTextButton
+        -image1 "selectUnsortedNodes.png"
+        -width $iconWidth
+        -height $iconHeight
+        -annotation (uiRes("m_hyperShadeMultiBinOperationMenu.kSelectUnsortedContentAnnot")) 
+        -command ("selectUnassignedNodes "+$gridLayout)
+        selectUnsortedNodeBarButton;
+
+    formLayout
+        -edit
+        -af createBinBarButton top 0
+        -af createBinBarButton bottom 0
+        -af createBinBarButton left 2
+        -an createBinBarButton right 
+
+        -af createBinFromSelectedBarButton top 0
+        -af createBinFromSelectedBarButton bottom 0
+        -ac createBinFromSelectedBarButton left 2 createBinBarButton
+        -an createBinFromSelectedBarButton right 
+
+        -af selectUnsortedNodeBarButton top 0
+        -af selectUnsortedNodeBarButton bottom 0
+        -ac selectUnsortedNodeBarButton left 2 createBinFromSelectedBarButton
+        -an selectUnsortedNodeBarButton right 
+        $binsToolbarForm;
+    setParent $oldParent;
+}
+
+// Description:  This procedure is called to create the master bin
+//  popup menu for the master bin button.
+//
+global proc hyperShadeMasterBinMultiBinOperationMenu(
+    string $multiBinOperationMenu, string $gridLayout)
+{
+    setParent -menu $multiBinOperationMenu;
+
+    popupMenu -e -deleteAllItems $multiBinOperationMenu;
+
+    // Create a bin.
+    //
+    menuItem -label (uiRes("m_hyperShadeMultiBinOperationMenu.kCreate")) 
+        -command ("hyperShadeCreateEmptyNewBin "+$gridLayout);
+
+    // Create a new bin from the selected items.
+    //
+    menuItem -label (uiRes("m_hyperShadeMultiBinOperationMenu.kCreatefromSelected")) 
+        -command ("createBinFromSelectedObject "+$gridLayout);
+
+    // Select unsorted nodes
+    //
+    menuItem -label (uiRes("m_hyperShadeMultiBinOperationMenu.kSelectUnsortedNodes")) 
+        -command ("selectUnassignedNodes "+$gridLayout);
+}

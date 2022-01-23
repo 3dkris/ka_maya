@@ -595,7 +595,7 @@ class ScrubWidget(QtWidgets.QMainWindow):
 
         # size window
         self.setFixedSize(width,height)
-        #self.setMask(QtWidgets.QRegion(-1,-1, self.width()+2, self.height()+2))
+        #self.setMask(QtGui.QRegion(-1,-1, self.width()+2, self.height()+2))
 
         # posistion window
         self.move(cursorPos.x()-(self.width()*0.5), cursorPos.y()+offsetFromMouse)
@@ -727,7 +727,7 @@ class ScrubWidget(QtWidgets.QMainWindow):
         sizeHint = self.vLayout.totalSizeHint()
         self.resize(sizeHint)
         event.accept()
-        self.setMask(QtWidgets.QRegion(0,0, self.width(), self.height()))
+        self.setMask(QtGui.QRegion(0,0, self.width(), self.height()))
 
         QtWidgets.QWidget.resizeEvent(self, event)
 

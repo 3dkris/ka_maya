@@ -138,7 +138,7 @@ def getIcon(iconValue):
     if isinstance(iconValue, list) or isinstance(iconValue, tuple):
 
         QPixMap = PyQt.QtGui.QPixmap(ICON_SIZE, ICON_SIZE)
-        QPixMap.fill(PyQt.QtWidgets.QColor(int(255*iconValue[0]), int(255*iconValue[1]), int(255*iconValue[2]),))
+        QPixMap.fill(PyQt.QtGui.QColor(int(255*iconValue[0]), int(255*iconValue[1]), int(255*iconValue[2]),))
         QIcon = PyQt.QtGui.QIcon(QPixMap)
         return QIcon
 

@@ -238,7 +238,7 @@ class AttrTool_mainWindow(QtWidgets.QMainWindow):
         self.setObjectName('windowWidget')
 
         menuBar = self.menuBar()
-        cursorPos = QtWidgets.QCursor.pos()
+        cursorPos = QtGui.QCursor.pos()
         self.setGeometry(cursorPos.x(), cursorPos.y(), self.windowWidth+2, self.windowHeight)
 
         # kwargs
@@ -1045,7 +1045,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
                                 treeWidgetItem.oldValue = value    # must be set BEFORE actually changing the text
                                 treeWidgetItem.setText(valueColumnIndex, str(value))
                                 # PYSIDE FAIL
-                                # treeWidgetItem.setBackgroundColor(valueColumnIndex, QtWidgets.QColor(int(0.7*255), int(0.7*255), int(0.7*255)))
+                                # treeWidgetItem.setBackgroundColor(valueColumnIndex, QtGui.QColor(int(0.7*255), int(0.7*255), int(0.7*255)))
 
                         if not attrObj.isLocked() or attrObj.exists() == False:
                             self.openPersistentEditor(treeWidgetItem, self.columnInfoDict['values']['index'])
@@ -1099,12 +1099,12 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
                 widget.setFont(i, uniqueFont)
 
             if textColor:
-                widget.setTextColor(i, QtWidgets.QColor(textColor[0]*255, textColor[1]*255, textColor[2]*255, opacity*255))
+                widget.setTextColor(i, QtGui.QColor(textColor[0]*255, textColor[1]*255, textColor[2]*255, opacity*255))
 
             if color:
-                widget.setBackgroundColor(i, QtWidgets.QColor(int(color[0]*255), int(color[1]*255), int(color[2]*255), int(opacity*255)))
+                widget.setBackgroundColor(i, QtGui.QColor(int(color[0]*255), int(color[1]*255), int(color[2]*255), int(opacity*255)))
             #else:
-                #widget.setBackgroundColor(i, QtWidgets.QColor(200, 200, 200, 0))
+                #widget.setBackgroundColor(i, QtGui.QColor(200, 200, 200, 0))
 
 
     def getSelectedAttrs(self,):

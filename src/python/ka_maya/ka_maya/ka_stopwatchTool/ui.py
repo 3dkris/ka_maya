@@ -955,21 +955,21 @@ class StopwatchDataWidget_traces(QtWidgets.QWidget):
 
         # apply colors
         if node == self.selectedNode:
-            textColor = QtWidgets.QColor(0,255,255)
+            textColor = QtGui.QColor(0,255,255)
         else:
-            textColor = QtWidgets.QColor(255,255,255)
+            textColor = QtGui.QColor(255,255,255)
 
         backgroundColor, selectedBackgroundColor = self.getColorForMetric(metric)
 
-        brush = QtWidgets.QBrush()
+        brush = QtGui.QBrush()
         brush.setColor(backgroundColor)
         brush.setStyle(QtCore.Qt.SolidPattern)
 
-        selectedBrush = QtWidgets.QBrush()
+        selectedBrush = QtGui.QBrush()
         selectedBrush.setColor(selectedBackgroundColor)
         selectedBrush.setStyle(QtCore.Qt.SolidPattern)
 
-        textBrush = QtWidgets.QBrush()
+        textBrush = QtGui.QBrush()
         textBrush.setColor(textColor)
 
         font = QtGui.QFont()
@@ -1248,7 +1248,7 @@ class StopwatchDataWidget_traces(QtWidgets.QWidget):
     def getColorForMetric(self, metric):
         """Returns background color, and selected background color
         """
-        return QtWidgets.QColor(*self.colorValues[metric]), QtWidgets.QColor(*self.selectedColorValues[metric])
+        return QtGui.QColor(*self.colorValues[metric]), QtGui.QColor(*self.selectedColorValues[metric])
 
     def isolateItem(self, treeIndices):
         visibleIndices = []

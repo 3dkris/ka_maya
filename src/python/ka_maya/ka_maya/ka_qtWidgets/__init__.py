@@ -256,7 +256,7 @@ def addMenuItem(label, menu, icon=None, command=None, colorIcon=None, font=None,
 
     if colorIcon:
         pixMap = QtGui.QPixmap(100, 100)
-        pixMap.fill(QtWidgets.QColor(255*colorIcon[0], 255*colorIcon[1], 255*colorIcon[2],))
+        pixMap.fill(QtGui.QColor(255*colorIcon[0], 255*colorIcon[1], 255*colorIcon[2],))
         icon = QtGui.QIcon(pixMap)
         newQAction = QtWidgets.QAction(icon, label, menu)
 
@@ -386,8 +386,8 @@ class GraphWidget(QtWidgets.QWidget):
         self.setStyleSheet(self.STYLE_SHEET)
 
         palette = QtGui.QPalette()
-        palette.setColor(PyQt.QtGui.QPalette.Background, QtWidgets.QColor(0,0,25))
-        palette.setColor(PyQt.QtGui.QPalette.Window, QtWidgets.QColor(0,0,25))
+        palette.setColor(PyQt.QtGui.QPalette.Background, QtGui.QColor(0,0,25))
+        palette.setColor(PyQt.QtGui.QPalette.Window, QtGui.QColor(0,0,25))
         self.setPalette(palette)
 
     def setTimeMarker(self, index, markerValue):
@@ -454,9 +454,9 @@ class GraphWidget(QtWidgets.QWidget):
         return x,y
 
     def paintEvent(self, event,):
-        qp = PyQt.QtWidgets.QPainter()
-        qp.setRenderHint(PyQt.QtWidgets.QPainter.HighQualityAntialiasing)
-        #qp.setRenderHint(PyQt.QtWidgets.QPainter.HighQualityAntialiasing)
+        qp = PyQt.QtGui.QPainter()
+        qp.setRenderHint(PyQt.QtGui.QPainter.HighQualityAntialiasing)
+        #qp.setRenderHint(PyQt.QtGui.QPainter.HighQualityAntialiasing)
         qp.begin(self)
         self._draw_(event, qp)
         qp.end()
@@ -470,17 +470,17 @@ class GraphWidget(QtWidgets.QWidget):
         widgetWidth = self.width()
 
         # colors
-        backgroundColor = QtWidgets.QColor(0,0,25)
-        gridColor = QtWidgets.QColor(0,0,125)
-        curveColor = QtWidgets.QColor(255,255,255)
-        curveGridColor = QtWidgets.QColor(150,0,0)
-        curveBackgroundColor = QtWidgets.QColor(75,0,0)
+        backgroundColor = QtGui.QColor(0,0,25)
+        gridColor = QtGui.QColor(0,0,125)
+        curveColor = QtGui.QColor(255,255,255)
+        curveGridColor = QtGui.QColor(150,0,0)
+        curveBackgroundColor = QtGui.QColor(75,0,0)
 
         # draw background rectangle
         qp.setBrush(backgroundColor)
         qp.drawRect(event.rect())
 
-        brush = QtWidgets.QBrush()
+        brush = QtGui.QBrush()
         brush.setColor(gridColor)
         brush.setStyle(QtCore.Qt.BrushStyle.CrossPattern)
         qp.setBrush(brush)
@@ -489,18 +489,18 @@ class GraphWidget(QtWidgets.QWidget):
 
         # draw curve
         if self.drawCurve:
-            curvePen = QtWidgets.QPen()
+            curvePen = QtGui.QPen()
             curvePen.setColor(curveColor)
             curvePen.setWidth(1)
             qp.setPen(curvePen)
 
-            gridBrush = QtWidgets.QBrush()
+            gridBrush = QtGui.QBrush()
             gridBrush.setColor(curveGridColor)
             gridBrush.setStyle(QtCore.Qt.BrushStyle.CrossPattern)
 
-            backgroundBrush = QtWidgets.QBrush(curveBackgroundColor)
+            backgroundBrush = QtGui.QBrush(curveBackgroundColor)
 
-            path = QtWidgets.QPainterPath(QtCore.QPointF(0, 0))
+            path = QtGui.QPainterPath(QtCore.QPointF(0, 0))
 
             if self.curveType == 'linear':
                 points = []
@@ -524,7 +524,7 @@ class GraphWidget(QtWidgets.QWidget):
                     point = QtCore.QPointF(x, y)
                     points.append(point)
 
-                path = QtWidgets.QPainterPath()
+                path = QtGui.QPainterPath()
                 path.cubicTo(*points[1:])
                 path.lineTo(0.0, 0.0+float(widgetHeight))
 
@@ -538,11 +538,11 @@ class GraphWidget(QtWidgets.QWidget):
 
         # draw time makers
         if self.timeMarkers is not None:
-            activeMarkerColor1 = QtWidgets.QColor(0,150,150)
-            activeMarkerColor2 = QtWidgets.QColor(0,75,75)
+            activeMarkerColor1 = QtGui.QColor(0,150,150)
+            activeMarkerColor2 = QtGui.QColor(0,75,75)
 
-            inActiveMarkerColor1 = QtWidgets.QColor(150,150,150)
-            inActiveMarkerColor2 = QtWidgets.QColor(75,75,75)
+            inActiveMarkerColor1 = QtGui.QColor(150,150,150)
+            inActiveMarkerColor2 = QtGui.QColor(75,75,75)
 
             qp.setPen(activeMarkerColor1)
             qp.setBrush(activeMarkerColor2)
@@ -616,7 +616,7 @@ class ToolSettingsWidget(QtWidgets.QWidget):
 
         if tool.settings:
             QPALETTE_INPUTITEM = PyQt.QtGui.QPalette()
-            QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Text, PyQt.QtWidgets.QColor(255, 255, 255,))
+            QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Text, PyQt.QtGui.QColor(255, 255, 255,))
 
             for settingObject in tool.settings:
 

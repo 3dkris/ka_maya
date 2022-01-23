@@ -91,15 +91,15 @@ QRECTANLE_ICON_FRONT = PyQt.QtCore.QRect(ICON_BUFFER_BOARDER_PIXELS, ICON_BUFFER
 QRECTANLE_ICON_BACK = PyQt.QtCore.QRect(0, 0, ICON_SIZE, ICON_SIZE)
 
 # KMENU COLORS
-QCOLOR_BACKGROUND = PyQt.QtWidgets.QColor(23, 25, 27)
-QCOLOR_MENU_BORDERLINES = PyQt.QtWidgets.QColor(55, 55, 55)
+QCOLOR_BACKGROUND = PyQt.QtGui.QColor(23, 25, 27)
+QCOLOR_MENU_BORDERLINES = PyQt.QtGui.QColor(55, 55, 55)
 
 # MENU ITEM BRUSH
-QCOLOR_MENUITEM_BACKGROUND = PyQt.QtWidgets.QColor(43, 45, 47)
-QCOLOR_MENUITEM_BACKGROUND_SHADOW = PyQt.QtWidgets.QColor(30, 30, 30)
-QCOLOR_MENUITEM_BACKGROUND_HILIGHT = PyQt.QtWidgets.QColor(65, 65, 65,)
+QCOLOR_MENUITEM_BACKGROUND = PyQt.QtGui.QColor(43, 45, 47)
+QCOLOR_MENUITEM_BACKGROUND_SHADOW = PyQt.QtGui.QColor(30, 30, 30)
+QCOLOR_MENUITEM_BACKGROUND_HILIGHT = PyQt.QtGui.QColor(65, 65, 65,)
 
-gradient = PyQt.QtWidgets.QLinearGradient()
+gradient = PyQt.QtGui.QLinearGradient()
 gradient.setStart(0, 0)
 gradient.setFinalStop(0, MENU_ITEM_MIN_HEIGHT)
 gradientEndSize = 2.0 / MENU_ITEM_MIN_HEIGHT # pixels from ends of gradient to the middles
@@ -109,15 +109,15 @@ gradient.setColorAt(gradientEndSize, QCOLOR_MENUITEM_BACKGROUND)
 gradient.setColorAt(1.0-gradientEndSize, QCOLOR_MENUITEM_BACKGROUND)
 gradient.setColorAt(1.0, QCOLOR_MENUITEM_BACKGROUND_SHADOW)
 
-QBRUSH_MENUITEM = PyQt.QtWidgets.QBrush(gradient)
+QBRUSH_MENUITEM = PyQt.QtGui.QBrush(gradient)
 
 
 # MENU ITEM BRUSH ALTERNATE
-QCOLOR_MENUITEM_ALTERNATE_BACKGROUND = PyQt.QtWidgets.QColor(53, 55, 57)
-QCOLOR_MENUITEM_ALTERNATE_BACKGROUND_SHADOW = PyQt.QtWidgets.QColor(30, 30, 30)
-QCOLOR_MENUITEM_ALTERNATE_BACKGROUND_HILIGHT = PyQt.QtWidgets.QColor(75, 75, 75)
+QCOLOR_MENUITEM_ALTERNATE_BACKGROUND = PyQt.QtGui.QColor(53, 55, 57)
+QCOLOR_MENUITEM_ALTERNATE_BACKGROUND_SHADOW = PyQt.QtGui.QColor(30, 30, 30)
+QCOLOR_MENUITEM_ALTERNATE_BACKGROUND_HILIGHT = PyQt.QtGui.QColor(75, 75, 75)
 
-gradient = PyQt.QtWidgets.QLinearGradient()
+gradient = PyQt.QtGui.QLinearGradient()
 gradient.setStart(0, 0)
 gradient.setFinalStop(0, MENU_ITEM_MIN_HEIGHT)
 
@@ -126,17 +126,17 @@ gradient.setColorAt(gradientEndSize, QCOLOR_MENUITEM_ALTERNATE_BACKGROUND)
 gradient.setColorAt(1.0-gradientEndSize, QCOLOR_MENUITEM_ALTERNATE_BACKGROUND)
 gradient.setColorAt(1.0, QCOLOR_MENUITEM_ALTERNATE_BACKGROUND_SHADOW)
 
-QBRUSH_MENUITEM_ALTERNATE = PyQt.QtWidgets.QBrush(gradient)
+QBRUSH_MENUITEM_ALTERNATE = PyQt.QtGui.QBrush(gradient)
 
 
 # MENU ITEM HILIGHTED
-QCOLOR_MENU_ITEM_UNDERMOUSE = PyQt.QtWidgets.QColor(0, 96, 179)
-QCOLOR_MENU_ITEM_UNDERMOUSE_SHADOW = PyQt.QtWidgets.QColor(18, 50, 123)
-QCOLOR_MENU_ITEM_UNDERMOUSE_HILIGHT = PyQt.QtWidgets.QColor(92, 137, 255)
-QCOLOR_MENU_BORDERLINES_UNDERMOUSE = PyQt.QtWidgets.QColor(92, 137, 255)
-QCOLOR_MENU_BORDERLINES_PINNED = PyQt.QtWidgets.QColor(5, 115, 185)
+QCOLOR_MENU_ITEM_UNDERMOUSE = PyQt.QtGui.QColor(0, 96, 179)
+QCOLOR_MENU_ITEM_UNDERMOUSE_SHADOW = PyQt.QtGui.QColor(18, 50, 123)
+QCOLOR_MENU_ITEM_UNDERMOUSE_HILIGHT = PyQt.QtGui.QColor(92, 137, 255)
+QCOLOR_MENU_BORDERLINES_UNDERMOUSE = PyQt.QtGui.QColor(92, 137, 255)
+QCOLOR_MENU_BORDERLINES_PINNED = PyQt.QtGui.QColor(5, 115, 185)
 
-gradient = PyQt.QtWidgets.QLinearGradient()
+gradient = PyQt.QtGui.QLinearGradient()
 gradient.setStart(0, 0)
 gradient.setFinalStop(0, MENU_ITEM_MIN_HEIGHT)
 
@@ -145,21 +145,21 @@ gradient.setColorAt(gradientEndSize, QCOLOR_MENU_ITEM_UNDERMOUSE)
 gradient.setColorAt(1.0-gradientEndSize, QCOLOR_MENU_ITEM_UNDERMOUSE)
 gradient.setColorAt(1.0, QCOLOR_MENU_ITEM_UNDERMOUSE_SHADOW)
 
-QBRUSH_MENUITEM_HILIGHT = PyQt.QtWidgets.QBrush(gradient)
+QBRUSH_MENUITEM_HILIGHT = PyQt.QtGui.QBrush(gradient)
 
 
-QCOLOR_ICON_FILL = PyQt.QtWidgets.QColor(175, 175, 175)
-QCOLOR_TOP_BAR = PyQt.QtWidgets.QColor(75, 75, 75)
-QCOLOR_TEXT = PyQt.QtWidgets.QColor(75, 75, 75)
-QCOLOR_BLACK = PyQt.QtWidgets.QColor(0, 0, 0,)
-QCOLOR_WHITE = PyQt.QtWidgets.QColor(255, 255, 255,)
-QCOLOR_TRANSPARENT = PyQt.QtWidgets.QColor(255, 255, 255, 255)
-QCOLOR_MENU_ITEM_TEXT = PyQt.QtWidgets.QColor(205, 205, 205)
-QCOLOR_MENU_ITEM_TEXT_DIM = PyQt.QtWidgets.QColor(145, 145, 145)
-QCOLOR_MENU_DOCSTRING_TEXT = PyQt.QtWidgets.QColor(92, 137, 255)
-QCOLOR_MENU_INPUTITEM_TEXT = PyQt.QtWidgets.QColor(132, 187, 175)
-QCOLOR_MENU_INPUTITEM_BACKGROUND = PyQt.QtWidgets.QColor(72, 117, 105)
-QCOLOR_MENU_SEPARATOR_TEXT = PyQt.QtWidgets.QColor(160, 160, 160)
+QCOLOR_ICON_FILL = PyQt.QtGui.QColor(175, 175, 175)
+QCOLOR_TOP_BAR = PyQt.QtGui.QColor(75, 75, 75)
+QCOLOR_TEXT = PyQt.QtGui.QColor(75, 75, 75)
+QCOLOR_BLACK = PyQt.QtGui.QColor(0, 0, 0,)
+QCOLOR_WHITE = PyQt.QtGui.QColor(255, 255, 255,)
+QCOLOR_TRANSPARENT = PyQt.QtGui.QColor(255, 255, 255, 255)
+QCOLOR_MENU_ITEM_TEXT = PyQt.QtGui.QColor(205, 205, 205)
+QCOLOR_MENU_ITEM_TEXT_DIM = PyQt.QtGui.QColor(145, 145, 145)
+QCOLOR_MENU_DOCSTRING_TEXT = PyQt.QtGui.QColor(92, 137, 255)
+QCOLOR_MENU_INPUTITEM_TEXT = PyQt.QtGui.QColor(132, 187, 175)
+QCOLOR_MENU_INPUTITEM_BACKGROUND = PyQt.QtGui.QColor(72, 117, 105)
+QCOLOR_MENU_SEPARATOR_TEXT = PyQt.QtGui.QColor(160, 160, 160)
 
 QFONT_LABEL = PyQt.QtGui.QFont()
 QFONT_LABEL.setPixelSize(12)
@@ -210,7 +210,7 @@ def getIcon(iconValue):
     if isinstance(iconValue, list) or isinstance(iconValue, tuple):
 
         QPixMap = PyQt.QtGui.QPixmap(ICON_SIZE, ICON_SIZE)
-        QPixMap.fill(PyQt.QtWidgets.QColor(int(255*iconValue[0]), int(255*iconValue[1]), int(255*iconValue[2]),))
+        QPixMap.fill(PyQt.QtGui.QColor(int(255*iconValue[0]), int(255*iconValue[1]), int(255*iconValue[2]),))
         QIcon = PyQt.QtGui.QIcon(QPixMap)
         QICON_DICT[iconHash] = QIcon
         return QIcon
@@ -1244,7 +1244,7 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
 
     def paintEvent(self, event):
 
-        qp = PyQt.QtWidgets.QPainter()
+        qp = PyQt.QtGui.QPainter()
         qp.begin(self)
         self.drawWidget(qp)
         qp.end()
@@ -1290,7 +1290,7 @@ class KRegionWidget(PyQt.QtWidgets.QPushButton):
 
         self.hilightOnHover = False
     def paintEvent(self, event):
-        qp = PyQt.QtWidgets.QPainter()
+        qp = PyQt.QtGui.QPainter()
         qp.begin(self)
         self.draw_regionWidget(qp)
         qp.end()
@@ -1399,7 +1399,7 @@ class KMenuWidget_titleBar(QtWidgets.QWidget):
         #self.closeButton.move(self.width()-self.closeButton.width(), 0)
 
     #def paintEvent(self, event,):
-        #qp = PyQt.QtWidgets.QPainter()
+        #qp = PyQt.QtGui.QPainter()
         #qp.begin(self)
         #self.draw_regionWidget(qp)
         #self.draw_titleBar(qp)
@@ -1469,7 +1469,7 @@ class KaMenu_moveWidget(KRegionWidget):
         self.hilightOnHover = kwargs.get('hilightOnHover', True)
 
     def paintEvent(self, event,):
-        qp = PyQt.QtWidgets.QPainter()
+        qp = PyQt.QtGui.QPainter()
         qp.begin(self)
         self.draw_regionWidget(qp)
         self.draw_moveWidget(qp)
@@ -1652,7 +1652,7 @@ class KMenuItem(PyQt.QtWidgets.QPushButton):
             #self.mouseOver_submenuWidget = None
 
     def paintEvent(self, event,):
-        qp = PyQt.QtWidgets.QPainter()
+        qp = PyQt.QtGui.QPainter()
         qp.begin(self)
         self.draw_menuItem(qp)
         qp.end()
@@ -1746,7 +1746,7 @@ class KMenuItem_separator(QtWidgets.QWidget):
 
 
     def paintEvent(self, event,):
-        qp = PyQt.QtWidgets.QPainter()
+        qp = PyQt.QtGui.QPainter()
         qp.begin(self)
         self.draw_menuItem(qp)
         qp.end()

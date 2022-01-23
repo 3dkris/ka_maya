@@ -385,9 +385,9 @@ class GraphWidget(QtWidgets.QWidget):
         # style sheet
         self.setStyleSheet(self.STYLE_SHEET)
 
-        palette = QtWidgets.QPalette()
-        palette.setColor(PyQt.QtWidgets.QPalette.Background, QtWidgets.QColor(0,0,25))
-        palette.setColor(PyQt.QtWidgets.QPalette.Window, QtWidgets.QColor(0,0,25))
+        palette = QtGui.QPalette()
+        palette.setColor(PyQt.QtGui.QPalette.Background, QtWidgets.QColor(0,0,25))
+        palette.setColor(PyQt.QtGui.QPalette.Window, QtWidgets.QColor(0,0,25))
         self.setPalette(palette)
 
     def setTimeMarker(self, index, markerValue):
@@ -615,8 +615,8 @@ class ToolSettingsWidget(QtWidgets.QWidget):
         self.setLayout(self.vLayout)
 
         if tool.settings:
-            QPALETTE_INPUTITEM = PyQt.QtWidgets.QPalette()
-            QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Text, PyQt.QtWidgets.QColor(255, 255, 255,))
+            QPALETTE_INPUTITEM = PyQt.QtGui.QPalette()
+            QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Text, PyQt.QtWidgets.QColor(255, 255, 255,))
 
             for settingObject in tool.settings:
 

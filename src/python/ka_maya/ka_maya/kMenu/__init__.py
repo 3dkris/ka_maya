@@ -163,42 +163,42 @@ QCOLOR_MENU_SEPARATOR_TEXT = PyQt.QtWidgets.QColor(160, 160, 160)
 
 QFONT_LABEL = PyQt.QtGui.QFont()
 QFONT_LABEL.setPixelSize(12)
-QPALETTE_LABEL = PyQt.QtWidgets.QPalette()
-QPALETTE_LABEL.setColor(PyQt.QtWidgets.QPalette.ButtonText, QCOLOR_MENU_ITEM_TEXT)
+QPALETTE_LABEL = PyQt.QtGui.QPalette()
+QPALETTE_LABEL.setColor(PyQt.QtGui.QPalette.ButtonText, QCOLOR_MENU_ITEM_TEXT)
 
 
-QPALETTE_TOOLWIDGET = PyQt.QtWidgets.QPalette()
-QPALETTE_TOOLWIDGET.setColor(PyQt.QtWidgets.QPalette.ButtonText, QCOLOR_WHITE)
-QPALETTE_TOOLWIDGET.setColor(PyQt.QtWidgets.QPalette.Button, QCOLOR_MENUITEM_ALTERNATE_BACKGROUND)
-QPALETTE_TOOLWIDGET.setColor(PyQt.QtWidgets.QPalette.Text, QCOLOR_WHITE)
-QPALETTE_TOOLWIDGET.setColor(PyQt.QtWidgets.QPalette.BrightText, QCOLOR_WHITE)
-QPALETTE_TOOLWIDGET.setColor(PyQt.QtWidgets.QPalette.Foreground, QCOLOR_WHITE)
+QPALETTE_TOOLWIDGET = PyQt.QtGui.QPalette()
+QPALETTE_TOOLWIDGET.setColor(PyQt.QtGui.QPalette.ButtonText, QCOLOR_WHITE)
+QPALETTE_TOOLWIDGET.setColor(PyQt.QtGui.QPalette.Button, QCOLOR_MENUITEM_ALTERNATE_BACKGROUND)
+QPALETTE_TOOLWIDGET.setColor(PyQt.QtGui.QPalette.Text, QCOLOR_WHITE)
+QPALETTE_TOOLWIDGET.setColor(PyQt.QtGui.QPalette.BrightText, QCOLOR_WHITE)
+QPALETTE_TOOLWIDGET.setColor(PyQt.QtGui.QPalette.Foreground, QCOLOR_WHITE)
 
 QFONT_DOCSTRING = PyQt.QtGui.QFont()
 QFONT_DOCSTRING.setPixelSize(12)
-QPALETTE_DOCSTRING = PyQt.QtWidgets.QPalette()
-QPALETTE_DOCSTRING.setColor(PyQt.QtWidgets.QPalette.ButtonText, QCOLOR_MENU_DOCSTRING_TEXT)
-QPALETTE_DOCSTRING.setColor(PyQt.QtWidgets.QPalette.Text, QCOLOR_MENU_DOCSTRING_TEXT)
-QPALETTE_DOCSTRING.setColor(PyQt.QtWidgets.QPalette.BrightText, QCOLOR_MENU_DOCSTRING_TEXT)
-QPALETTE_DOCSTRING.setColor(PyQt.QtWidgets.QPalette.Foreground, QCOLOR_MENU_DOCSTRING_TEXT)
+QPALETTE_DOCSTRING = PyQt.QtGui.QPalette()
+QPALETTE_DOCSTRING.setColor(PyQt.QtGui.QPalette.ButtonText, QCOLOR_MENU_DOCSTRING_TEXT)
+QPALETTE_DOCSTRING.setColor(PyQt.QtGui.QPalette.Text, QCOLOR_MENU_DOCSTRING_TEXT)
+QPALETTE_DOCSTRING.setColor(PyQt.QtGui.QPalette.BrightText, QCOLOR_MENU_DOCSTRING_TEXT)
+QPALETTE_DOCSTRING.setColor(PyQt.QtGui.QPalette.Foreground, QCOLOR_MENU_DOCSTRING_TEXT)
 
 QFONT_SEPARATOR = PyQt.QtGui.QFont()
 QFONT_SEPARATOR.setPixelSize(10)
-QPALETTE_SEPARATOR = PyQt.QtWidgets.QPalette()
-QPALETTE_SEPARATOR.setColor(PyQt.QtWidgets.QPalette.Foreground, QCOLOR_MENU_SEPARATOR_TEXT)
+QPALETTE_SEPARATOR = PyQt.QtGui.QPalette()
+QPALETTE_SEPARATOR.setColor(PyQt.QtGui.QPalette.Foreground, QCOLOR_MENU_SEPARATOR_TEXT)
 
-QPALETTE_INPUTITEM = PyQt.QtWidgets.QPalette()
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Window, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Background, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Foreground, QCOLOR_MENU_INPUTITEM_TEXT)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Base, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.AlternateBase, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.ToolTipBase, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.ToolTipText, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Text, QCOLOR_WHITE)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.Button, QCOLOR_MENU_INPUTITEM_BACKGROUND)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.ButtonText, QCOLOR_WHITE)
-QPALETTE_INPUTITEM.setColor(PyQt.QtWidgets.QPalette.BrightText, QCOLOR_WHITE)
+QPALETTE_INPUTITEM = PyQt.QtGui.QPalette()
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Window, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Background, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Foreground, QCOLOR_MENU_INPUTITEM_TEXT)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Base, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.AlternateBase, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.ToolTipBase, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.ToolTipText, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Text, QCOLOR_WHITE)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.Button, QCOLOR_MENU_INPUTITEM_BACKGROUND)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.ButtonText, QCOLOR_WHITE)
+QPALETTE_INPUTITEM.setColor(PyQt.QtGui.QPalette.BrightText, QCOLOR_WHITE)
 
 
 
@@ -728,7 +728,7 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
                 idealPosition = parent.mapFromGlobal(idealPosition)
 
         else:
-            idealPosition = PyQt.QtWidgets.QCursor().pos()
+            idealPosition = PyQt.QtGui.QCursor().pos()
             parent = kMenuWidget.parent()
             if parent:
                 idealPosition = parent.mapFromGlobal(idealPosition)
@@ -997,7 +997,7 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
         """returns the visible kMenuItem under the mouse"""
 
         if not globalCursorLocation:
-            globalCursorLocation = PyQt.QtWidgets.QCursor().pos()
+            globalCursorLocation = PyQt.QtGui.QCursor().pos()
 
         widgetUnderMouse = self.childAt(cursorLocation)
         menuItemUnderMouse = widgetUnderMouse
@@ -1014,7 +1014,7 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
         """returns the visible kMenuWidget under the mouse"""
 
         if not globalCursorLocation:
-            globalCursorLocation = PyQt.QtWidgets.QCursor().pos()
+            globalCursorLocation = PyQt.QtGui.QCursor().pos()
 
         kMenuWidgetHierchy = [self]
         kMenuWidgetHierchy.extend(self.allSubMenuWidgets)
@@ -1303,7 +1303,7 @@ class KRegionWidget(PyQt.QtWidgets.QPushButton):
         qp.setBrush(QCOLOR_BACKGROUND)
         qp.drawRect(0, 0, widgetWidth-1, widgetHeight-1)
 
-        cursorLocation = self.mapFromGlobal(PyQt.QtWidgets.QCursor().pos())
+        cursorLocation = self.mapFromGlobal(PyQt.QtGui.QCursor().pos())
         geometry = PyQt.QtCore.QRect(1,1,widgetWidth-2, widgetHeight-2)
 
         # border color

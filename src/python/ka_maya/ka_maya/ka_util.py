@@ -142,8 +142,8 @@ def cycleAttributeEditorChannelBox():
 
     # is attribute editor in focus?
     if mel.eval('isAttributeEditorRaised'):
-        mel.eval('setChannelBoxVisible(0);')
         mel.eval('setAttributeEditorVisible(0);')
+        mel.eval('setChannelBoxVisible(0);')
 
     elif mel.eval('isChannelBoxVisible'):
         mel.eval('openAEWindow;')

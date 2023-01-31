@@ -1,24 +1,10 @@
-// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
-// All rights reserved.
+// ===========================================================================
+// Copyright 2019 Autodesk, Inc. All rights reserved.
 //
-// The coded instructions, statements, computer programs, and/or related
-// material (collectively the "Data") in these files contain unpublished
-// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
-// which is protected by U.S. and Canadian federal copyright law and by
-// international treaties.
-//
-// The Data is provided for use exclusively by You. You have the right to use,
-// modify, and incorporate this Data into other products for purposes authorized
-// by the Autodesk software license agreement, without fee.
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
-// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
-// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
-// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE
-// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
-// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
-// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
-// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
-
+// Use of this software is subject to the terms of the Autodesk license
+// agreement provided at the time of installation or download, or which
+// otherwise accompanies this software in either electronic or hard copy form.
+// ===========================================================================
 //
 //
 // Creation Date:  28 June 1996
@@ -63,29 +49,112 @@ global proc mayaBuildObjectMenuItemsNow( string $parentName)
 		if (`popupMenu -q -mm $parentName` != $gIsMarkingMenuOn) {
 			popupMenu -e -mm $gIsMarkingMenuOn $parentName;
 		}
-		if (!`dagObjectHit -mn $parentName`) {
-			string $leadObject[] = `ls -sl -tail 1 -typ transform -typ shape`;
-			if (size($leadObject) > 0) {
-				dagMenuProc($parentName, $leadObject[0]);
-			} else {
-				if (`modelingTookitActive` && (`nexCtx -rmbComplete -q`) ) {
-					ctxCompletion;
-					return;
-				}
+
+		int $editMode = 0;
+		string $currentContext = `currentCtx`;
+		if (`contextInfo -exists $currentContext`) {
+            string $ctx = `contextInfo -c $currentContext`;
+           	if ($ctx == "manipMove") {
+		   	    $editMode = `manipMoveContext -q -editPivotMode Move`;
+		  	} else if ($ctx == "manipScale") {
+				$editMode = `manipScaleContext -q -editPivotMode Scale`;
+			} else if ($ctx == "manipRotate") {
+				$editMode = `manipRotateContext -q -editPivotMode Rotate`;
+			} else if ($ctx == "sculptMeshCache") {
 				setParent -menu $parentName;
+				sculptMeshCacheOptionsPopup();
+				return;
+			} else if ($ctx == "polyCutUV") {
+			    setParent -menu $parentName;
+				polyCutUVOptionsPopup();
+				return;
+			}
+			else if(contextXGenToolsMM($parentName))
+			{
+				return;
+			}
+		}
 
-				menuItem
-					-version "2014"
-					-label (uiRes("m_buildObjectMenuItemsNow.kSelectAll"))
-					-radialPosition "S"
-					-command ("SelectAll");
+		if ($editMode) {
+			setParent -menu $parentName;
 
-            	menuItem
-					-label (uiRes("m_buildObjectMenuItemsNow.kCompleteTool"))
-					-radialPosition "N"
-					-command ("CompleteCurrentTool");
+			menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kPinComponentPivot"))
+				-checkBox `manipPivot -q -pin`
+				-radialPosition "N"
+				-command ("setTRSPinPivot #1");
 
-            	setParent ..;
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kResetPivot"))
+				-radialPosition "S"
+				-command ("manipPivotReset true true");
+
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kSnapPivotOrientation"))
+				-checkBox `manipPivot -q -snapOri`
+				-radialPosition "NW"
+				-command ("setTRSSnapPivotOri #1");
+
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kSnapPivotPosition"))
+				-checkBox `manipPivot -q -snapPos`
+				-radialPosition "NE"
+				-command ("setTRSSnapPivotPos #1");
+
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kResetPivotOrientation"))
+				-radialPosition "SW"
+				-command ("manipPivotReset false true");
+
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kResetPivotPosition"))
+				-radialPosition "SE"
+				-command ("manipPivotReset true false");
+
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kShowPivotOrientationHandle"))
+				-checkBox `optionVar -q manipShowPivotRotateHandle`
+				-radialPosition "W"
+				-command ("setTRSPivotOriHandle #1");
+
+            menuItem
+				-label (uiRes("m_buildObjectMenuItemsNow.kExitPivotMode"))
+				-radialPosition "E"
+				-command ("ctxEditMode");
+
+            setParent ..;
+		} else {
+			if (!`dagObjectHit -mn $parentName`) {
+				// Nothing was hit - check selection/hilight list...
+				string $leadObject[] = `ls -sl -tail 1 -typ transform -typ shape`;
+				if (size($leadObject) == 0) {
+					$leadObject = `ls -hl -tail 1 -typ transform -typ shape`;
+				}
+				if (size($leadObject) > 0) {
+					// MAYA-67156: Something is selected/hilighted so pass
+					// an empty object to dagMenuProc to indicate nothing was
+					// under the cursor and let it decide what object(s) to use
+					dagMenuProc($parentName, "");
+				} else {
+					if (`modelingTookitActive` && (`nexCtx -rmbComplete -q`) ) {
+						ctxCompletion;
+						return;
+					}
+					setParent -menu $parentName;
+
+					menuItem
+						-version "2014"
+						-label (uiRes("m_buildObjectMenuItemsNow.kSelectAll"))
+						-radialPosition "S"
+						-command ("SelectAll");
+
+            		menuItem
+						-label (uiRes("m_buildObjectMenuItemsNow.kCompleteTool"))
+						-radialPosition "N"
+						-command ("CompleteCurrentTool");
+
+            		setParent ..;
+				}
 			}
 		}
 	} else {

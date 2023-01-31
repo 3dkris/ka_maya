@@ -733,7 +733,7 @@ class ColorSelectorWidget(QtWidgets.QWidget):
           function - function - the function to call on button press. The color value (0.0-1.0) will be passed
                                 as the first arg
         """
-        super(ColorSelectorWidget, self).__init__(*args, **kwargs)
+        super(ColorSelectorWidget, self).__init__(**kwargs)
 
         #columns = kwargs.pop('columns', 2)
         #colors = kwargs.pop('colors', ((1,0,0), (1,1,0), (0,1,0), (0,1,1), (0,0,1), (1,0,1), ))

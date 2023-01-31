@@ -76,7 +76,7 @@ class UI(QtWidgets.QMainWindow):
         '''A custom window with a demo set of ui widgets'''
 
         parent = ka_qtWidgets.getMayaWindow()
-        super(UI2, self).__init__(parent)
+        super(UI, self).__init__(parent)
 
         self.setWindowTitle(self.title)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
@@ -508,5 +508,5 @@ def openUI():
     except:
         pass
 
-    ka_filterSelectionUIWindow = UI2()
+    ka_filterSelectionUIWindow = UI()
     ka_filterSelectionUIWindow.show()

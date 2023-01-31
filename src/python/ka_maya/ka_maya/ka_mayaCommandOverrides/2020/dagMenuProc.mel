@@ -986,7 +986,8 @@ global proc createSelectMenuItems(string $parent, string $item)
 							menuItem -label ((uiRes("m_dagMenuProc.kUVShell")))
 								-version "2015"
 								-ecr false
-								-c ( "changeSelectMode -component; setComponentPickMask \"Facet\" true; selectType -ocm -alc false; selectType -msh true; selectType -sf false -se false -suv false -cv false;")
+								-c ( "doMenuComponentSelection(\"" +
+									 $item + "\", \"meshUVShell\")" )
 								-rp $altRP;
 
 						setParent -menu ..;
@@ -1332,24 +1333,11 @@ global proc doMenuNURBComponentSelection(string $item, string $mask)
 //
 {
 	string $selectCmd;
-	string $warn = (uiRes("m_dagMenuProc.kEditUVModeWarn"));
 
 	if (`selectMode -q -object`) {
 		hilite $item;
 		selectType -ocm -alc false;
 		$selectCmd = "selectType -ocm -" + $mask + " true;";
-
-		// Test for implicit UVs - If we are in implicit UV mode
-		// UVs are not selectable. So issue a warning.
-		//
-		if( $mask == "surfaceUV" )
-		{
-			int $isExplicit[] = `nurbsUVSet -q -ue $item`;
-			if( !$isExplicit[0] )
-			{
-				warning(`format -s $item $warn`);
-			}
-		}
 	} else {
 		selectType -alc false;
 		$selectCmd = "selectType -" + $mask + " true;";
@@ -1367,15 +1355,6 @@ global proc doMenuNURBComponentSelection(string $item, string $mask)
 						"toggle -state false -controlVertex " + $item + ";";
 					$selectCmd = $selectCmd +
 						"toggle -state false -editPoint " + $item + ";";
-
-					// Test for implicit UVs - If we are in implicit UV mode
-					// UVs are not selectable. So issue a warning.
-					//
-					int $isExplicit[] = `nurbsUVSet -q -ue $item`;
-					if( !$isExplicit[0] )
-					{
-						warning(`format -s $item $warn`);
-					}
 					break;
 				case "editPoint":
 					$selectCmd = $selectCmd +
@@ -1420,15 +1399,6 @@ global proc doMenuNURBComponentSelection(string $item, string $mask)
 			}
 		} else {
 			$selectCmd = $selectCmd + "hilite " + $item + ";";
-
-			// Test for implicit UVs - If we are in implicit UV mode
-			// UVs are not selectable. So issue a warning.
-			//
-			int $isExplicit[] = `nurbsUVSet -q -ue $item`;
-			if( !$isExplicit[0] )
-			{
-			    warning(`format -s $item $warn`);
-			}
 		}
 	}
 
@@ -1544,7 +1514,7 @@ global proc doMenuComponentSelection(string $item, string $mask)
 
 	if (`selectMode -q -object`) {
 		selectType -ocm -alc false;
-		$selectCmd = ("selectType -ocm -" + $mask + " true; hilite " + $item + ";");
+		$selectCmd = ("selectType -ocm -" + $mask + " true; selectType -" + $mask + " true; hilite " + $item + ";");
 	} else {
 		selectType -alc false;
 		$selectCmd = "selectType -" + $mask + " true;";
@@ -1561,7 +1531,7 @@ global proc undoMenuComponentSelection(string $item, string $mask)
 	string $selectCmd;
 
 	if (`selectMode -q -object`) {
-		$selectCmd = "selectType -ocm -" + $mask + " false;";
+		$selectCmd = "selectType -ocm -" + $mask + " false; selectType -" + $mask + " false;";
 	} else {
 		$selectCmd = "selectType -" + $mask + " false;";
 	}
@@ -1598,6 +1568,227 @@ global proc toggleBoundingBoxDisplay ( string $parent )
 
 	}
 }
+
+
+
+//
+//  Procedure Name:
+//      toggleRightClickMenuMetadataCheckbox
+//
+//  Description:
+//	Turn on/off the checkbox on the right click menu
+//	which shows the status of visualization.
+//
+//  Input Arguments:
+//      None.
+//
+//  Return Value:
+//      None.
+//
+global proc toggleRightClickMenuMetadataCheckbox()
+{
+	global string $metadataRightClickVisualMenu;
+	int $checkStatus = `menuItem -q -checkBox $metadataRightClickVisualMenu`;
+	string $currentStreamMember = getCurrentStreamMember();
+	string $tokens[] = stringToStringArray($currentStreamMember, ".");
+	if($checkStatus)
+		showMetadata -stream $tokens[0] -member $tokens[1] -dataType $tokens[2] `ls -shapes`;
+	else
+		showMetadata -stream $tokens[0] -member $tokens[1] -dataType $tokens[2] -off `ls -shapes`;
+}
+
+//
+//  Procedure Name:
+//      createMemberList
+//
+//  Description:
+//		Create the member list on the right click menu
+//		which is beside the stream list.
+//		Member list isto show the selectable members on the specified object
+//		user can select the member to actiavte it.
+//
+//  Input Arguments:
+//      parent      - Top level parent menu of the stream list.
+//                             Required so that UI object names can be
+//                             successfully resolved.
+//
+//		item 		- The object which is selected by right click.
+//
+//  Return Value:
+//      None.
+//
+global proc createMemberList(string $parent, string $shape, string $streamName)
+{
+	popupMenu -e -dai $parent;
+	setParent -menu $parent;
+
+	radioMenuItemCollection;
+	int $i;
+	int $j;
+	int $hasStream = 0;
+
+	string $members[] = `showMetadata -q -stream $streamName -listMembers $shape`;
+	if(size($members) > 0)
+	{
+		for($j = 0; $j < (size($members) / 2); $j++)
+		{
+			string $memberName = buildMemberName($members[$j*2], $members[$j*2+1]);
+			string $streamMemberName = buildStreamMemberName($streamName, $memberName);
+			string $switchMemberCmd = "if (!`exists activateStreamMember`) {eval \"source performVisualizeMetadataOptions\";} activateStreamMember(\"" + $streamMemberName + "\")";
+			int $isActivated = `showMetadata -isActivated -stream $streamName -member $members[$j*2] -dataType $members[$j*2+1] -query $shape`;
+			menuItem -label $memberName -subMenu false -command $switchMemberCmd -radioButton $isActivated -parent $parent;
+		}
+		$hasStream = 1;
+	}
+}
+
+
+
+//
+//  Procedure Name:
+//      createStreamList
+//
+//  Description:
+//		Create the stream list on the right click menu
+//		to show the selectable stream on the specified object
+//		user can select the stream then a list of its members
+//		will be shown beside.
+//
+//  Input Arguments:
+//      parent          - Top level parent menu of the stream list.
+//                             Required so that UI object names can be
+//                             successfully resolved.
+//
+//	item 		- The object which is selected by right click.
+//
+//  Return Value:
+//      None.
+//
+global proc createStreamList(string $parent, string $item)
+{
+	popupMenu -e -dai $parent;
+	setParent -menu $parent;
+
+	radioMenuItemCollection;
+	string $relativeShapes[] = `listRelatives -fullPath -shapes $item`;
+	string $allShapes[] = `ls -shapes`;
+	int $i;
+	int $j;
+	int $hasStream = 0;
+
+	for($i = 0; $i < size($relativeShapes); $i++)
+	{
+		string $streams[] = `showMetadata -q -listAllStreams $relativeShapes[$i]`;
+		if(size($streams) > 0)
+		{
+			for($j = 0; $j < size($streams); $j++)
+			{
+				string $streamName = $streams[$j];
+				string $activatedStreams[] = `showMetadata -q -listVisibleStreams $relativeShapes[$i]`;
+				int $isActivated = ($activatedStreams[0] == $streamName);
+				string $members[] = `showMetadata -q -stream $streamName -listMembers $relativeShapes[$i]`;
+				if(size($members) > 1)
+				{
+					string $metadataRightClickSwitchMemberMenu;
+					$metadataRightClickSwitchMemberMenu = `menuItem -label $streamName -subMenu true -parent $parent`;
+					string $switchStreamCmd = "if (!`exists createMemberList`) {eval \"source dagMenuProc\";} createMemberList(\"" + $metadataRightClickSwitchMemberMenu + "\", \"" + $relativeShapes[$i] + "\", \"" + $streams[$j] + "\")";
+					menuItem -e -pmc $switchStreamCmd $metadataRightClickSwitchMemberMenu;
+				}
+				else if(size($members) == 1)
+				{
+					string $streamMemberName = buildStreamMemberName($streamName, $members[0]);
+					string $switchMemberCmd = "if (!`exists activateStreamMember`) {eval \"source performVisualizeMetadataOptions\";} activateStreamMember(\"" + $streamMemberName + "\")";
+					menuItem -label $streamName -command $switchMemberCmd -radioButton $isActivated -parent $parent;
+				}
+				else
+				{
+					// show "None" if no member is selectable
+					menuItem -parent $parent -label (uiRes("m_dagMenuProc.kNoMember"));
+				}
+			}
+
+			if( !$hasStream )
+				$hasStream = 1;
+		}
+
+	}
+	if(!$hasStream)
+	{
+		// show "None" if no stream is selectable
+		menuItem -parent $parent -label (uiRes("m_dagMenuProc.kNoStream"));
+	}
+}
+
+
+//
+//  Procedure Name:
+//      createMetadataMenuItems
+//
+//  Description:
+//	Create right click menus for metadata edit metadata,
+//	open the option box and switch the stream.
+//
+//  Input Arguments:
+//      parent          - Top level parent menu of the stream list.
+//                             Required so that UI object names can be
+//                             successfully resolved.
+//
+//	item 		- The object which is selected by right click.
+//
+//  Return Value:
+//      None.
+//
+global proc createMetadataMenuItems(string $parent, string $item)
+//
+// Creates a menu for metadata operations
+//
+{
+	popupMenu -e -dai $parent;
+	setParent -menu $parent;
+
+	global string $metadataRightClickEditMenu;
+	$metadataRightClickEditMenu = `menuItem	-label (uiRes("m_dagMenuProc.kEditMetadata"))
+								-annotation (uiRes("m_dagMenuProc.kEditMetadataAnnot"))`;
+
+		string $createEditMetadataWindowCmd = "if (!`exists createEditMetadataWindow`) {eval \"source editMetadataWindow.mel\";} createEditMetadataWindow(\"" + $item + "\");";
+		menuItem -e -c $createEditMetadataWindowCmd $metadataRightClickEditMenu;
+
+	// menu of visualization chechbox and option box
+	global string $metadataRightClickVisualMenu;
+	$metadataRightClickVisualMenu = `menuItem -cb false	-label (uiRes("m_dagMenuProc.kShowMetadata"))
+								-annotation (uiRes("m_dagMenuProc.kShowMetadataAnnot"))`;
+
+		string $allShapes[] = `ls -shapes`;
+		string $visibleStream[] = `showMetadata -query -listVisibleStreams $allShapes`;
+		int $visibleStreamNum = size($visibleStream);
+		int $isActivated = 0;
+		if($visibleStreamNum>0)
+		{
+			$isActivated = 1 ;
+		}
+		else
+		{
+			$isActivated = 0 ;
+		}
+
+		menuItem -e -cb $isActivated $metadataRightClickVisualMenu;
+
+		string $toggleMetadataCmd = "toggleRightClickMenuMetadataCheckbox;";
+		menuItem -e -c $toggleMetadataCmd $metadataRightClickVisualMenu;
+
+		menuItem -ecr false -optionBox true
+			-annotation (uiRes("m_dagMenuProc.kVisualMetadataOptionAnnot"))
+			-c "VisualizeMetadataOptions" $metadataRightClickVisualMenu;
+
+	// menu to switch streams
+	global string $metadataRightClickSwitchStreamMenu;
+	$metadataRightClickSwitchStreamMenu = `menuItem	-label (uiRes("m_dagMenuProc.kSwitchStream"))
+				                        -subMenu true
+				                        -annotation (uiRes("m_dagMenuProc.kSwitchStreamAnnot"))`;
+
+	menu -e -pmc ( "createStreamList \""+$metadataRightClickSwitchStreamMenu+"\" "+$item ) $metadataRightClickSwitchStreamMenu;
+}
+
 
 global proc createActionsMenuItems(string $parent, string $item)
 //
@@ -2454,7 +2645,7 @@ global proc mayaDagMenuProc(string $parent, string $object)
 
 		    menuItem -label (uiRes("m_dagMenuProc.kSelect"))  -c ("select -r " + $object);
 			menuItem -version "2014" -label (uiRes("m_dagMenuProc.kSelectAll"))  -c ("SelectAll");
-			menuItem -version "2014" -label (uiRes("m_dagMenuProc.kDeselect"))  -c ("select -cl;");
+			menuItem -version "2014" -label (uiRes("m_dagMenuProc.kDeselect"))  -c ("SelectNone;");
 		    menuItem -label (uiRes("m_dagMenuProc.kSelectHierarchy"))  -c ("select -hierarchy " + $object);
 			menuItem -version "2014" -label (uiRes("m_dagMenuProc.kInverseSelection"))  -c ("InvertSelection");
 		    string $container = `container -q -fc $object`;
@@ -2494,7 +2685,7 @@ global proc mayaDagMenuProc(string $parent, string $object)
 
 		    // create the history menu
 		    //
-		    string $menu = `menuItem -subMenu true -aob true -label (uiRes("m_dagMenuProc.kInputs")) `;
+		    $menu = `menuItem -subMenu true -aob true -label (uiRes("m_dagMenuProc.kInputs")) `;
 		    menu -e
 			    -pmc ( "createHistoryMenuItems \""+$menu+"\" "+$object ) $menu;
 		    setParent -m $parent;
@@ -2573,7 +2764,12 @@ global proc mayaDagMenuProc(string $parent, string $object)
 			    }
 		    }
 
-	        $menu = `menuItem -subMenu true -label (uiRes("m_dagMenuProc.kActions")) `;
+		    // menuitem for metadata in right click menu list
+		    $menu = `menuItem -version 2016 -label (uiRes("m_dagMenuProc.kMetadataMenu")) -subMenu true`;
+		    menu -e -pmc ( "createMetadataMenuItems \""+$menu+"\" "+$object ) $menu;
+		    setParent -m $parent;
+
+	            $menu = `menuItem -subMenu true -label (uiRes("m_dagMenuProc.kActions")) `;
 		    menu -e -pmc ( "createActionsMenuItems \""+$menu+"\" "+$object ) $menu;
 
 		    setParent -m $parent;
@@ -2590,7 +2786,7 @@ global proc mayaDagMenuProc(string $parent, string $object)
 			    setParent -m $parent;
 		    }
 
-		    string $shape = objectHandlesColorSets( $object );
+		    $shape = objectHandlesColorSets( $object );
 		    if ($shape != "")
 		    {
 			    $menu = `menuItem -subMenu true -label (uiRes("m_dagMenuProc.kColorSets")) `;
@@ -2635,7 +2831,7 @@ global proc mayaDagMenuProc(string $parent, string $object)
 				callbacks -executeCallbacks -hook "addRMBBakingMenuItems" $object;
 				setParent -m $parent;
 			}
-		    string $shape = objectHandlesBifrost( $object );
+		    $shape = objectHandlesBifrost( $object );
 		    if ($shape != "")
 		    {
 			    $menu = `menuItem -subMenu true -label (uiRes("m_dagMenuProc.kBifrost")) `;
@@ -2682,7 +2878,7 @@ global proc mayaDagMenuProc(string $parent, string $object)
 				}
 			}
 
-		    string $container = `container -q -findContainer { $object }`;
+		    $container = `container -q -findContainer { $object }`;
 
 		    if (size($container) > 0)
 		    {

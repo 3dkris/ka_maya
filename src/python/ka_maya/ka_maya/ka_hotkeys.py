@@ -584,7 +584,7 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            import ka_filterSelection2 as ka_filterSelection ;reload(ka_filterSelection)
+            import ka_filterSelection ;reload(ka_filterSelection)
             ka_filterSelection.openUI()
 
         @staticmethod

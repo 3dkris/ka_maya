@@ -42,6 +42,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pymel
@@ -72,11 +73,11 @@ def alignNodes(alignment):
             elif alignment == 'vertical':
                 posY -= 200
             else:
-                print 'ERROR, no alignment set'
+                print('ERROR, no alignment set')
 
             pymel.hyperGraph(HYPER_GRAPH, edit=True, addDependNode=each)
             pymel.hyperGraph(HYPER_GRAPH, edit=True, setNodePosition=[each, posX, posY])
-            print pymel.hyperGraph(HYPER_GRAPH, query=True, look=True)
+            print(pymel.hyperGraph(HYPER_GRAPH, query=True, look=True))
 
 def purgeGraphOfContainers():
     hyperGraph = 'graph1HyperShadeEd'
@@ -108,11 +109,11 @@ def isolateInGraph():
 
     mel.eval('hyperShadePanelGraphCommand("hyperShadePanel1",  "clearGraph")')
 
-    OOOOOOO = 'positions';  print '%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO))))
+    OOOOOOO = 'positions';  print('%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO)))))
     for each in selection:
         pymel.select(each)
         #mel.eval("ka_hgAdd")
-        print each
+        print(each)
         pymel.hyperGraph(HYPER_GRAPH, edit=True, addDependNode=each)
         pymel.hyperGraph(HYPER_GRAPH, edit=True, setNodePosition=[each, positions[each][0], positions[each][1]])
 
@@ -159,7 +160,7 @@ def contain(type):
 
     container = pymel.container(type=type, includeHierarchyBelow=True, )
     pymel.container(addNode=selection, edit=True, includeHierarchyBelow=True, force=True)
-    print container
+    print(container)
     pymel.select( cl=True )
 
     #pymel.evalDeferred('pymel.select("'+container+'", replace=True,)')

@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 
 import pymel.core as pymel
@@ -439,9 +440,9 @@ def createJointNetOnSurface(surface, numOfJointUV=[2,2], jointsArePerSpan=True, 
 def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], jointsArePerSpan=True, wrapU=True):
 
     # parse args
-    OOOOOOO = 'surface'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = 'surface'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
     surface = ka_pymel.getAsPyNodes(surface)
-    OOOOOOO = 'surface'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = 'surface'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
     if surface.nodeType() != 'nurbsSurface':
         surface = surface.getShape()
@@ -565,9 +566,9 @@ def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], join
         nextDriver = None
         prevDriver = None
 
-        print '-'*100
-        OOOOOOO = 'joint'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'direction'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        print('-'*100)
+        OOOOOOO = 'joint'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'direction'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
         # special cases ***************************************************
         jointIu = jointInfoDict[joint]['uIndex']
@@ -607,10 +608,10 @@ def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], join
             percentBetween = 0.5
             return prevDriverAttr, nextDriverAttr, percentBetween
 
-        OOOOOOO = 'jointIu'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'jointIv'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'lastU'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'spansU'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = 'jointIu'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'jointIv'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'lastU'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'spansU'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
         # Find Next driver + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +
         i = 0
@@ -631,8 +632,8 @@ def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], join
                     oppositeV = (int(maxV)*numOfJointUV[1]) - nextJointIv
                     #jointInfoDict[currentJoint]['%s%s' % (itterDirection, uvDirection)] = jointListOfLists[nextJointIu][oppositeV]
 
-                    print 'next ---'
-                    OOOOOOO = 'oppositeV'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+                    print('next ---')
+                    OOOOOOO = 'oppositeV'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
                     nextJoint = jointListOfLists[nextJointIu][oppositeV]
                     itterDirection = 'prev'
                 else:
@@ -665,8 +666,8 @@ def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], join
                     oppositeV = (int(maxV)*numOfJointUV[1]) - prevJointIv
                     #jointInfoDict[currentJoint]['%s%s' % (itterDirection, uvDirection)] = jointListOfLists[prevJointIu][oppositeV]
 
-                    print 'prev ---'
-                    OOOOOOO = 'oppositeV'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+                    print('prev ---')
+                    OOOOOOO = 'oppositeV'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
                     prevJoint = jointListOfLists[prevJointIu][oppositeV]
                     itterDirection = 'next'
 
@@ -732,18 +733,18 @@ def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], join
         nextDriverValue = nextDriverAttr.get()
         prevDriverValue = prevDriverAttr.get()
 
-        OOOOOOO = 'nextDriverAttr'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'prevDriverAttr'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'nextDriverValue'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'prevDriverValue'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = 'nextDriverAttr'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'prevDriverAttr'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'nextDriverValue'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'prevDriverValue'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
 
 
         if direction == driverAttr:
             distanceBetween = nextDriverValue - prevDriverValue
             distanceOfJoint = drivenValue - prevDriverValue
-            OOOOOOO = 'distanceBetween'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-            OOOOOOO = 'distanceOfJoint'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = 'distanceBetween'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+            OOOOOOO = 'distanceOfJoint'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
             percentBetween = 1.0 / (distanceBetween / distanceOfJoint)
 
@@ -768,23 +769,23 @@ def createSkinSlideJoints(surface, influenceTransforms, numOfJointUV=[2,2], join
             distanceBetween = secondaryNextDriverValue - secondaryPrevDriverValue
             distanceOfJoint = secondaryDrivenValue - secondaryPrevDriverValue
 
-            OOOOOOO = 'secondaryPrevDriverAttr'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-            OOOOOOO = 'secondaryNextDriverAttr'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-            OOOOOOO = 'secondaryNextDriverValue'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-            OOOOOOO = 'secondaryPrevDriverValue'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = 'secondaryPrevDriverAttr'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+            OOOOOOO = 'secondaryNextDriverAttr'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+            OOOOOOO = 'secondaryNextDriverValue'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+            OOOOOOO = 'secondaryPrevDriverValue'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
-            OOOOOOO = 'distanceBetween'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-            OOOOOOO = 'distanceOfJoint'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = 'distanceBetween'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+            OOOOOOO = 'distanceOfJoint'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
             percentBetween = 1.0 / (distanceBetween / distanceOfJoint)
 
-            OOOOOOO = 'percentBetween'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = 'percentBetween'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
             percentBetween = ka_math.softenRange(percentBetween)
 
 
-        OOOOOOO = 'distanceBetween'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'distanceOfJoint'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'percentBetween'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = 'distanceBetween'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'distanceOfJoint'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'percentBetween'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
 
 
@@ -1023,7 +1024,7 @@ def createJointStrandOnNurbs(numberOfJoints=5, name='ribbon', nurbs=None):
 
     last = numberOfJoints-1
     if numberOfJoints%2: #number is odd
-        half = (numberOfJoints / 2 + (numberOfJoints%2) ) - 1 # minus one at because we count form 0
+        half = (numberOfJoints // 2 + (numberOfJoints%2) ) - 1 # minus one at because we count form 0
     else:
         half = ((numberOfJoints / 2) + 0.5 ) - 1
 
@@ -1132,7 +1133,7 @@ def closestPointOnCurve(point, curve):
     if ka_pymel.isPyNode(curve):
         curve = str(curve)
 
-    OOOOOOO = "curve"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = "curve"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
     # put curve into the MObject
     tempList = om.MSelectionList()
     tempList.add(curve)

@@ -40,6 +40,11 @@
 #====================================================================================
 
 
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 PACKAGE_RELOADERS = []
 MODULES = []
 add = MODULES.append
@@ -59,7 +64,7 @@ def reload_package():
         package_reloader.reload_package()
 
     message = '>> Reloading KA_MAYA_LOCAL'
-    print message, '='*(80-len(message))
+    print(message, '='*(80-len(message)))
 
     for module in MODULES:
         reload(module)

@@ -41,6 +41,7 @@
 #IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
+from __future__ import print_function
 import os
 import ast
 import pprint
@@ -67,7 +68,7 @@ class Deformer(object):
             self.deformerSet = ka_deformers.getDeformerSet(self.deformer)
             self.deformedNodes = ka_deformers.getDeformedComponents(self.deformer, nodesOnly=True, deformerSet=self.deformerSet)
             self.deformedComponents = ka_deformers.getDeformedComponents(self.deformer, deformerSet=self.deformerSet)
-        OOOOOOO = "kwargs"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = "kwargs"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
     def getKwargs(self):
         kwargs = {}
@@ -110,6 +111,6 @@ class Deformer(object):
             pprint.pprint(outKwargs, stream=f)
 
     def import_(self, deformerPath, optimized=False):
-        print 'IMPORT YEA!'
+        print('IMPORT YEA!')
 
 

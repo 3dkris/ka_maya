@@ -44,15 +44,16 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 
 import pymel.core as pymel
 import maya.cmds as cmds
 import maya.mel as mel
 
-print 'ka_maya reloaded'
+print('ka_maya reloaded')
 def initialize():
-    print 'ka_maya initialized'
+    print('ka_maya initialized')
 
     loadPlugins()
 
@@ -73,5 +74,5 @@ def getPluginPaths():
 
 def loadPlugins():
     for pluginPath in getPluginPaths():
-        print '  loading', pluginPath
+        print('  loading', pluginPath)
         cmds.loadPlugin(pluginPath)

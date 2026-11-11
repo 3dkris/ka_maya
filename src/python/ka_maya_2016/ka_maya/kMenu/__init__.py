@@ -46,6 +46,11 @@
 #====================================================================================
 
 
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import os
 #import PyQt4
 #from PyQt4 import PyQt.QtGui, PyQt.QtCore, uic
@@ -872,7 +877,7 @@ class KMenuWidget(PyQt.QtGui.QWidget):
             # wrapper command, with args passed
             def menuItemCmd(*args, **kwargs):
                 'do'
-                OOOOOOO = "kwargs"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+                OOOOOOO = "kwargs"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
                 tool(*args, **kwargs)
             kMenuItem_kwargs['command'] = menuItemCmd
 
@@ -1492,7 +1497,7 @@ class KaMenu_moveWidget(KRegionWidget):
         qp.drawPolygon(polygon, PyQt.QtCore.Qt.WindingFill)
 
     def mouseMoveEvent(self, event):
-        print 'regionMove'
+        print('regionMove')
         pass
 
 
@@ -1910,7 +1915,7 @@ class ToolOptionsWidget(QtGui.QWidget):
             elif isinstance(settingWidget, PyQt.QtGui.QComboBox):
                 newValue = settingWidget.currentIndex()
 
-            OOOOOOO = "newValue"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = "newValue"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
             ka_preference.add(settingObject.settingLongName, newValue)
 
 

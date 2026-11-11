@@ -39,6 +39,11 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import os
 import sys
 
@@ -121,7 +126,7 @@ def reload_package():
         package_reloader.reload_package()
 
     message = '>> Reloading KA_MAYA'
-    print message, '='*(80-len(message))
+    print(message, '='*(80-len(message)))
 
     for module in MODULES:
         reload(module)

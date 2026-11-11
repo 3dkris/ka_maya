@@ -20,6 +20,7 @@ Pre:
     within Autodesk Maya
 
 """
+from __future__ import print_function
 #=======================================================================================
 
 #Redistribution and use in source and binary forms, with or without
@@ -1909,7 +1910,7 @@ def clearStrandInfo():
     #ka_clipBoard.add('strandInfoDict', None)
     global STRAND_INFO_DICT
     STRAND_INFO_DICT = None
-    print 'RESET'
+    print('RESET')
 
 
 #------------------------------------------------------------------------------------------------------------------------
@@ -3643,6 +3644,8 @@ class iterShapes(object):
 
             return shape
 
+    __next__ = next  # python 3
+
 class iterateGeo(object):
     def __init__(self, shape=None, components=None, yieldInfo='index', componentInfoDict=None):
         """
@@ -3718,6 +3721,8 @@ class iterateGeo(object):
             raise StopIteration
 
         return self.indices[self.i]
+
+    __next__ = next  # python 3
 
 
 

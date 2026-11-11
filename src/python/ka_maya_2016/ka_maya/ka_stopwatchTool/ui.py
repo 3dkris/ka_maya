@@ -1,3 +1,8 @@
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import sys
 import os
 import operator
@@ -235,7 +240,7 @@ class StopwatchUIWindow(QtGui.QMainWindow):
         self.savePrefs_openFiles()
 
     def newRecordingWindow(self):
-        print 'run timer'
+        print('run timer')
         window = NewStopwatchRecordingWindow(stopwatchWindow=self)
         window.show()
 
@@ -606,7 +611,7 @@ class StopwatchDataWidget_times(QtGui.QWidget):
         self.timesTabelView.resizeRowsToContents()
 
         nrows = len(self.stopwatchDataModel_times.data_nodeNames)
-        for row in xrange(nrows):
+        for row in range(nrows):
             self.timesTabelView.setRowHeight(row, 14)
 
         self._file = filePath
@@ -1441,7 +1446,7 @@ class StopwatchDataModel_times(QtCore.QAbstractTableModel):
 
 STOPWATCH_UI = None
 def openUI():
-    print 'open the UIr'
+    print('open the UIr')
 
     #try: STOPWATCH_UI.close()
     #except: pass

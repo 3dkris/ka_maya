@@ -42,13 +42,14 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pymel
 
 
 import ka_maya.ka_shapes as ka_shapes #;reload(ka_skinCluster)
-import ka_skinCluster as ka_skinCluster #;reload(ka_skinCluster)
+import ka_maya.ka_skinCluster as ka_skinCluster #;reload(ka_skinCluster)
 import ka_maya.ka_pymel as ka_pymel
 
 
@@ -293,15 +294,15 @@ def makeCorrective2(items=None, name=None):
 
         if blendShape:
             index = pymel.blendShape(blendShape, query=True, weightCount=True)
-            OOOOOOO = "index"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = "index"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
             pymel.blendShape(blendShape, edit=True, target=(item, index, invertedItem, 1.0))
             blendShape.w[index].set(1)
-            OOOOOOO = "blendShape"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = "blendShape"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
         else:
             blendShape = pymel.blendShape(invertedItem, item, frontOfChain=True,)[0]
             blendShape.rename(item.nodeName()+'_blendShape')
             blendShape.w[0].set(1)
-            print 'NEW'
+            print('NEW')
 
         #blendShapeA.w[0].set(1)
         #ka_shapes.shapeParent(invertedItem, duplicate)
@@ -315,7 +316,7 @@ def makeCorrective2(items=None, name=None):
 
 
 
-        OOOOOOO = "invertedItem"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = "invertedItem"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
 
 
@@ -560,13 +561,13 @@ def print_addBlendShapeFromData(inNodes=None):
         shapeStrings = []
         for shape in shapes:
             shapeStrings.append(str(shape))
-        print """
+        print("""
 import ka_maya.ka_deformers as ka_deformers
 ka_deformers.addBlendShapeFromData(%s, %s)
         """ % (str(tuple(shapeStrings)),
                str(tuple(blendShapeData)),
 
-              )
+              ))
 
 
 # ========================================================================================================================================

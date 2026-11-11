@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import maya.OpenMaya as OpenMaya
 import pymel.core as pymel
 import maya.cmds as cmds
@@ -184,7 +185,7 @@ def shapeParent(objectA, objectB):
 
 # ========================================================================================================================================
 def shrinkWrapShape(shapesToShrink=None, shapeToCollide=None):
-    print 'shrink it'
+    print('shrink it')
 
     if shapesToShrink == None or shapeToCollide == None:
         selection = pymel.ls(selection=True)
@@ -198,7 +199,7 @@ def shrinkWrapShape(shapesToShrink=None, shapeToCollide=None):
         positions = []
 
         for cv in shape.cv:
-            print cv
+            print(cv)
             position = cv.getPosition(space='world')
             positions.append(position)
 
@@ -252,7 +253,7 @@ def print_createShape_nurbsCurve(inCurves=None, shortVersion=False):
 ka_shapes.createShape_nurbsCurve(%s, %s, %s, %s, False, False,
                                  name='%s', parent=%s)
 """ % (str(points), str(knots), str(degree), str(form), name, str(parent))
-        print printString
+        print(printString)
 
     return printString
 
@@ -348,7 +349,7 @@ def print_createShape_mesh(inMeshs=None, shortVersion=False):
 ka_shapes.createShape_mesh(%s, %s, %s, %s, %s, %s,
                            name='%s', parent=%s)
 """ % (str(numVertices), str(numFaces), str(faceCounts), str(faceConnects), str(points), str(hardEdges), name, str(parent))
-            print printString
+            print(printString)
             return printString
 
         else:
@@ -377,7 +378,7 @@ nodeName = meshFS.name()
 maya.cmds.sets (nodeName, e=True, fe='initialShadingGroup')
 # -----------------------------------
             """ % (str(numFaces), str(numVertices), str(faceCounts), str(faceConnects), str(points), str(hardEdges))
-            print printString
+            print(printString)
             return printString
 
 

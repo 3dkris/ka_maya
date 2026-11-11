@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 from traceback import format_exc as printError
 import re
 import math
@@ -2342,8 +2343,8 @@ def transferSecondaryToPrimarySelection():
         skinCluster = findRelatedSkinCluster(sourceShape)
         sourceSkinClusterNodes.append(skinCluster)
 
-        OOOOOOO = "sourceShape"; print '%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO))
-        OOOOOOO = "skinCluster"; print '%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO))
+        OOOOOOO = "sourceShape"; print('%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO)))
+        OOOOOOO = "skinCluster"; print('%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO)))
         influences = getInfluences(skinCluster=skinCluster)
         for influence in influences:
             if influence not in sourceSkinInfluenceList:
@@ -2573,7 +2574,7 @@ def addInfluence(joints=[], skinClusters=[]):
                 if skinCluster:
                     skinClusters.append(skinCluster)
 
-    print 'adding:', joints, skinClusters
+    print('adding:', joints, skinClusters)
     addedInfluenceIndicesLists = []
     for skinCluster in skinClusters:
         multiIndices = skinCluster.matrix.get(multiIndices=True)
@@ -2672,7 +2673,7 @@ def getPaintableAttributes(shape=None):
 
             # Check that deformer is not already in list
             paintAttrKey = '%s.%s.%s' % (nodeType, nodeName, attributeName)
-            print 'paintAttrKey', paintAttrKey
+            print('paintAttrKey', paintAttrKey)
             if paintAttrKey not in paintAttrKeys:
                 paintAttrKeys[paintAttrKey] = None
 
@@ -2694,7 +2695,7 @@ def getPaintableAttributes(shape=None):
 
             # Check that deformer is not already in list
             paintAttrKey = '%s.%s.%s' % (nodeType, nodeName, attributeName)
-            print 'paintAttrKey', paintAttrKey
+            print('paintAttrKey', paintAttrKey)
 
             if paintAttrKey not in paintAttrKeys:
                 paintAttrKeys[paintAttrKey] = None
@@ -2724,7 +2725,7 @@ def getPaintableAttributes(shape=None):
 
             # Check that deformer is not already in list
             paintAttrKey = '%s.%s.%s' % (nodeType, nodeName, attributeName)
-            print 'paintAttrKey', paintAttrKey
+            print('paintAttrKey', paintAttrKey)
 
             if paintAttrKey not in paintAttrKeys:
                 paintAttrKeys[paintAttrKey] = None
@@ -2776,7 +2777,7 @@ def getPaintableAttributes(shape=None):
     for paintableAttr in paintableAttrs:
         nodeType, nodeName, attributeName, null = paintableAttr.split('.')
         paintAttrKey = '%s.%s.%s' % (nodeType, nodeName, attributeName)
-        print 'paintAttrKey', paintAttrKey
+        print('paintAttrKey', paintAttrKey)
 
         if paintAttrKey not in paintAttrKeys:
             if nodeName == shapeName:
@@ -3159,7 +3160,7 @@ def _getSkinClusterWeights_(skinCluster, componentIndices, additionalDataDict=No
     # whose value is the influence list id
     infIds = {}
     infs = []
-    for x in xrange(infDags.length()):
+    for x in range(infDags.length()):
         infPath = infDags[x].fullPathName()
         infId = int(skinCluster_mfn.indexForInfluenceObject(infDags[x]))
         infIds[infId] = x
@@ -3261,7 +3262,7 @@ def getSkinClusterInfluenceIndexDict(skinCluster):
     # whose value is the influence list id
     infIds = {}
     infs = []
-    for x in xrange(infDags.length()):
+    for x in range(infDags.length()):
         infPath = infDags[x].partialPathName()
         infId = int(skinCluster_mfn.indexForInfluenceObject(infDags[x]))
         infIds[infId] = x
@@ -3336,7 +3337,7 @@ def setSkinClusterWeights(skinCluster, weightsDict, componentInfoDict=None):
         for index in weightsDict[point]:
             influenceIndices[index] = None
 
-    influenceIndices = influenceIndices.keys()
+    influenceIndices = list(influenceIndices.keys())
     influenceIndices.sort()
     influenceIndices = tuple(influenceIndices)
 
@@ -3731,7 +3732,7 @@ def copyPaintMap(paintMapDict=None):
 
     valueDict = {}
     weightAttr = pymel.PyNode('%s.%s' % (paintMapDict['nodeName'], paintMapDict['attributeName']))
-    OOOOOOO = "weightAttr"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = "weightAttr"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
     weightAttrMplug = weightAttr.__apimplug__()
     weightAttrType = weightAttr.type()
@@ -3784,7 +3785,7 @@ def pastePaintMap(paintMapDict=None, shape=None, flip=False, mirror=False, inver
     # Set Values ===========================================================================
     #weightAttr = getPaintMapAttribute(shape, paintMapDict)
     weightAttr = pymel.PyNode('%s.%s' % (paintMapDict['nodeName'], paintMapDict['attributeName']))
-    OOOOOOO = "weightAttr"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = "weightAttr"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
     weightAttrMplug = weightAttr.__apimplug__()
     #weightAttrType = weightAttr.type()
@@ -3973,12 +3974,12 @@ def mirrorPaintMap():
 
             newWeightDict[shapeID]['values'][point] = newWeightValue
 
-    TTTTTTT = "stepA"; print '%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock()
+    TTTTTTT = "stepA"; print('%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4)))) ;t0 = time.clock()
 
     setWeights(weightInfoDict=newWeightDict)
     updatePaintMap()
 
-    TTTTTTT = "stepB"; print '%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock()
+    TTTTTTT = "stepB"; print('%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4)))) ;t0 = time.clock()
     return newWeightDict
 
 

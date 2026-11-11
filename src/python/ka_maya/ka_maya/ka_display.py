@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import pymel.core as pymel
 import maya.cmds as cmds
 import maya.mel as mel
@@ -74,7 +75,7 @@ def toggleRotationAxis(state='toggle'):
 
             try:
                 node.displayLocalAxis.set(state)
-                print state
+                print(state)
             except:
                 pass
 
@@ -125,16 +126,16 @@ def skinningDisplaySet_print(skinningDisplaySet):
     endFrame = skinningDisplaySet.endFrame.get()
     name = skinningDisplaySet.nodeName()
 
-    print 'ka_maya.skinningDisplaySet_create(%s, startFrame=%s, endFrame=%s, name="%s")' % (str(setObjects), str(startFrame), str(endFrame), name)
+    print('ka_maya.skinningDisplaySet_create(%s, startFrame=%s, endFrame=%s, name="%s")' % (str(setObjects), str(startFrame), str(endFrame), name))
 
 
 def skinningDisplaySet_printSelected():
-    print 'import ka_maya.ka_core as ka_maya'
+    print('import ka_maya.ka_core as ka_maya')
     for skinningDisplaySet in skinningDisplaySet_getSelected():
         skinningDisplaySet_print(skinningDisplaySet)
 
 def skinningDisplaySet_printAll():
-    print 'import ka_maya.ka_core as ka_maya'
+    print('import ka_maya.ka_core as ka_maya')
     for skinningDisplaySet in skinningDisplaySet_getAll():
         skinningDisplaySet_print(skinningDisplaySet)
 

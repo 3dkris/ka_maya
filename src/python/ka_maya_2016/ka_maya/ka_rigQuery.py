@@ -47,9 +47,9 @@ import pymel.core as pymel
 import maya.cmds as cmds
 import maya.mel as mel
 
-import ka_math                                        #;reload(ka_math)
-import ka_transforms                                  #;reload(ka_transforms)
-import ka_preference                               #;reload(ka_preference)
+import ka_maya.ka_math as ka_math                                        #;reload(ka_math)
+import ka_maya.ka_transforms as ka_transforms                                  #;reload(ka_transforms)
+import ka_maya.ka_preference as ka_preference                               #;reload(ka_preference)
 
 
 

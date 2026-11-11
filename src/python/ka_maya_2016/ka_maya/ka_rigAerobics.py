@@ -44,6 +44,7 @@
 #IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
+from __future__ import print_function
 import os
 
 import pymel.core as pymel
@@ -103,7 +104,7 @@ def importMapToLocals(rigMap, localsDict):
             oppositeValue = getAsPyNode(rigMap[key], findOpposite=True)
             if oppositeValue:
                 localsDict[oppositeKey] = oppositeValue
-    OOOOOOO = 'localsDict';  print '%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO))))
+    OOOOOOO = 'localsDict';  print('%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO)))))
         #except:
             #printError()
 
@@ -237,7 +238,7 @@ def rnkBipiedAnimation():
     global RNK_BIPIED_MAP
     rigDict = NITROGEN_BIPIED_MAP
     rigDict = ka_pymel.getAsPyNodes(rigDict)
-    OOOOOOO = 'rigDict'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = 'rigDict'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
     # CENTER -----------------------------------------
     hip = rigDict.get('hip', None)
     pelvis = rigDict.get('pelvis', None)
@@ -354,7 +355,7 @@ def rnkBipiedAnimation():
         # inward curl
         curl = 0
         for iB, fingerJoint in enumerate(finger):
-            ka_animation.advanceNFrames(KEY_SPACING/2)
+            ka_animation.advanceNFrames(KEY_SPACING//2)
 
             tryToXform(l_thumb[0], rotation=flatThumbRotation, worldSpace=True)
             ka_transforms.mirrorTransform(r_thumb[0], targetTransform=l_thumb[0])
@@ -384,7 +385,7 @@ def rnkBipiedAnimation():
         # upward curl
         curl = 0
         for iB, fingerJoint in enumerate(finger):
-            ka_animation.advanceNFrames(KEY_SPACING/2)
+            ka_animation.advanceNFrames(KEY_SPACING//2)
 
             if iB == 0:
                 curl = 40
@@ -400,7 +401,7 @@ def rnkBipiedAnimation():
 
             ka_animation.keyAllControls()
 
-        ka_animation.advanceNFrames(KEY_SPACING/2)
+        ka_animation.advanceNFrames(KEY_SPACING//2)
         ka_animation.applyPose('tPose')
 
         tryToXform(l_thumb[0], rotation=flatThumbRotation, worldSpace=True)
@@ -408,7 +409,7 @@ def rnkBipiedAnimation():
 
         ka_animation.keyAllControls()
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
 
     ka_animation.keyAllControls()
@@ -435,9 +436,9 @@ def rnkBipiedAnimation():
             ka_transforms.mirrorTransform(r_thumb[iA], targetTransform=l_thumb[iA])
 
         ka_animation.keyAllControls()
-        ka_animation.advanceNFrames(KEY_SPACING/2)
+        ka_animation.advanceNFrames(KEY_SPACING//2)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
 
@@ -458,9 +459,9 @@ def rnkBipiedAnimation():
             ka_transforms.mirrorTransform(r_thumb[iA], targetTransform=l_thumb[iA])
 
         ka_animation.keyAllControls()
-        ka_animation.advanceNFrames(KEY_SPACING/2)
+        ka_animation.advanceNFrames(KEY_SPACING//2)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
 
@@ -699,7 +700,7 @@ def rnkBipiedAnimation():
     ka_animation.keyAllControls()
     ka_animation.advanceNFrames(KEY_SPACING)
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     # forward
     tryToXform(l_arm, rotation=[-90, 0, 0], worldSpace=True, relative=True)
@@ -708,20 +709,20 @@ def rnkBipiedAnimation():
     ka_animation.keyAllControls()
     ka_animation.advanceNFrames(KEY_SPACING)
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     # flat
     ka_animation.applyPose('tPose')
     ka_transforms.mirrorTransform(r_arm, targetTransform=l_arm)
 
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     tryToXform(l_arm, rotation=[0, 0, 90], worldSpace=True, relative=True)
     ka_transforms.mirrorTransform(r_arm, targetTransform=l_arm)
 
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     # back
     tryToXform(l_arm, rotation=[0, 90, 0], worldSpace=True, relative=True)
@@ -730,16 +731,16 @@ def rnkBipiedAnimation():
     ka_animation.keyAllControls()
     ka_animation.advanceNFrames(KEY_SPACING)
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     # down and back
     tryToXform(l_arm, rotation=[-45, 0, 0], worldSpace=True, relative=True)
     ka_transforms.mirrorTransform(r_arm, targetTransform=l_arm)
 
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     # down
     tryToXform(l_arm, rotation=[-90, 0, 0], worldSpace=True, relative=True)
@@ -959,12 +960,12 @@ def rnkBipiedAnimation():
         tryToXform(spineJoint, rotation=[bend, 0, 0], worldSpace=True, relative=True)
 
         ka_animation.keyAllControls()
-        ka_animation.advanceNFrames(KEY_SPACING/2)
+        ka_animation.advanceNFrames(KEY_SPACING//2)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
 
     # backward
@@ -979,10 +980,10 @@ def rnkBipiedAnimation():
         ka_animation.keyAllControls()
         ka_animation.advanceNFrames(KEY_SPACING)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
 
     # bend left
@@ -997,10 +998,10 @@ def rnkBipiedAnimation():
         ka_animation.keyAllControls()
         ka_animation.advanceNFrames(KEY_SPACING)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
 
     # bend right
@@ -1015,10 +1016,10 @@ def rnkBipiedAnimation():
         ka_animation.keyAllControls()
         ka_animation.advanceNFrames(KEY_SPACING)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
     # SPINE TWIST ----------------------------------------------------------------
     twist = 90
@@ -1030,19 +1031,19 @@ def rnkBipiedAnimation():
         tryToXform(spineJoint, rotation=[0, twistPerJoint, 0], worldSpace=True, relative=True)
 
         ka_animation.keyAllControls()
-        ka_animation.advanceNFrames(KEY_SPACING/2)
+        ka_animation.advanceNFrames(KEY_SPACING//2)
 
 
     tryToXform(l_clavical, rotation=[0, 15, 0], worldSpace=True, relative=True)
     tryToXform(r_clavical, rotation=[0, 30, 0], worldSpace=True, relative=True)
 
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
 
     # right
@@ -1052,15 +1053,15 @@ def rnkBipiedAnimation():
         tryToXform(spineJoint, rotation=[0, twistPerJoint, 0], worldSpace=True, relative=True)
 
         ka_animation.keyAllControls()
-        ka_animation.advanceNFrames(KEY_SPACING/2)
+        ka_animation.advanceNFrames(KEY_SPACING//2)
 
     tryToXform(l_clavical, rotation=[0, -30, 0], worldSpace=True, relative=True)
     tryToXform(r_clavical, rotation=[0, -15, 0], worldSpace=True, relative=True)
 
     ka_animation.keyAllControls()
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
 
-    ka_animation.advanceNFrames(KEY_SPACING/2)
+    ka_animation.advanceNFrames(KEY_SPACING//2)
     ka_animation.applyPose('tPose')
     ka_animation.keyAllControls()
     ka_animation.advanceNFrames(KEY_SPACING)

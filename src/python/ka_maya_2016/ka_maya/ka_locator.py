@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 import maya.OpenMaya as OpenMaya
 import maya.OpenMaya as oMaya
 import maya.OpenMayaUI as OpenMayaUI
@@ -426,7 +427,7 @@ class ka_locator(OpenMayaMPx.MPxLocatorNode):
                    
                     segments = 90
                     for i in range(segments):
-                        if i < segments / 2 and i > 0:
+                        if i < segments//2 and i > 0:
                             #if taper is 0, dont bother drawing more than a single point
                             if taper:
                                 angle = (2*math.pi) / segments * i
@@ -529,7 +530,7 @@ class ka_locator(OpenMayaMPx.MPxLocatorNode):
                         
                         #draw 2d circle
                         for i in range(segments):
-                            if i >= (segments/2) or i == 0:
+                            if i >= (segments//2) or i == 0:
 
                                 angle = (2*math.pi) / segments * i
                                 
@@ -553,9 +554,9 @@ class ka_locator(OpenMayaMPx.MPxLocatorNode):
                                 pointA = OpenMaya.MPoint(x,y,z) * shapeTransformMultiplyMatrix
                                 glFT.glVertex3d(pointA.x, pointA.y, pointA.z,)
                                 
-                            if i < (segments/2) or i == segments or i == (segments/2)-1:
+                            if i < (segments//2) or i == segments or i == (segments//2)-1:
                                 
-                                if i == (segments / 2)-1: i = (segments / 2)#this double draws halfway point for a proper taper
+                                if i == (segments//2)-1: i = (segments//2)#this double draws halfway point for a proper taper
                                 
                                 #if taper is 0, dont bother drawing more than a single point                                  
                                 if taper:
@@ -623,7 +624,7 @@ class ka_locator(OpenMayaMPx.MPxLocatorNode):
 
                         segments = 90
                         for i in range(segments):
-                            if i >= (segments/2) or i == 0:
+                            if i >= (segments//2) or i == 0:
                                 angle = (2*math.pi) / segments * i
                                 radiusX = math.sin(angle) * 0.5
                                 radiusY = math.cos(angle) * 0.5
@@ -991,7 +992,7 @@ def initializePlugin(mobject):
                                 locatorInit,
                                 OpenMayaMPx.MPxNode.kLocatorNode)
     except:
-        print "Failed to register context command: %s" % ka_locatorName
+        print("Failed to register context command: %s" % ka_locatorName)
         raise
 
     try:
@@ -1001,7 +1002,7 @@ def initializePlugin(mobject):
                                 locatorManipInit,
                                 OpenMayaMPx.MPxNode.kManipContainer)
     except:
-        print "Failed to register node: %s" % ka_locatorManipName
+        print("Failed to register node: %s" % ka_locatorManipName)
         raise
 
 
@@ -1012,13 +1013,13 @@ def uninitializePlugin(mobject):
     try:
         mplugin.deregisterNode(ka_locatorId)
     except:
-        print "Failed to deregister context command: %s" % ka_locatorName
+        print("Failed to deregister context command: %s" % ka_locatorName)
         raise
 
     try:
         mplugin.deregisterNode(ka_locatorManipId)
     except:
-        print "Failed to deregister node: %s" % ka_locatorManipName
+        print("Failed to deregister node: %s" % ka_locatorManipName)
         raise
 
 #UTILS

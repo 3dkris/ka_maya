@@ -39,6 +39,11 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import inspect
 import math
 import types
@@ -69,7 +74,7 @@ def repeatable(function):
                 argString += str(each)+', '
 
         if kwargs:
-            for key, item in kwargs.iteritems():
+            for key, item in kwargs.items():
                 argString += str(key)+'='+str(item)+', '
 
         commandToRepeat = 'python("'+__name__+'.'+function.__name__+'('+argString+')")'
@@ -125,8 +130,8 @@ def selectionIsVertex():
     currentSelection = cmds.ls(selection=True, shortNames=True)
     if currentSelection:
         selection = currentSelection[0]
-        print 'selection:',
-        print selection
+        print('selection:', end=' ')
+        print(selection)
         if '.vtx' in selection:
             trueFalse = True
 
@@ -163,8 +168,8 @@ def helixParent():
     if not lenOfSel%2==0:
         pymel.error('number of items selected is not divisable by 2')
 
-    selectionSetA = selection[0:lenOfSel/2]
-    selectionSetB = selection[lenOfSel/2:]
+    selectionSetA = selection[0:lenOfSel//2]
+    selectionSetB = selection[lenOfSel//2:]
 
     for i, item in enumerate(selectionSetB):
         pymel.parent(selectionSetA[i], selectionSetB[i])
@@ -178,8 +183,8 @@ def helixCluster():
     if not lenOfSel%2==0:
         pymel.error('number of items selected is not divisable by 2')
 
-    selectionSetA = selection[0:lenOfSel/2]
-    selectionSetB = selection[lenOfSel/2:]
+    selectionSetA = selection[0:lenOfSel//2]
+    selectionSetB = selection[lenOfSel//2:]
 
     for i, item in enumerate(selectionSetB):
         pymel.cluster(selectionSetB[i], wn=(selectionSetA[i], selectionSetA[i]), bindState=True )
@@ -268,7 +273,7 @@ def lockAttr(attr):
         except: pass
 
         if not node.attr(attr).isLocked():
-            print 'failed to lock %s.%s' % (str(node), attr)
+            print('failed to lock %s.%s' % (str(node), attr))
 
 def unlockAttr(attr):
     for node in pymel.ls(selection=True):
@@ -287,7 +292,7 @@ def unlockAttr(attr):
 
 
         if node.attr(attr).isLocked():
-            print 'failed to unlock %s.%s' % (str(node), attr)
+            print('failed to unlock %s.%s' % (str(node), attr))
 
 
 def setSetJointLabelFromName():
@@ -410,7 +415,7 @@ def printSelection_asPythonList(tall=False):
             else:
                 printString += "'%s',\n]" % each
 
-        print printString
+        print(printString)
 
     else:
         printString = '['
@@ -420,7 +425,7 @@ def printSelection_asPythonList(tall=False):
             else:
                 printString += "'%s']" % each
 
-        print printString
+        print(printString)
 
 
 def xferSkin(sourceObject="", targetObjects=""):
@@ -479,7 +484,7 @@ def getEdgeLoopFromVertSelection(select=False):
 #            newSelection = mel.eval('SelectEdgeLoopSp;')
 
 
-        print newSelection
+        print(newSelection)
 
 
     return newSelection
@@ -555,28 +560,28 @@ def getListOfComponentShells(*args):
 
     shellListOfLists = []
 
-    print 'inputs:',
-    print inputs
+    print('inputs:', end=' ')
+    print(inputs)
     if pymel.nodeType(inputs) == 'transform':
         mesh = inputs.getShape()
 
     vtxDict = {}
     vtxList = list(mesh.vtx)
 
-    vertIndices = range(len(mesh.vtx)/50)
+    vertIndices = range(len(mesh.vtx)//50)
 
     sortedVtxIndices = {}
     for i, vtx in enumerate(vtxList):
         if i not in sortedVtxIndices:
-            print 'i:',
-            print i
+            print('i:', end=' ')
+            print(i)
             shellIndices = pymel.polySelect(vtx, extendToShell=True)
 
             shellList = []
             for shellIndex in shellIndices:
                 if shellIndex not in sortedVtxIndices:
-                    print 'shellIndex:',
-                    print shellIndex
+                    print('shellIndex:', end=' ')
+                    print(shellIndex)
                     sortedVtxIndices[shellIndex] = True
                     shellList.append(shellIndex)
 
@@ -599,7 +604,7 @@ def getListOfComponentShells(*args):
         #shellListOfLists.append(shellList)
 
     for each in shellListOfLists:
-        print each
+        print(each)
     #print 'shellListOfLists:',
     #print shellListOfLists
     #return shellListOfLists
@@ -1058,7 +1063,7 @@ def printSelectedCurveCreationCommand():
             curvePositions = cmds.getAttr( shape+'.cv[*]' )
             curveDegree = cmds.getAttr( shape+'.degree' )
 
-            print 'cmds.curve( p=' + str(curvePositions) + ', degree=' + str(curveDegree) + ')'
+            print('cmds.curve( p=' + str(curvePositions) + ', degree=' + str(curveDegree) + ')')
 
 
 

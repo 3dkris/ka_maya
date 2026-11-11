@@ -42,6 +42,11 @@
 #IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import ast
 
 import pymel.core as pymel
@@ -135,7 +140,7 @@ def getAsStrings(inputA):
 
 
 def getAsShape(inputA):
-    OOOOOOO = "inputA"; print '%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO))
+    OOOOOOO = "inputA"; print('%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO)))
     if isinstance(inputA, pymel.nodetypes.GeometryShape):
         return inputA
 

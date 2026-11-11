@@ -1,3 +1,7 @@
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pymel
@@ -21,7 +25,7 @@ import ka_maya.ka_python as ka_python
 
 #def _getattrDataBase():
     #if not os.path.exists(attrDataBaseFile):
-        #pickle.dump( {}, open( attrDataBaseFile, "wb" ) )
+        #pickle.dump( {}, open( attrDataBaseFile, "wb" ), protocol=2 )
 
     #try:
         #return pickle.load( open(attrDataBaseFile, "rb" ))
@@ -31,7 +35,7 @@ import ka_maya.ka_python as ka_python
 #def _addToAttrDataBase():
     #global attrDataBase
     #try:
-        #pickle.dump( attrDataBase, open( attrDataBaseFile, "wb" ) )
+        #pickle.dump( attrDataBase, open( attrDataBaseFile, "wb" ), protocol=2 )
     #except:
         #pass
 
@@ -70,7 +74,7 @@ def _getattrDataBase(nodeType):
     try:
         # create a new empty file if one does not exist
         if not os.path.exists(attrDbFile):
-            pickle.dump( {}, open( attrDbFile, "wb" ) )
+            pickle.dump( {}, open( attrDbFile, "wb" ), protocol=2 )
 
         dataDict = pickle.load( open(attrDbFile, "rb" ))
         attrDatabaseDict[nodeType] = dataDict
@@ -90,7 +94,7 @@ def _addToAttrDataBase(nodeType, dataDict):
 
     try:
         # save out dict
-        pickle.dump( dataDict, open( attrDbFile, "wb" ) )
+        pickle.dump( dataDict, open( attrDbFile, "wb" ), protocol=2 )
 
     except:
         pass
@@ -303,7 +307,7 @@ class AttributeObj(object):
             else:
                 attrLongName = self.nonIndexedAttrName()
 
-            if not self._nodeTypeDBInfo.has_key(attrLongName):
+            if attrLongName not in self._nodeTypeDBInfo:
                 self._nodeTypeDBInfo[attrLongName] = {}
 
             self._nodeTypeDBInfo[attrLongName][propertyName] = propertyValue

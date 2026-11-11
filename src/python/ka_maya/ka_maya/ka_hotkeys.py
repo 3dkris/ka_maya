@@ -63,6 +63,11 @@ import ka_global.reloadPackage as reloadPackage ;reload(reloadPackage) ;reload_p
 ka_hotkeys.activateHotkey('all', hotkeyClass=hotkeys.LocalHotkeys)
 
 """
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import os
 import sys
 import inspect
@@ -70,9 +75,9 @@ import pymel.core as pymel
 import maya.cmds as cmds
 import maya.mel as mel
 
-import ka_util
-import ka_transforms
-import ka_weightPainting
+import ka_maya.ka_util as ka_util
+import ka_maya.ka_transforms as ka_transforms
+import ka_maya.ka_weightPainting as ka_weightPainting
 
 
 import ka_maya.ka_core as ka_core
@@ -131,13 +136,13 @@ class undoable(object):
         self.f = f
 
     def __call__(self):
-        print "Entering", self.f.__name__
+        print("Entering", self.f.__name__)
         pymel.undoInfo(openChunk=True)
 
         self.f()
         pymel.undoInfo(closeChunk=True)
 
-        print "Exited", self.f.__name__
+        print("Exited", self.f.__name__)
 
 
 
@@ -147,9 +152,9 @@ class echo(object):
         self.function = function
 
     def __call__(self):
-        print "Entering", self.function.__name__
+        print("Entering", self.function.__name__)
         self.function()
-        print "Exited", self.function.__name__
+        print("Exited", self.function.__name__)
 
 
 def getBaseClasses(obj):
@@ -584,7 +589,7 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            import ka_filterSelection ;reload(ka_filterSelection)
+            import ka_maya.ka_filterSelection as ka_filterSelection ;reload(ka_filterSelection)
             ka_filterSelection.openUI()
 
         @staticmethod
@@ -762,7 +767,7 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            print cmds.getPanel(underPointer=True)
+            print(cmds.getPanel(underPointer=True))
 
         @staticmethod
         def release_command():
@@ -983,7 +988,7 @@ setToolTo ShowManips''')
                     ka_scrubSlider.weight_parallelBlend_Scrub()
 
                 else:
-                    print '<not skinned>'
+                    print('<not skinned>')
                     mel.eval('snapMode -point 1;')
             else:
                 mel.eval('snapMode -point 1;')

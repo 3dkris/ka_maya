@@ -44,6 +44,11 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import types
 import os
 import time
@@ -53,7 +58,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMayaUI as OpenMayaUI
 
-import ka_preference
+import ka_maya.ka_preference as ka_preference
 
 import ka_maya.ka_util as ka_util    #;reload(ka_util)
 import ka_maya.ka_transforms as ka_transforms    #;reload(ka_transforms)
@@ -157,7 +162,7 @@ class ToolObject(object):
                 argString += str(each)+', '
 
         if kwargs:
-            for key, item in kwargs.iteritems():
+            for key, item in kwargs.items():
                 argString += str(key)+'='+str(item)+', '
 
         pythonCommandString = "import ka_maya.ka_core as ka_maya\nka_maya.%s(%s)" % (self._function.__name__, argString)
@@ -897,7 +902,7 @@ def print_selection_asTupleOfMatrices():
     for n in pymel.ls(selection=True):
         s += str(tuple(pymel.xform(n, query=True, matrix=True, worldSpace=True)))+', '
     s+=')'
-    print s
+    print(s)
     return s
 
 @Tool(label='Print Curve Recreate Command')
@@ -1122,7 +1127,7 @@ def directConnect_scales():
 @Setting('secondaryAxis', valueType='enum', enumValues=['  x', ' -x', '  y', ' -y', '  z', ' -z'])
 @Tool(label='Aim Constraint with objectRotUp', docFunc=ka_constraints.aimConstraintWithObjectRotationUp)
 def constrainAimWithObjectRotUp(primaryAxis=0, secondaryAxis=2):
-    print 'moo'
+    print('moo')
     primaryAxisOptions = ((1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1), )
     secondaryAxisOptions = ((1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1), )
     ka_constraints.aimConstraintWithObjectRotationUp(aimVector=primaryAxisOptions[primaryAxis], upVector=secondaryAxisOptions[secondaryAxis])
@@ -1535,7 +1540,7 @@ def paintInfluenceUnderMouse_label():
 
 @Tool(label=paintInfluenceUnderMouse_label, context=ka_context.paintableInfluenceUnderMouse_context, icon='paint.png')
 def paintInfluenceUnderMouse():
-    print 'pip'
+    print('pip')
     context = ka_context.getCurrentContext()
     nodeUnderMouse = context.getTransformUnderMouse()
     return ka_weightPainting.paintInfluence(nodeUnderMouse)
@@ -1598,9 +1603,9 @@ def pasteVertWeights():
 def advance1FrameStep():
     return ka_animation.advanceNFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP)
 
-@Tool(label='>> %s frames' % str(ka_animation.DEFAULT_FRAME_STEP/2),)
+@Tool(label='>> %s frames' % str(ka_animation.DEFAULT_FRAME_STEP//2),)
 def advanceHalfFrameStep():
-    return ka_animation.advanceNFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP/2)
+    return ka_animation.advanceNFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP//2)
 
 @Tool(label='>> %s frames' % str(ka_animation.DEFAULT_FRAME_STEP*2),)
 def advanceDoubleFrameStep():
@@ -1613,11 +1618,11 @@ def insert1FrameStep():
     and set a new keyframe, at the values of the originals on the current frame"""
     return ka_animation.insertFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP)
 
-@Tool(label='insert %s frames' % str(ka_animation.DEFAULT_FRAME_STEP/2),)
+@Tool(label='insert %s frames' % str(ka_animation.DEFAULT_FRAME_STEP//2),)
 def insertHalfFrameStep():
     """will push all animation on and after the current frame ahead by a given amount of frames,
     and set a new keyframe, at the values of the originals on the current frame"""
-    return ka_animation.insertFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP/2)
+    return ka_animation.insertFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP//2)
 
 @Tool(label='insert %s frames' % str(ka_animation.DEFAULT_FRAME_STEP*2),)
 def insertDoubleFrameStep():
@@ -1798,9 +1803,9 @@ def removeNamespacesFromSelection():
 
 def iSpy(thing):
     def doCmd(spy=thing):
-        print 'I spy with my little eye:', spy
+        print('I spy with my little eye:', spy)
 
     def undoCmd(spy=thing):
-        print 'I DID NOT spy with my little eye:', spy
+        print('I DID NOT spy with my little eye:', spy)
 
     cmds.kaDoCommand(doCmd, undoCmd)

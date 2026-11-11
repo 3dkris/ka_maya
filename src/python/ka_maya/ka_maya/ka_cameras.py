@@ -47,7 +47,7 @@ import pymel.core as pymel
 import maya.cmds as cmds
 import maya.mel as mel
 
-import ka_transforms as ka_transforms
+import ka_maya.ka_transforms as ka_transforms
 
 
 def getCurrentCamera():

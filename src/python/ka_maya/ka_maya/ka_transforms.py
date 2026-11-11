@@ -42,6 +42,11 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import math
 
 import pymel.core as pymel
@@ -950,8 +955,8 @@ def snapRigControl(nodes=None, targetNode=None):
 
             tipOffsetParent = tipOffsetParent.getParent()
 
-        OOOOOOO = 'tipOffsetAttr'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        OOOOOOO = 'tipOffsetParent'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = 'tipOffsetAttr'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        OOOOOOO = 'tipOffsetParent'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
         if tipOffsetAttr:
             inputs = tipOffsetAttr.inputs(plugs=True)
@@ -961,7 +966,7 @@ def snapRigControl(nodes=None, targetNode=None):
 
 
             point = getInForienSpace_point(globalPosOfTarg, tipOffsetParent.getParent())
-            OOOOOOO = 'point'; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = 'point'; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
             tipOffsetAttr.set(point[0])
 
             #recievingTransform = node.tipOffset.outputs()[0]

@@ -28,9 +28,9 @@ def add(key, pyObject):
     prefData = _getPreferenceData()
     prefData[key] = pyObject
     if useGlobalPref:
-        pickle.dump( prefData, open(_getGlobalPreferenceFile(), "wb") )
+        pickle.dump( prefData, open(_getGlobalPreferenceFile(), "wb"), protocol=2 )
     else:
-        pickle.dump( prefData, open(_getLocalPreferenceFile(), "wb") )
+        pickle.dump( prefData, open(_getLocalPreferenceFile(), "wb"), protocol=2 )
 
 
 def get(key, defaultValue=None):
@@ -41,9 +41,9 @@ def deletePref(key):
     prefData = _getPreferenceData()
     prefData.pop(key)
     if useGlobalPref:
-        pickle.dump( prefData, open(_getGlobalPreferenceFile(), "wb") )
+        pickle.dump( prefData, open(_getGlobalPreferenceFile(), "wb"), protocol=2 )
     else:
-        pickle.dump( prefData, open(_getLocalPreferenceFile(), "wb") )
+        pickle.dump( prefData, open(_getLocalPreferenceFile(), "wb"), protocol=2 )
 
 
 def _getGlobalPreferenceFile():
@@ -57,11 +57,11 @@ def _getLocalPreferenceFile():
 def _getPreferenceData():
     localPreferenceFile = _getLocalPreferenceFile()
     if not os.path.exists(localPreferenceFile):
-        pickle.dump( {}, open( localPreferenceFile, "wb" ) )
+        pickle.dump( {}, open( localPreferenceFile, "wb" ), protocol=2 )
 
     globalPreferenceFile = _getGlobalPreferenceFile()
     if not os.path.exists(globalPreferenceFile):
-        pickle.dump( {}, open( globalPreferenceFile, "wb" ) )
+        pickle.dump( {}, open( globalPreferenceFile, "wb" ), protocol=2 )
 
     localPreferenceData = pickle.load( open(localPreferenceFile, "rb" ))
     globalPreferenceData = pickle.load( open(globalPreferenceFile, "rb" ))

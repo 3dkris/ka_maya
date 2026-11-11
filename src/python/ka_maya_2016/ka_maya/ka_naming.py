@@ -43,6 +43,10 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import string
 
 import pymel.core as pymel

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 
 import pymel.core as pymel
@@ -442,7 +443,7 @@ def makeAdvancedIkSpline(baseName, rootJoint, endJoint, numbOfCvs=2, twistContro
 
     pymel.delete(jointLinearCurve)
 
-    OOOOOOO = 'ikCurve';  print '%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO))))
+    OOOOOOO = 'ikCurve';  print('%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO)))))
     infoDict = {'ikCurve':niceCurve,
                 'jointList':jointList,
                 'locators':locators,
@@ -609,7 +610,7 @@ def printCommand_procedurallyCreateBendMuscleJoint():
 #        originMatrix = str(muscleJoint.worldMatrix.get())
 
         #print 'userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotIndicatorZroMatrix='+pivotIndicatorMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')'
-        print 'userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')'
+        print('userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')')
 
 
 
@@ -767,22 +768,22 @@ def modifyBendMuscle(position, mode):
         type = 'insertion'
         muscleEndLocator = pivotIndicator.insertion.inputs()[0]
 
-    print 'muscleOriginInbetweenJoints: ',
-    print muscleOriginInbetweenJoints
-    print 'muscleInsertionInbetweenJoints: ',
-    print muscleInsertionInbetweenJoints
-    print 'userDefinedName: ',
-    print userDefinedName
-    print 'numberOfOriginJoints: ',
-    print numberOfOriginJoints
-    print 'pivotIndicator: ',
-    print pivotIndicator
-    print 'jointsGroup: ',
-    print jointsGroup
-    print 'muscleInbetweenJoints: ',
-    print muscleInbetweenJoints
-    print 'muscleEndLocator: ',
-    print muscleEndLocator
+    print('muscleOriginInbetweenJoints: ', end=' ')
+    print(muscleOriginInbetweenJoints)
+    print('muscleInsertionInbetweenJoints: ', end=' ')
+    print(muscleInsertionInbetweenJoints)
+    print('userDefinedName: ', end=' ')
+    print(userDefinedName)
+    print('numberOfOriginJoints: ', end=' ')
+    print(numberOfOriginJoints)
+    print('pivotIndicator: ', end=' ')
+    print(pivotIndicator)
+    print('jointsGroup: ', end=' ')
+    print(jointsGroup)
+    print('muscleInbetweenJoints: ', end=' ')
+    print(muscleInbetweenJoints)
+    print('muscleEndLocator: ', end=' ')
+    print(muscleEndLocator)
 
     _addJointToBendOriginMuscle(type, userDefinedName, numberOfOriginJoints, pivotIndicator, muscleInbetweenJoints, muscleInbetweenLocators, muscleMidPointLocatorB, muscleEndLocator,)
 
@@ -1507,7 +1508,7 @@ def printCommand_procedurallyCreateMuscleJoint():
 #        insertionMatrix = str(muscleJoint.worldMatrix.get())
 #        originMatrix = str(muscleJoint.worldMatrix.get())
 
-        print 'userMethods.procedurallyCreateMuscleJoint("'+baseName+'", '+initialLength+', '+radius+', '+squashAndStretchStrength+', "'+insertionParent+'", "'+originParent+'", '+insertionMatrix+', '+originMatrix+')'
+        print('userMethods.procedurallyCreateMuscleJoint("'+baseName+'", '+initialLength+', '+radius+', '+squashAndStretchStrength+', "'+insertionParent+'", "'+originParent+'", '+insertionMatrix+', '+originMatrix+')')
 
 #        print 'baseName:',baseName
 #        print 'initialLength:',initialLength

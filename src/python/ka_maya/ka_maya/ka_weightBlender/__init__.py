@@ -168,7 +168,7 @@ class WeightBlenderInfo(object):
 
                     self.strandSequenceDict[shapeID][strandID]['currentTargetSequence'][point] = self.strandSequenceDict[shapeID][strandID]['targetSequences'][point][0]
 
-        TTTTTTT = "        create strand sequences"; print '%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock()
+        TTTTTTT = "        create strand sequences"; print('%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4)))) ;t0 = time.clock()
 
     # START METHODS ==================================================================
     def startParallelBlend(self, createTargetIcons=True):
@@ -255,7 +255,7 @@ class WeightBlenderInfo(object):
 
         #strength = blendValues[1]/50.0
         #strength = (strength*4.0)+1.0
-        #OOOOOOO = "strength"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        #OOOOOOO = "strength"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
         for shapeID in self.strandInfoDict:
             weightInfoDict[shapeID] = {}
@@ -289,7 +289,7 @@ class WeightBlenderInfo(object):
                         #strandComponentLengths.append(strandLength)
                         #prevPointPos = pointPos
 
-                    #OOOOOOO = "strandLength"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+                    #OOOOOOO = "strandLength"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
                     # find the blended value
                     ratioSegments = 100.0/(len(strand)-1)
@@ -298,7 +298,7 @@ class WeightBlenderInfo(object):
                         #percentOfTotal = strandComponentLengths[i+1]/strandLength
                         percentOfTotal = self.strandComponentLengthRatios[shapeID][strandID][i+1]
                         weightedAverage = 1.0 * percentOfTotal
-                        #OOOOOOO = "percentOfTotal"; print '%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO))
+                        #OOOOOOO = "percentOfTotal"; print('%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO)))
                         #null, weightedAverage = ka_math.bezier(((float(blendValues[0] * 0.01), 0.0,), (float(blendValues[1] * 0.01), 0.0,),
                                                                 #(float(blendValues[2] * 0.01), 1.0,), (float(blendValues[3] * 0.01), 1.0,),),
                                                                  #weightedAverage)
@@ -312,11 +312,11 @@ class WeightBlenderInfo(object):
                         weightInfoDict[shapeID]['values'][point] = blendValueWeightValue
 
                         #previousParamT = weightedAverage
-                        #OOOOOOO = "previousWeightedAverage"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        #TTTTTTT = "    pre setWeights"; print '%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock()
+                        #OOOOOOO = "previousWeightedAverage"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
+        #TTTTTTT = "    pre setWeights"; print('%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock())
 
         ka_weightPainting.setWeights(weightInfoDict=weightInfoDict, paintMapDicts=self.paintMapDicts)
-        #TTTTTTT = "    setWeights"; print '%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock()
+        #TTTTTTT = "    setWeights"; print('%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock())
 
 
 
@@ -369,10 +369,10 @@ class WeightBlenderInfo(object):
                         blendValueTargets = strandTargetSets[0]
 
                         #for i, points in enumerate(blendValueTargets):
-                            #print 'p  ', self.strandInfoDict[shapeID]['componentInfoDict']['multiIndex'][point]
-                            #print 'u  ', self.strandInfoDict[shapeID]['componentInfoDict']['multiIndex'][points]
-                            ##print 'd  ', strandInfoDict[shapeID]['componentInfoDict']['multiIndex'][points[0]]
-                            ##print ""
+                            #print( 'p  ', self.strandInfoDict[shapeID]['componentInfoDict']['multiIndex'][point])
+                            #print( 'u  ', self.strandInfoDict[shapeID]['componentInfoDict']['multiIndex'][points])
+                            ##print( 'd  ', strandInfoDict[shapeID]['componentInfoDict']['multiIndex'][points[0]])
+                            ##print("")
 
                         if bothNeighbors:
                             oppositeBlendTargets = strandTargetSets[1]
@@ -860,7 +860,7 @@ def change(*args, **kwargs):
         if weightBlenderInfo:
             weightBlenderInfo.blend(*args, **kwargs)
         else:
-            print 'weightBlender does not exist'
+            print('weightBlender does not exist')
 
     except:
         ka_python.printError()
@@ -908,4 +908,4 @@ def getCurrentPannel():
 
     except:
         ka_python.printError()
-        print '## Failed to find current panel, make sure you have a view port with focus'
+        print('## Failed to find current panel, make sure you have a view port with focus')

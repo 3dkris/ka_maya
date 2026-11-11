@@ -203,7 +203,7 @@ class Tool(object):
         self.context = context
 
     def __call__(self, f):
-        #print 'tool __call__'
+        #print('tool __call__')
 
         toolObject = ToolObject(label=self.label, function=f, icon=self.icon, docFunc=self.docFunc, context=self.context)
         return toolObject
@@ -897,7 +897,7 @@ def print_selection_asTupleOfMatrices():
     for n in pymel.ls(selection=True):
         s += str(tuple(pymel.xform(n, query=True, matrix=True, worldSpace=True)))+', '
     s+=')'
-    print s
+    print(s)
     return s
 
 @Tool(label='Print Curve Recreate Command')
@@ -1122,7 +1122,6 @@ def directConnect_scales():
 @Setting('secondaryAxis', valueType='enum', enumValues=['  x', ' -x', '  y', ' -y', '  z', ' -z'])
 @Tool(label='Aim Constraint with objectRotUp', docFunc=ka_constraints.aimConstraintWithObjectRotationUp)
 def constrainAimWithObjectRotUp(primaryAxis=0, secondaryAxis=2):
-    print 'moo'
     primaryAxisOptions = ((1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1), )
     secondaryAxisOptions = ((1,0,0), (-1,0,0), (0,1,0), (0,-1,0), (0,0,1), (0,0,-1), )
     ka_constraints.aimConstraintWithObjectRotationUp(aimVector=primaryAxisOptions[primaryAxis], upVector=secondaryAxisOptions[secondaryAxis])
@@ -1535,7 +1534,6 @@ def paintInfluenceUnderMouse_label():
 
 @Tool(label=paintInfluenceUnderMouse_label, context=ka_context.paintableInfluenceUnderMouse_context, icon='paint.png')
 def paintInfluenceUnderMouse():
-    print 'pip'
     context = ka_context.getCurrentContext()
     nodeUnderMouse = context.getTransformUnderMouse()
     return ka_weightPainting.paintInfluence(nodeUnderMouse)
@@ -1783,7 +1781,7 @@ def testCommandB():
     #for node in selection[:4]:
         #positions.append(node.t.get())
 
-    #print ka_math.getBarycentricCoordinates(positions, selection[-1].t.get())
+    #print(ka_math.getBarycentricCoordinates(positions, selection[-1].t.get()))
 
 
 @Tool(label='Test Command C')
@@ -1798,9 +1796,9 @@ def removeNamespacesFromSelection():
 
 def iSpy(thing):
     def doCmd(spy=thing):
-        print 'I spy with my little eye:', spy
+        print('I spy with my little eye:' + spy)
 
     def undoCmd(spy=thing):
-        print 'I DID NOT spy with my little eye:', spy
+        print('I DID NOT spy with my little eye:' + spy)
 
     cmds.kaDoCommand(doCmd, undoCmd)

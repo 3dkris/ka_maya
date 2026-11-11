@@ -71,9 +71,9 @@ for folder in subfolders:
 #make sure that there is only 1 folder for current version
 if not len(currentVersionFolder) == 1:
     if len(currentVersionFolder) == 0:
-        print '!! Warning no version folder found for current version of maya in ka_maya/ka_mayaCommandOverrides'
+        print('!! Warning no version folder found for current version of maya in ka_maya/ka_mayaCommandOverrides')
     else:
-        print '!! Warning too many version folders found for current version of maya in ka_maya/ka_mayaCommandOverrides'
+        print('!! Warning too many version folders found for current version of maya in ka_maya/ka_mayaCommandOverrides')
 
 
 else:
@@ -89,7 +89,7 @@ else:
             mel.eval('source "'+filePath+'"')
 
         except:
-            print "FAILED TO LOAD MEL FILE: %s" % filePath
+            print("FAILED TO LOAD MEL FILE: %s" % filePath)
             ka_python.printError()
 
 

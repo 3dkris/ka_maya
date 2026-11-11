@@ -357,10 +357,6 @@ class UI(QtWidgets.QMainWindow):
         if prefixText or suffix_Text:
             returnList = self.figureOut_prefixSuffix(returnList,)
 
-#        if suffix_Text:
-#            print 'suf'
-#            returnList = self.figureOut_prefixSuffix(returnList, mode='suffix')
-
         renameText = str(self.nameAndNumber_lineEdit.displayText())
         if renameText:
             returnList = self.figureOut_nameAndNumber(returnList)

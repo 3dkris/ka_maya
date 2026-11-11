@@ -215,7 +215,7 @@ def doStopwatchRecording(rootDir, startFrame=None, endFrame=None):
     # write redundancyCounterData to file ---------------
     timeData_nodeNames_file = open(timeData_nodeNames, 'r')
 
-    OOOOOOO = "redundancyCounterData.keys()"; print '%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO))
+    OOOOOOO = "redundancyCounterData.keys()"; print('%s= ' % OOOOOOO, eval(OOOOOOO), ' #', type(eval(OOOOOOO)))
     timeData_redundancies_file = open(timeData_redundancies, 'w')
     for iA, lineA in enumerate(timeData_nodeNames_file):
         nodeName = lineA[:-1]
@@ -258,7 +258,7 @@ def doStopwatchRecording(rootDir, startFrame=None, endFrame=None):
     with open(stopwatchFile, "w") as _file:
         _file.write("{numOfFrames:%s}" % str(numOfFrames))
 
-    print 'stopwatch recording saved to: %s' % rootDir
+    print('stopwatch recording saved to: %s' % rootDir)
 
 
     # reset the timeline framerange -------------------------------------------------

@@ -552,7 +552,7 @@ def updateSkinConstraintWeights(skinConstraint):
     cmds.select(skinConstraintData['components'])
     componentInfoDict = ka_geometry.getComponentInfoDict()
     weightsDict = getWeights(componentInfoDict=componentInfoDict, getAdditionalData=True)
-    print weightsDict
+    print(weightsDict)
     pass
 
 def updateSkinConstraint(skinConstraint):

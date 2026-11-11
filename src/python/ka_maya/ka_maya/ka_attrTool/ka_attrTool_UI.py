@@ -76,7 +76,7 @@ acceptableAttrTypes = ['float', 'bool', 'string', 'int', 'matrix', 'vector', 'me
 ### LEFT CLICK quick connect command
 ##@QtCore.Slot()
 ##def cmdBBB():
-##    print 'EMIT B!!'
+##    print('EMIT B!!')
 
 
 
@@ -136,7 +136,7 @@ acceptableAttrTypes = ['float', 'bool', 'string', 'int', 'matrix', 'vector', 'me
 
 ##        # RIGHT CLICK quick connect command
 ##        def cmd(QWidgetItem, self=self):
-##            print 'r-click'
+##            print('r-click')
 ##            sourceAttrs = attrCommands.getSourceAttrs()
 
 ##            if sourceAttrs:
@@ -158,7 +158,7 @@ acceptableAttrTypes = ['float', 'bool', 'string', 'int', 'matrix', 'vector', 'me
 ##        @QtCore.Slot(QtWidgets.QTreeWidgetItem)
 ##        def cmdAAA(QWidgetItem, self=self):
 ##            selectedItems = self.attrTreeWidget.selectedItems()
-##            print 'EMIT A!!'
+##            print('EMIT A!!')
 
 ##            # add
 ##            #if QWidgetItem in selectedItems:
@@ -188,7 +188,7 @@ acceptableAttrTypes = ['float', 'bool', 'string', 'int', 'matrix', 'vector', 'me
 
 
 ##        def cmd(QWidgetItem, self=self):
-##            print 'EMIT B!!'
+##            print('EMIT B!!')
 
 ##            mods = cmds.getModifiers()
 ##            if not (mods & 1) > 0 and not (mods & 4) > 0:
@@ -386,7 +386,7 @@ class AttrTool_mainWindow(QtWidgets.QMainWindow):
         for key in activeColumns:
             index = columnInfoDict[key]['index']
             realWidth += self.attrTreeWidget.columnWidth(index)
-            print key, self.attrTreeWidget.columnWidth(index)
+            print(key, self.attrTreeWidget.columnWidth(index))
 
 
 
@@ -653,19 +653,19 @@ class AttrTool_mainWindow(QtWidgets.QMainWindow):
         self.addSeparatorItem() # --------------------------------------------
 
         def cmd():
-            print attrCommands.eccoAttrs(self.getSelectedAttrs(), echoAll=True)
+            print(attrCommands.eccoAttrs(self.getSelectedAttrs(), echoAll=True))
         self.addMenuItem('Echo Nodes    (createNodes, nonDefault-setAttrs, connections)', command=cmd)
 
-        def cmd(): print attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoSetAttrs=True, echoConnections=True)
+        def cmd(): print(attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoSetAttrs=True, echoConnections=True))
         self.addMenuItem('Echo Attrs    (setAttrs, connections)', command=cmd)
 
-        def cmd(): print attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoSetAttrs=True)
+        def cmd(): print(attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoSetAttrs=True))
         self.addMenuItem('Echo createNodes', command=cmd)
 
-        def cmd(): print attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoSetAttrs=True)
+        def cmd(): print(attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoSetAttrs=True))
         self.addMenuItem('Echo setAttrs', command=cmd)
 
-        def cmd(): print attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoConnections=True)
+        def cmd(): print(attrCommands.eccoAttrs(self.getSelectedOrAllAttrs(), echoAll=False, echoConnections=True))
         self.addMenuItem('Echo connections', command=cmd)
 
     def windowCmdsButtonMenu(self): # ______________________________________________________________
@@ -907,7 +907,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
                 else:
                     listAttrKwargs = {mode: True}
                     attrs = pymel.listAttr(node, connectable=True, hasData=True, **listAttrKwargs)
-                print 'timerA: '+str(time.clock()-t0);t0=time.clock()
+                print('timerA: '+str(time.clock()-t0));t0=time.clock()
 
                 #--------------------------------------------------------
                 # Add Attrs to Tree
@@ -915,7 +915,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
                 # validate that attribute meets all filters
                 if attrs:
                     attrObjs = attrCommands.listRelevantAttrs(node, baseAttributes=attrs)
-                    print 'timerB: '+str(time.clock()-t0);t0=time.clock()
+                    print('timerB: '+str(time.clock()-t0));t0=time.clock()
 
                     # add a item in the tree for each object, if one already exists for an
                     # attribute of the same name, repurpose it for the new attrObject. Then
@@ -926,7 +926,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
                         self.addAttrToTree(attrObj, expandAll=self.expandAll)
 
                 self.attrTreeIsPopulating = False
-                print 'timerC: '+str(time.clock()-t0);t0=time.clock()
+                print('timerC: '+str(time.clock()-t0));t0=time.clock()
 
 
     def addAttrToTree(self, attrObj, expandAll=False):

@@ -61,7 +61,7 @@ import ka_maya.ka_context as ka_context    #;reload(ka_context)
         #self.docFunc = docFunc
 
     #def __call__(self, f):
-        ##print 'tool __call__'
+        ##print('tool __call__')
 
         #toolObject = ToolObject(label=self.label, function=f, icon=self.icon, docFunc=self.docFunc)
         #return toolObject
@@ -82,4 +82,4 @@ import ka_maya.ka_context as ka_context    #;reload(ka_context)
 
 #@ContextAction(visibleContext=None):
 #def printObjUnderMouse():
-    #print ka_context.Context().getPanelUnderMouse()
+    #print(ka_context.Context().getPanelUnderMouse())

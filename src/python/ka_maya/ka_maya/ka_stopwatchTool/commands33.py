@@ -137,7 +137,7 @@ def doStopwatchRecording(rootDir, startFrame=None, endFrame=None):
         lineSplit = line.split()
 
         if i > 50 and i < 75:
-            print i, lineSplit
+            print(i, lineSplit)
 
         # if line is a START -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
         if line.startswith('dgtimer:begin:'):
@@ -222,7 +222,7 @@ def doStopwatchRecording(rootDir, startFrame=None, endFrame=None):
     with open(stopwatchFile, "w") as _file:
         _file.write("{numOfFrames:%s}" % str(numOfFrames))
 
-    print 'stopwatch recording saved to: %s' % rootDir
+    print('stopwatch recording saved to: %s' % rootDir)
 
 
     # reset the timeline framerange -------------------------------------------------

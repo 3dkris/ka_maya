@@ -124,8 +124,6 @@ def getMayaWindow():
     #if not ptr:
         #ptr = OpenMayaUI.MQtUtil.findWindow(name)
 
-    #OOOOOOO = "ptr"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-
     #if ptr is None:
         #return None
 
@@ -781,7 +779,7 @@ class ColorSelectorWidget(QtWidgets.QWidget):
 
 
     def function(self, color):
-        print 'color %s selected' % str(color)
+        print('color %s selected' % str(color))
 
 
 # ==============================================================================================

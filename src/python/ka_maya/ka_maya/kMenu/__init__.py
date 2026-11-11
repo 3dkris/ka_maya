@@ -598,14 +598,11 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
 
         menuHeight = self.height()
 
-        #OOOOOOO = "idealPosition"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        #OOOOOOO = "screenResolution"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
-        #OOOOOOO = "menuHeight"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
         if idealPositionY + menuHeight > screenBottom:
             adjustAmount = (idealPositionY + menuHeight) - screenBottom
             newIdealY = idealPositionY - adjustAmount - 50
             idealPosition.setY(newIdealY)
-            #print 'TOO BIG'
+            #print('TOO BIG')
 
 
         otherVisibibleSubMenus = []
@@ -763,7 +760,6 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
             #currentPosY += menuItem_height
 
         totalSizeHint = self.vLayout.totalSizeHint()
-        #OOOOOOO = "totalSizeHint"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
         self.setFixedHeight(totalSizeHint.height())
         #self.setFixedHeight(currentPosY+1)
         #self.setFixedSize(minimumWidth+2, currentPosY+1)
@@ -873,7 +869,6 @@ class KMenuWidget(PyQt.QtWidgets.QWidget):
             # wrapper command, with args passed
             def menuItemCmd(*args, **kwargs):
                 'do'
-                OOOOOOO = "kwargs"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
                 tool(*args, **kwargs)
             kMenuItem_kwargs['command'] = menuItemCmd
 
@@ -1493,7 +1488,7 @@ class KaMenu_moveWidget(KRegionWidget):
         qp.drawPolygon(polygon, PyQt.QtCore.Qt.WindingFill)
 
     def mouseMoveEvent(self, event):
-        print 'regionMove'
+        print('regionMove')
         pass
 
 
@@ -1911,7 +1906,6 @@ class ToolOptionsWidget(QtWidgets.QWidget):
             elif isinstance(settingWidget, PyQt.QtWidgets.QComboBox):
                 newValue = settingWidget.currentIndex()
 
-            OOOOOOO = "newValue"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
             ka_preference.add(settingObject.settingLongName, newValue)
 
 
@@ -1960,7 +1954,6 @@ class ToolOptionsWidget(QtWidgets.QWidget):
         ##labelWidgetSizeHint = self.labelWidget.sizeHint()
         ##labelWidgetWidthHint = labelWidgetSizeHint.width()
         ##labelWidgetHeightHint = labelWidgetSizeHint.height()
-        ##OOOOOOO = "labelWidgetHeightHint"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
 
         ##self.labelWidget.setMinimumWidth(labelWidgetWidthHint)
         ##self.labelWidget.setMinimumHeight(MENU_ITEM_MIN_HEIGHT)

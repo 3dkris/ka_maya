@@ -244,7 +244,7 @@ def mirrorMatrix(matrix, behavior=False):
     """Mirrors an MMatrix"""
     if behavior:
         matrixList = getListFromMMatrix(matrix)
-        for i in [4,5,6, 8,9,10,]:
+        for i in [0,1,2, 4,5,6, 8,9,10,]:
             matrixList[i] = matrixList[i]*-1
         matrix = getMMatrixFromList(matrixList)
 
@@ -253,11 +253,9 @@ def mirrorMatrix(matrix, behavior=False):
                                       0.0, 0.0, 1.0, 0.0,
                                       0.0, 0.0, 0.0, 1.0] )
 
-
-    mirroredMatrix = mirrorOp * matrix * mirrorOp
+    mirroredMatrix = matrix * mirrorOp
 
     return mirroredMatrix
-
 #----------------------------------------------------------------------
 def mirrorMatrixList(matrixList, behavior=False):
     """"""

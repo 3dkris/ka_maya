@@ -68,19 +68,12 @@ DEFORMER_LIB_DIR = os.path.join(os.path.split(__file__)[0], 'deformerLib')
 log = 1
 def getTempDeformersDir(emptyDir=False):
     dirPath = os.path.join(TEMP_DIR, 'TEMP_ka_deformerImportExportDir')
-    OOOOOOO = "dirPath"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
 
     if emptyDir:
         try:
             shutil.rmtree(dirPath)
         except:
             pass
-
-        #for item in os.listdir(dirPath):
-            #try:
-                #os.remove(os.path.join(dirPath, item))
-            #except Exception, e:
-                #print e
 
     try: os.mkdir(dirPath)
     except: pass

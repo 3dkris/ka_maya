@@ -626,8 +626,8 @@ def duplicateSelection():
                 selectionPositionDict[each] = getNodeHypershadePosition(each)
                 duplicitNode = relationshipDict[each]['duplicitsOfNode'][0]
                 if duplicitNode not in nodesInHyperShade:
-                    print 'duplicitNode:',
-                    print duplicitNode
+                    print('duplicitNode: ')
+                    print(duplicitNode)
 
                     addNodeToHyperShade(duplicitNode)
                 positionNodeInHyperShade(duplicitNode, selectionPositionDict[each][0] + 160, selectionPositionDict[each][1] - 180)
@@ -741,7 +741,7 @@ def _safeConnect(sourceAttrObj, targetAttrObj):
     sourceAttrObj.attr() >> targetAttrObj.attr()
 
     if eccoCommands:
-        print """cmds.connectAttr('%s.%s', '%s.%s')""" % (str(sourceAttrObj.node()), sourceAttrObj.attrLongName(), str(targetAttrObj.node()), targetAttrObj.attrLongName(), )
+        print("""cmds.connectAttr('%s.%s', '%s.%s')""" % (str(sourceAttrObj.node()), sourceAttrObj.attrLongName(), str(targetAttrObj.node()), targetAttrObj.attrLongName(), ))
 
 
 def baseconvert(n, base):
@@ -1240,28 +1240,28 @@ def eccoAttrs(nodes=None, attrObjs=None, mode='pymel_objects', echoAll=True,
             releventNonCreatedNodesString += "%s = pymel.ls('%s')[0]\n" % (getVarName(node), str(node))
 
 
-    print '\n\n## ----------------------------------------------------------------------------------------------------'
+    print('\n\n## ----------------------------------------------------------------------------------------------------')
 
     if mode == 'pymel_objects' or mode == 'pymel_commands':
-        print 'import pymel.core as pymel'
+        print('import pymel.core as pymel')
 
     elif mode == 'cmds_commands':
-        print 'import maya.cmds as cmds'
+        print('import maya.cmds as cmds')
 
     if releventNonCreatedNodesString:
-        print '\n# GET RELATED NODES:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  \n', releventNonCreatedNodesString
+        print('\n# GET RELATED NODES:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  \n', releventNonCreatedNodesString)
 
     if createNodeString:
-        print '\n## CREATE NODES:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - \n', createNodeString
+        print('\n## CREATE NODES:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - \n', createNodeString)
 
     if addAttrStrings:
-        print '\n## ADD ATTRS:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -   \n', addAttrStrings
+        print('\n## ADD ATTRS:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -   \n', addAttrStrings)
 
     if setAttrStrings:
-        print '\n## SET ATTRS:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -   \n', setAttrStrings
+        print('\n## SET ATTRS:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -   \n', setAttrStrings)
 
     if connectionStrings:
-        print '\n## CONNECT ATTRS:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -   \n', connectionStrings
+        print('\n## CONNECT ATTRS:  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -   \n', connectionStrings)
 
 
 def listRelevantAttrs(node, baseAttributes=[], **kwArgs):
@@ -1368,7 +1368,7 @@ def getAsAttrObject(node, attrName, **kwargs):
 
     if not isinstance(attrName, basestring):
         attrName = attrName.name(includeNode=False, longName=True, fullAttrPath=True, placeHolderIndices=True)
-    #print attrName, type(attrName)
+    #print(attrName, type(attrName))
 
 
     if node.attr(attrName).__hash__() not in attrObjectDict:

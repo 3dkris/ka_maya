@@ -442,7 +442,7 @@ def makeAdvancedIkSpline(baseName, rootJoint, endJoint, numbOfCvs=2, twistContro
 
     pymel.delete(jointLinearCurve)
 
-    OOOOOOO = 'ikCurve';  print '%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO))))
+    OOOOOOO = 'ikCurve';  print('%s = %s %s'%(str(OOOOOOO),str(eval(OOOOOOO)),str(type(eval(OOOOOOO)))))
     infoDict = {'ikCurve':niceCurve,
                 'jointList':jointList,
                 'locators':locators,
@@ -608,8 +608,8 @@ def printCommand_procedurallyCreateBendMuscleJoint():
 #        insertionMatrix = str(muscleJoint.worldMatrix.get())
 #        originMatrix = str(muscleJoint.worldMatrix.get())
 
-        #print 'userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotIndicatorZroMatrix='+pivotIndicatorMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')'
-        print 'userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')'
+        #print('userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotIndicatorZroMatrix='+pivotIndicatorMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')')
+        print('userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')')
 
 
 
@@ -675,16 +675,16 @@ def printCommand_procedurallyCreateBendMuscleJoint():
 ##        insertionMatrix = str(muscleJoint.worldMatrix.get())
 ##        originMatrix = str(muscleJoint.worldMatrix.get())
 
-        #print 'userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotIndicatorZroMatrix='+pivotIndicatorMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')'
+        #print('userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotIndicatorZroMatrix='+pivotIndicatorMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')')
 
-##        print 'baseName:',baseName
-##        print 'initialLength:',initialLength
-##        print 'initialLength:',radius
-##        print 'squashAndStretchStrength:',squashAndStretchStrength
-##        print 'insertionParent:',insertionParent
-##        print 'originParent:',originParent
-##        print 'insertionMatrix:',insertionMatrix
-##        print 'originMatrix:',originMatrix
+##        print('baseName:',baseName)
+##        print('initialLength:',initialLength)
+##        print('initialLength:',radius)
+##        print('squashAndStretchStrength:',squashAndStretchStrength)
+##        print('insertionParent:',insertionParent)
+##        print('originParent:',originParent)
+##        print('insertionMatrix:',insertionMatrix)
+##        print('originMatrix:',originMatrix)
 
 
 def modifyBendMuscle(position, mode):
@@ -741,7 +741,7 @@ def modifyBendMuscle(position, mode):
 #        if joints:
 #            for joint in joints:
 #                if pymel.attributeQuery('baseName', node=joint, exists=True):
-#                    print 'chea!'
+#                    print('chea!')
 #                    baseName = joint.baseName.get()
 #
 #                    if 'muscleOriginInbetweenJoint' in baseName:
@@ -767,22 +767,14 @@ def modifyBendMuscle(position, mode):
         type = 'insertion'
         muscleEndLocator = pivotIndicator.insertion.inputs()[0]
 
-    print 'muscleOriginInbetweenJoints: ',
-    print muscleOriginInbetweenJoints
-    print 'muscleInsertionInbetweenJoints: ',
-    print muscleInsertionInbetweenJoints
-    print 'userDefinedName: ',
-    print userDefinedName
-    print 'numberOfOriginJoints: ',
-    print numberOfOriginJoints
-    print 'pivotIndicator: ',
-    print pivotIndicator
-    print 'jointsGroup: ',
-    print jointsGroup
-    print 'muscleInbetweenJoints: ',
-    print muscleInbetweenJoints
-    print 'muscleEndLocator: ',
-    print muscleEndLocator
+    print('muscleOriginInbetweenJoints: ' + muscleOriginInbetweenJoints)
+    print('muscleInsertionInbetweenJoints: ' + muscleInsertionInbetweenJoints)
+    print('userDefinedName: ' + userDefinedName)
+    print('numberOfOriginJoints: ' + numberOfOriginJoints)
+    print('pivotIndicator: ' + pivotIndicator)
+    print('jointsGroup: ' + jointsGroup)
+    print('muscleInbetweenJoints: ' + muscleInbetweenJoints)
+    print('muscleEndLocator: ', + muscleEndLocator)
 
     _addJointToBendOriginMuscle(type, userDefinedName, numberOfOriginJoints, pivotIndicator, muscleInbetweenJoints, muscleInbetweenLocators, muscleMidPointLocatorB, muscleEndLocator,)
 
@@ -1507,16 +1499,16 @@ def printCommand_procedurallyCreateMuscleJoint():
 #        insertionMatrix = str(muscleJoint.worldMatrix.get())
 #        originMatrix = str(muscleJoint.worldMatrix.get())
 
-        print 'userMethods.procedurallyCreateMuscleJoint("'+baseName+'", '+initialLength+', '+radius+', '+squashAndStretchStrength+', "'+insertionParent+'", "'+originParent+'", '+insertionMatrix+', '+originMatrix+')'
+        print('userMethods.procedurallyCreateMuscleJoint("'+baseName+'", '+initialLength+', '+radius+', '+squashAndStretchStrength+', "'+insertionParent+'", "'+originParent+'", '+insertionMatrix+', '+originMatrix+')')
 
-#        print 'baseName:',baseName
-#        print 'initialLength:',initialLength
-#        print 'initialLength:',radius
-#        print 'squashAndStretchStrength:',squashAndStretchStrength
-#        print 'insertionParent:',insertionParent
-#        print 'originParent:',originParent
-#        print 'insertionMatrix:',insertionMatrix
-#        print 'originMatrix:',originMatrix
+#        print('baseName:',baseName)
+#        print('initialLength:',initialLength)
+#        print('initialLength:',radius)
+#        print('squashAndStretchStrength:',squashAndStretchStrength)
+#        print('insertionParent:',insertionParent)
+#        print('originParent:',originParent)
+#        print('insertionMatrix:',insertionMatrix)
+#        print('originMatrix:',originMatrix)
 
 def procedurallyCreateMuscleJoint(baseName, initialLength, radius, squashAndStretchStrength, insertionParent, originParent, insertionMatrix, originMatrix):
 
@@ -1969,10 +1961,10 @@ def mirrorMuscleJoint():
 
 
 #
-#    print '\n\n'
-#    print '% s out of %s mirrored successfully ' % (str(len(selectedMuscleJoints)-fails), str(len(selectedMuscleJoints)))
+#    print('\n\n')
+#    print('% s out of %s mirrored successfully ' % (str(len(selectedMuscleJoints)-fails), str(len(selectedMuscleJoints))))
 #    for failString in failStrings:
-#        print failString
+#        print(failString)
 def mirrorBendMuscleJoint():
     selection = pymel.ls(selection=True)
     selectedMuscleJoints = [getRelatedBendMuscleJoint(each) for each in selection]

@@ -1539,10 +1539,6 @@ def paintInfluenceUnderMouse_label():
 
 @Tool(label=paintInfluenceUnderMouse_label, context=ka_context.paintableInfluenceUnderMouse_context, icon='paint.png')
 def paintInfluenceUnderMouse():
-<<<<<<< HEAD
-=======
-    print('pip')
->>>>>>> worktree-py2-py3-compat
     context = ka_context.getCurrentContext()
     nodeUnderMouse = context.getTransformUnderMouse()
     return ka_weightPainting.paintInfluence(nodeUnderMouse)
@@ -1805,16 +1801,9 @@ def removeNamespacesFromSelection():
 
 def iSpy(thing):
     def doCmd(spy=thing):
-<<<<<<< HEAD
-        print('I spy with my little eye:' + spy)
-
-    def undoCmd(spy=thing):
-        print('I DID NOT spy with my little eye:' + spy)
-=======
         print('I spy with my little eye:', spy)
 
     def undoCmd(spy=thing):
         print('I DID NOT spy with my little eye:', spy)
->>>>>>> worktree-py2-py3-compat
 
     cmds.kaDoCommand(doCmd, undoCmd)

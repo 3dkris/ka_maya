@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 import maya.cmds as cmds
 import maya.mel as mel
@@ -59,7 +60,7 @@ def cleanPath(path):
 
 
 currentDirectory = cleanPath(os.path.dirname(__file__))
-subfolders = os.walk(currentDirectory).next()[1]
+subfolders = next(os.walk(currentDirectory))[1]
 version = cmds.about(version=True)
 
 #get the folder that represents the current version
@@ -71,9 +72,9 @@ for folder in subfolders:
 #make sure that there is only 1 folder for current version
 if not len(currentVersionFolder) == 1:
     if len(currentVersionFolder) == 0:
-        print '!! Warning no version folder found for current version of maya in ka_maya/ka_mayaCommandOverrides'
+        print('!! Warning no version folder found for current version of maya in ka_maya/ka_mayaCommandOverrides')
     else:
-        print '!! Warning too many version folders found for current version of maya in ka_maya/ka_mayaCommandOverrides'
+        print('!! Warning too many version folders found for current version of maya in ka_maya/ka_mayaCommandOverrides')
 
 
 else:
@@ -89,7 +90,7 @@ else:
             mel.eval('source "'+filePath+'"')
 
         except:
-            print "FAILED TO LOAD MEL FILE: %s" % filePath
+            print("FAILED TO LOAD MEL FILE: %s" % filePath)
             ka_python.printError()
 
 

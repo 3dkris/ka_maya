@@ -40,6 +40,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import math
 
 
@@ -384,7 +385,7 @@ def testA():
     loc = pymel.spaceLocator()
     loc.t.set(interiorPoint)
 
-    print getBarycentricCoordinates(points, interiorPoint)
+    print(getBarycentricCoordinates(points, interiorPoint))
 
 
 def vectorProduct(input1, input2, operation, normalizeOutput=False):
@@ -520,7 +521,7 @@ def easeInOutBezier(x, p0, p1, p2, p3, minY=0.0, maxY=1.0):
 
         else:
             midPercent = 1.0 - midPercent
-            OOOOOOO = "midPercent"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = "midPercent"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
             strengthPercent = abs(float(x)-p3) / (p3-p1)
             strength = (4.0*strengthPercent)+1
             #OOOOOOO = "strength"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
@@ -530,7 +531,7 @@ def easeInOutBezier(x, p0, p1, p2, p3, minY=0.0, maxY=1.0):
             percentOfMax = (relativeX-mid)/(1.0-(xRange*midPercent))
             #change = change*0.5
             yRange *= midPercent
-            OOOOOOO = "percentOfMax"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+            OOOOOOO = "percentOfMax"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
             return (xRange*1.0) - (yRange * math.pow(1.0-percentOfMax, strength)) + minY
 
 
@@ -573,7 +574,7 @@ def bezier(n,t, arcLengthParameter=True, previousT=0.0, precision=5):
 
             count += 1
             if count > 1000:
-                print 'fail', sampleRange
+                print('fail', sampleRange)
                 break
     u = t
     x=(P0[0]*(1-t)**3+P1[0]*3*t*(1-t)**2+P2[0]*3*t**2*(1-t)+P3[0]*t**3)

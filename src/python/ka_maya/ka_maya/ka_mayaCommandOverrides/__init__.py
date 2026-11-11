@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 import maya.cmds as cmds
 import maya.mel as mel
@@ -59,7 +60,7 @@ def cleanPath(path):
 
 
 currentDirectory = cleanPath(os.path.dirname(__file__))
-subfolders = os.walk(currentDirectory).next()[1]
+subfolders = next(os.walk(currentDirectory))[1]
 version = cmds.about(version=True)
 
 #get the folder that represents the current version

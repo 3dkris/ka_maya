@@ -1,3 +1,4 @@
+from __future__ import print_function
 import math
 
 import pymel.core as pymel
@@ -608,7 +609,6 @@ def printCommand_procedurallyCreateBendMuscleJoint():
 #        insertionMatrix = str(muscleJoint.worldMatrix.get())
 #        originMatrix = str(muscleJoint.worldMatrix.get())
 
-        #print('userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotIndicatorZroMatrix='+pivotIndicatorMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')')
         print('userMethods.procedurallyCreateBendMuscle(baseName="'+baseName+'", numberOfJoints='+numberOfJoints+', radius='+radius+', insertionParent="'+insertionParent+'", originParent="'+originParent+'", pivotIndicatorZroParent="'+pivotIndicatorParent+'", insertionMatrix='+insertionMatrix+', originMatrix='+originMatrix+', pivotPositionMatrix='+pivotPositionMatrix+', jointPercents='+str(jointPercents)+')')
 
 
@@ -767,14 +767,22 @@ def modifyBendMuscle(position, mode):
         type = 'insertion'
         muscleEndLocator = pivotIndicator.insertion.inputs()[0]
 
-    print('muscleOriginInbetweenJoints: ' + muscleOriginInbetweenJoints)
-    print('muscleInsertionInbetweenJoints: ' + muscleInsertionInbetweenJoints)
-    print('userDefinedName: ' + userDefinedName)
-    print('numberOfOriginJoints: ' + numberOfOriginJoints)
-    print('pivotIndicator: ' + pivotIndicator)
-    print('jointsGroup: ' + jointsGroup)
-    print('muscleInbetweenJoints: ' + muscleInbetweenJoints)
-    print('muscleEndLocator: ', + muscleEndLocator)
+    print('muscleOriginInbetweenJoints: ', end=' ')
+    print(muscleOriginInbetweenJoints)
+    print('muscleInsertionInbetweenJoints: ', end=' ')
+    print(muscleInsertionInbetweenJoints)
+    print('userDefinedName: ', end=' ')
+    print(userDefinedName)
+    print('numberOfOriginJoints: ', end=' ')
+    print(numberOfOriginJoints)
+    print('pivotIndicator: ', end=' ')
+    print(pivotIndicator)
+    print('jointsGroup: ', end=' ')
+    print(jointsGroup)
+    print('muscleInbetweenJoints: ', end=' ')
+    print(muscleInbetweenJoints)
+    print('muscleEndLocator: ', end=' ')
+    print(muscleEndLocator)
 
     _addJointToBendOriginMuscle(type, userDefinedName, numberOfOriginJoints, pivotIndicator, muscleInbetweenJoints, muscleInbetweenLocators, muscleMidPointLocatorB, muscleEndLocator,)
 

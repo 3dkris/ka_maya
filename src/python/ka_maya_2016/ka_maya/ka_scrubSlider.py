@@ -38,6 +38,7 @@
 #IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
+from __future__ import print_function
 import time
 
 import maya.cmds as cmds
@@ -666,7 +667,7 @@ class ScrubWidget(QtGui.QMainWindow):
                 modifiers = QtGui.QApplication.keyboardModifiers()
                 if modifiers == QtCore.Qt.ShiftModifier:
                     value = self.getSteppedValue(value, self.shiftStep)
-                    print 'shift down'
+                    print('shift down')
                 # update internal variables
                 self.previousValue = value
                 self.currentValues[self.currentValueIndex]  = value
@@ -688,7 +689,7 @@ class ScrubWidget(QtGui.QMainWindow):
         @QtCore.Slot(int)
         def scrubFinishedCmd(self=self):
             """commands to run as finishing"""
-            print 'finish22'
+            print('finish22')
 
             self.releaseMouse()
             self.releaseKeyboard()
@@ -746,7 +747,7 @@ class ScrubWidget(QtGui.QMainWindow):
         QtGui.QWidget.mouseMoveEvent(self, event)
 
     def focusOutEvent(self, event):
-        print 'focus lost'
+        print('focus lost')
         event.accept()
         QtGui.QWidget.focusOutEvent(self, event)
         self.finish()
@@ -761,15 +762,15 @@ class ScrubWidget(QtGui.QMainWindow):
                 modifierDown = True
                 if subDict['shift'] and modifiers not in [33554432, 100663296, 369098752, 301989888]:
                     modifierDown = False
-                    print 'not shift'
+                    print('not shift')
 
                 if subDict['alt'] and modifiers not in [134217728, 201326592, 167772160, 234881024]:
                     modifierDown = False
-                    print 'not alt'
+                    print('not alt')
 
                 if subDict['ctrl'] and modifiers not in [67108864, 100663296, 201326592, 234881024]:
                     modifierDown = False
-                    print 'not ctrl'
+                    print('not ctrl')
 
                 if modifierDown:
                     if subDict['hold']:
@@ -873,7 +874,7 @@ def getScrubSlider():
 
 def createScrubSlider(*args, **kwargs):
     """Returns scrubSlider. This is the main function to create the scrub slider"""
-    print 'make'
+    print('make')
     scrubSlider = getScrubSlider()
     if scrubSlider:
         try:

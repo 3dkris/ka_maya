@@ -44,6 +44,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 
 import ka_maya.ka_qtWidgets as ka_qtWidgets
@@ -351,7 +352,7 @@ if MENU_COLOR:
     BASIC_RGB_COLORS = ((1,1,1,), (1,0,0), (1,.5,0), (1,1,0), (.5,1,0), (0,1,0), (0,1,.5), (0,1,1), (0,.5,1), (0,0,1), (.5,0,1), (1,0,1), (1,0,.5),)
 
     def function(color):
-        print 'I R SETTING COLOR %s' % str(color)
+        print('I R SETTING COLOR %s' % str(color))
         ka_util.colorObjects(color=color)
 
 
@@ -885,7 +886,7 @@ class MenuBase(object):
 
         # if mouse over the 3dView...
         elif self.context.getUiTypeUnderMouse() == 'model':
-            print "A"
+            print("A")
             # if using paint tools show skinning/painting menu
             if self.context.getCurrentTool() in ('artAttrSkinContext', 'artAttrContext', 'artAttrBlendShapeContext'):
                 MENU_SKINNING.pop()

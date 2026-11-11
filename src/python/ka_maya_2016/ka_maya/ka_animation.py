@@ -39,6 +39,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 from traceback import print_exc as printError
 
 import pymel.core as pymel
@@ -223,7 +224,7 @@ def setAnimationFrameSet(animationFrameSet):
 
 	# connect current sets message, which will be used to detirmine the current set
 	controlSet = pymel.ls(CONTROLS_SET_NAME)[0]
-	OOOOOOO = "controlSet"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+	OOOOOOO = "controlSet"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 	animationFrameSet.message >> controlSet.attr(CURRENT_ANIMATION_FRAME_SET_ATTR_NAME)
 
 

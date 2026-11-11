@@ -41,6 +41,7 @@
 #IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
+from __future__ import print_function
 import time
 
 import maya.cmds as cmds
@@ -82,7 +83,7 @@ def findRelatedSkinCluster(*args, **kwArgs):
     transform = None
     skinCluster = None
 
-    if log:print "input", input
+    if log:print("input", input)
 
 
     #if len(components) > 1:
@@ -171,7 +172,7 @@ def removeUnusedForSkin(skinCluster, **kwArgs):
             pymel.skinCluster(skinCluster, edit=True, removeInfluence=influence)
 
     if verbose:
-        print 'removed %s influences from skinCluster: %s' % (str(len(unweightedInfluences)), skinCluster.name())
+        print('removed %s influences from skinCluster: %s' % (str(len(unweightedInfluences)), skinCluster.name()))
 
 def removeUnusedInfluences(**kwArgs):
     kwArgs['verbose'] = True

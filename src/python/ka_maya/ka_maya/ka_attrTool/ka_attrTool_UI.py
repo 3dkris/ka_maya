@@ -45,6 +45,7 @@
 #====================================================================================
 
 
+from __future__ import print_function
 import os
 import time
 import re
@@ -881,7 +882,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
                 if mode == 'favorites':
                     attrFavoritesDict = ka_preference.get('attrFavorites', {})
                     # check that there are favorites saved for given nodeType
-                    if not attrFavoritesDict.has_key(nodeType): mode = 'no filter'
+                    if nodeType not in attrFavoritesDict: mode = 'no filter'
                     elif not attrFavoritesDict[nodeType]: mode = 'no filter'
 
                     else:
@@ -1155,7 +1156,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
         for attrObj in attrObjs:
             nodeType = attrObj.node().nodeType()
 
-            if attrFavoritesDict.has_key(nodeType):
+            if nodeType in attrFavoritesDict:
                 attrs = attrFavoritesDict[nodeType]
             else:
                 attrs = []
@@ -1173,7 +1174,7 @@ class AttrTreeWidget(QtWidgets.QTreeWidget):
         for attrObj in attrObjs:
             nodeType = attrObj.node().nodeType()
 
-            if attrFavoritesDict.has_key(nodeType):
+            if nodeType in attrFavoritesDict:
                 attrs = attrFavoritesDict[nodeType]
             else:
                 attrs = []
@@ -1262,7 +1263,7 @@ class AttrTool_addAttrWindow(QtWidgets.QMainWindow):
 
             if inputType == 'float':
                 inputField = QtWidgets.QLineEdit(self)
-                inputFieldWidth = inputFieldWidth/2
+                inputFieldWidth = inputFieldWidth//2
 
             if inputType == 'list':
                 inputField = QtWidgets.QComboBox(self)
@@ -1281,7 +1282,7 @@ class AttrTool_addAttrWindow(QtWidgets.QMainWindow):
         addInput('Nice Name', 'string')
 
         attrTypeList = ['float', 'int', 'bool', 'enum', 'string', '----------']
-        allTypeList = attributeObj.attrTypes.keys()
+        allTypeList = list(attributeObj.attrTypes.keys())
         for key in attributeObj.dataTypes.keys():
             if key not in allTypeList:
                 allTypeList.append(key)
@@ -1290,21 +1291,21 @@ class AttrTool_addAttrWindow(QtWidgets.QMainWindow):
 
         addInput('attribute Type', 'list', inputList=attrTypeList)
 
-        self.currentRow += self.rowHeight/2
+        self.currentRow += self.rowHeight//2
 
         addInput('Default Value', 'float')
 
-        self.currentRow += self.rowHeight/2
+        self.currentRow += self.rowHeight//2
 
         addInput('Max Value', 'float')
         addInput('Min Value', 'float')
 
-        self.currentRow += self.rowHeight/2
+        self.currentRow += self.rowHeight//2
 
         addInput('Soft Min Value', 'float')
         addInput('Soft Max Value', 'float')
 
-        self.currentRow += self.rowHeight/2
+        self.currentRow += self.rowHeight//2
 
         self.addButton = QtWidgets.QPushButton('Add Attr', self)
         self.addButton.setGeometry(5, self.currentRow, self.windowWidth-10, self.rowHeight*2)

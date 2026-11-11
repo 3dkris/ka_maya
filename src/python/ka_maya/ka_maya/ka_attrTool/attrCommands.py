@@ -1,3 +1,8 @@
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import os
 import pickle
 import math
@@ -626,7 +631,7 @@ def duplicateSelection():
                 selectionPositionDict[each] = getNodeHypershadePosition(each)
                 duplicitNode = relationshipDict[each]['duplicitsOfNode'][0]
                 if duplicitNode not in nodesInHyperShade:
-                    print('duplicitNode: ')
+                    print('duplicitNode:', end=' ')
                     print(duplicitNode)
 
                     addNodeToHyperShade(duplicitNode)
@@ -852,8 +857,8 @@ def _getEccoSetAttrException(attrObj, mode='pymel_objects'):
                 function = setAttrExceptionsDict[nodeType][attrName]
                 functionFound = True
 
-    if setAttrExceptionsDict['allNodes'].has_key(attrName):
-        if setAttrExceptionsDict['allNodes'].has_key(attrName):
+    if attrName in setAttrExceptionsDict['allNodes']:
+        if attrName in setAttrExceptionsDict['allNodes']:
             function = setAttrExceptionsDict['allNodes'][attrName]
             functionFound = True
 

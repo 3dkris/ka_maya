@@ -19,7 +19,7 @@ def add(key, pyObject):
 
     clipBoardData = _getClipBoardData()
     clipBoardData[key] = pyObject
-    pickle.dump( clipBoardData, open(_getClipBoardFile(), "wb") )
+    pickle.dump( clipBoardData, open(_getClipBoardFile(), "wb"), protocol=2 )
     return pyObject
 
 def get(key, defaultValue=None):
@@ -50,7 +50,7 @@ def replace(key, pyObject):
         pyObject (object): item to be stored
     """
 
-    pickle.dump( {key:pyObject}, open(_getClipBoardFile(), "wb") )
+    pickle.dump( {key:pyObject}, open(_getClipBoardFile(), "wb"), protocol=2 )
 
 
 def _getClipBoardFile():
@@ -65,6 +65,6 @@ def _getClipBoardData():
     except:
         pymel.warning('clipBoard experienced an error, and has been reset')
         clipBoardData = {}
-        pickle.dump( {}, open( CLIPBOARD_FILE, "wb" ) )
+        pickle.dump( {}, open( CLIPBOARD_FILE, "wb" ), protocol=2 )
 
     return clipBoardData

@@ -46,6 +46,11 @@
 #====================================================================================
 
 
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import os
 #import PyQt4
 #from PyQt4 import PyQt.QtGui, PyQt.QtCore, uic

@@ -45,6 +45,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 
 import PySide2 as PyQt
@@ -54,7 +55,10 @@ import shiboken2 as shiboken
 #from PySide2 import shiboken2
 #import pysideuic
 import xml.etree.ElementTree as xml
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO  # python 2
+except ImportError:
+    from io import StringIO  # python 3
 
 import ka_maya.ka_python as ka_python
 
@@ -80,7 +84,7 @@ def getMayaWindow():
     """
     ptr = OpenMayaUI.MQtUtil.mainWindow()
     if ptr is not None:
-        return shiboken.wrapInstance(long(ptr), QtWidgets.QMainWindow)
+        return shiboken.wrapInstance(int(ptr), QtWidgets.QMainWindow)
 
     return omui.MQtUtil.mainWindow()
 
@@ -127,10 +131,10 @@ def getMayaWindow():
     #if ptr is None:
         #return None
 
-    #ptr = long(ptr) # Ensure type
+    #ptr = int(ptr) # Ensure type
     #if globals().has_key('shiboken'):
         #if base is None:
-            #qObj = shiboken.wrapInstance(long(ptr), QtCore.QObject)
+            #qObj = shiboken.wrapInstance(int(ptr), QtCore.QObject)
             #metaObj = qObj.metaObject()
             #cls = metaObj.className()
             #superCls = metaObj.superClass().className()
@@ -141,11 +145,11 @@ def getMayaWindow():
                 #base = getattr(QtGui, superCls)
             #else:
                 #base = QtWidgets.QWidget
-        #return shiboken.wrapInstance(long(ptr), base)
+        #return shiboken.wrapInstance(int(ptr), base)
 
     ##elif globals().has_key('sip'):
         ##base = QtCore.QObject
-        ##return sip.wrapinstance(long(ptr), base)
+        ##return sip.wrapinstance(int(ptr), base)
     #else:
         #return None
 
@@ -156,7 +160,7 @@ def getMayaWindow():
     #"""
     #ptr = OpenMayaUI.MQtUtil.mainWindow()
     #if ptr is not None:
-        #return shiboken.wrapInstance(long(ptr), QtWidgets.QMainWindow)
+        #return shiboken.wrapInstance(int(ptr), QtWidgets.QMainWindow)
 
 global app
 app = QtWidgets.QApplication.instance() #get the qApp instance if it exists.

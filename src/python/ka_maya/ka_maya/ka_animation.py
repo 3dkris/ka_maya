@@ -39,6 +39,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 from traceback import print_exc as printError
 
 import pymel.core as pymel

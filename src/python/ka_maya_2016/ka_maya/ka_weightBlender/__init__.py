@@ -42,6 +42,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import time
 
 import maya.cmds as cmds
@@ -168,7 +169,7 @@ class WeightBlenderInfo(object):
 
                     self.strandSequenceDict[shapeID][strandID]['currentTargetSequence'][point] = self.strandSequenceDict[shapeID][strandID]['targetSequences'][point][0]
 
-        TTTTTTT = "        create strand sequences"; print '%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4))) ;t0 = time.clock()
+        TTTTTTT = "        create strand sequences"; print('%s Step Took %s sec' % (TTTTTTT, str(round(time.clock()-t0, 4)))) ;t0 = time.clock()
 
     # START METHODS ==================================================================
     def startParallelBlend(self, createTargetIcons=True):
@@ -522,7 +523,7 @@ class WeightBlenderInfo(object):
         strandIDs = tuple(self.strandInfoDict[shapeID]['strandDict'].keys())
         strandID = strandIDs[strandIndex]
 
-        randomPoint = self.strandSequenceDict[shapeID][strandID]['targetSequences'].keys()[0]
+        randomPoint = list(self.strandSequenceDict[shapeID][strandID]['targetSequences'].keys())[0]
         lastSequenceIndex = len(self.strandSequenceDict[shapeID][strandID]['targetSequences'][randomPoint])-1
 
         # next sequence
@@ -860,7 +861,7 @@ def change(*args, **kwargs):
         if weightBlenderInfo:
             weightBlenderInfo.blend(*args, **kwargs)
         else:
-            print 'weightBlender does not exist'
+            print('weightBlender does not exist')
 
     except:
         ka_python.printError()
@@ -908,4 +909,4 @@ def getCurrentPannel():
 
     except:
         ka_python.printError()
-        print '## Failed to find current panel, make sure you have a view port with focus'
+        print('## Failed to find current panel, make sure you have a view port with focus')

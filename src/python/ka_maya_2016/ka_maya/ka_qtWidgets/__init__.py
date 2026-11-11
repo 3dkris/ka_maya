@@ -45,6 +45,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import os
 import ka_maya.ka_python as ka_python
 
@@ -68,7 +69,10 @@ try:
 
     import pysideuic
     import xml.etree.ElementTree as xml
-    from cStringIO import StringIO
+    try:
+        from cStringIO import StringIO  # python 2
+    except ImportError:
+        from io import StringIO  # python 3
 
     #def addQWidget_toMayaUI(qWidget, mayaUI=None):
 
@@ -107,10 +111,10 @@ try:
         #if ptr is None:
             #return None
 
-        #ptr = long(ptr) # Ensure type
+        #ptr = int(ptr) # Ensure type
         #if globals().has_key('shiboken'):
             #if base is None:
-                #qObj = shiboken.wrapInstance(long(ptr), QtCore.QObject)
+                #qObj = shiboken.wrapInstance(int(ptr), QtCore.QObject)
                 #metaObj = qObj.metaObject()
                 #cls = metaObj.className()
                 #superCls = metaObj.superClass().className()
@@ -121,7 +125,7 @@ try:
                     #base = getattr(QtGui, superCls)
                 #else:
                     #base = QtGui.QWidget
-            #return shiboken.wrapInstance(long(ptr), base)
+            #return shiboken.wrapInstance(int(ptr), base)
 
         #else:
             #return None
@@ -133,7 +137,7 @@ try:
         """
         ptr = OpenMayaUI.MQtUtil.mainWindow()
         if ptr is not None:
-            return shiboken.wrapInstance(long(ptr), QtGui.QMainWindow)
+            return shiboken.wrapInstance(int(ptr), QtGui.QMainWindow)
 
 ## PYQT4 FUNCTIONS AND IMPORTS =============================================================================================
 except:
@@ -146,7 +150,7 @@ except:
     def getMayaWindow():
         'Get the maya main window as a QMainWindow instance'
         ptr = OpenMayaUI.MQtUtil.mainWindow()
-        return sip.wrapinstance(long(ptr), QtCore.QObject)
+        return sip.wrapinstance(int(ptr), QtCore.QObject)
 
 
 currentFolder = os.path.abspath(os.path.join(os.path.dirname(__file__), ".",))
@@ -757,7 +761,7 @@ class ColorSelectorWidget(QtGui.QWidget):
 
 
     def function(self, color):
-        print 'color %s selected' % str(color)
+        print('color %s selected' % str(color))
 
 
 # ==============================================================================================

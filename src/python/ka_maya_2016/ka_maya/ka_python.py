@@ -43,6 +43,7 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
 import traceback
 
 
@@ -66,15 +67,18 @@ def getItems(inputObject):
 
 
 def printError():
-    print '\nSCRIPT STACK------------------------------------------'
+    print('\nSCRIPT STACK------------------------------------------')
     traceback.print_stack()
 
-    print 'ERROR ------------------------------------------------'
+    print('ERROR ------------------------------------------------')
     traceback.print_exc()
-    print '\n'
+    print('\n')
 
 
 def getInput(label='Enter Text'):
-    print label
-    inputValue = raw_input()
+    print(label)
+    try:
+        inputValue = raw_input()  # python 2
+    except NameError:
+        inputValue = input()  # python 3
     return inputValue

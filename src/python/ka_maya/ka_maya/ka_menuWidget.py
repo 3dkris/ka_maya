@@ -45,6 +45,11 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
+try:
+    basestring
+except NameError:  # python 3
+    basestring = str
 import os
 import time
 import inspect
@@ -230,13 +235,13 @@ class Ka_menu(object):
             topRight = parentMenuItem.mapToGlobal(QtCore.QPoint(parentMenuItem.width(), 0))
             topRight = parentMenuItem.parentMenu.mapFromGlobal(topRight)
             pos = parentMenuItem.parentMenu.pos()
-            idealPosition = QtCore.QPoint(pos.x()+parentMenuItem.width(), pos.y()+parentMenuItem.pos().y()-(sizeHint.height()/2)+(parentMenuItem.height()/2))
+            idealPosition = QtCore.QPoint(pos.x()+parentMenuItem.width(), pos.y()+parentMenuItem.pos().y()-(sizeHint.height()//2)+(parentMenuItem.height()//2))
 
         else:
             idealPosition = QtGui.QCursor().pos()
             idealPosition = ka_menuWidget.mapFromGlobal(idealPosition)
             idealPosition = ka_menuWidget.parent().mapFromGlobal(idealPosition)
-            idealPosition = QtCore.QPoint(idealPosition.x(), idealPosition.y()-(sizeHint.height()/2))
+            idealPosition = QtCore.QPoint(idealPosition.x(), idealPosition.y()-(sizeHint.height()//2))
 
         ka_menuWidget.move(idealPosition)
 
@@ -430,7 +435,7 @@ class Ka_menu(object):
 
                 else:
                     #widget = QtWidgets.QTextEdit(item)
-                    OOOOOOO = "item"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+                    OOOOOOO = "item"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
                 ka_menuWidget.addToMenu(widget)
 
@@ -880,7 +885,7 @@ class Ka_menu_seperator(QtWidgets.QWidget):
         frameWidget.setFrameShape(QtWidgets.QFrame.HLine)
         self.hLayout.addWidget(frameWidget)
 
-        self.setMinimumHeight((MENU_ITEM_MIN_HEIGHT/3)*2)
+        self.setMinimumHeight((MENU_ITEM_MIN_HEIGHT//3)*2)
 
         sizeHint = self.hLayout.totalSizeHint()
         #self.setFixedHeight(sizeHint.height())
@@ -992,7 +997,7 @@ class Ka_menu_attrTool(Ka_menu_item):
             if not (mods & 1) > 0 and not (mods & 4) > 0:
                 if self.attrTreeWidget.selectedItems():
                     self.parentMenu.close()
-                    OOOOOOO = "getAllKaMenuWidgets()"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+                    OOOOOOO = "getAllKaMenuWidgets()"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
         self.attrTreeWidget.customSignals.itemRClickReleasedSignal.connect(cmd)
         self.attrTreeWidget.customSignals.itemLClickReleasedSignal.connect(cmd)

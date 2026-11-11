@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import sip
 
@@ -15,17 +16,17 @@ import re
 def getMayaWindow():
     'Get the maya main window as a QMainWindow instance'
     ptr = mui.MQtUtil.mainWindow()
-    return sip.wrapinstance(long(ptr), QtCore.QObject)
+    return sip.wrapinstance(int(ptr), QtCore.QObject)
 
 #Get the absolute path to my ui file
 #uiFile = os.path.join(cmds.internalVar(upd=True), 'ui', 'demo.ui')
 uiFile= os.path.dirname(__file__)+'/ka_renameUI.ui'
-print 'Loading ui file:', os.path.normpath(uiFile)
+print('Loading ui file:', os.path.normpath(uiFile))
 
 #Load the ui file, and create my class
 form_class, base_class = uic.loadUiType(uiFile)
-print 'form_class is :', form_class
-print 'base_class is :', base_class
+print('form_class is :', form_class)
+print('base_class is :', base_class)
 
 class UI(base_class, form_class):
     title = 'ka rename tool'
@@ -40,8 +41,8 @@ class UI(base_class, form_class):
         self.setObjectName('ka_renameUIWindow')
         self.setWindowTitle(self.title)
 
-        print 'form_class is :', form_class
-        print 'base_class is :', base_class
+        print('form_class is :', form_class)
+        print('base_class is :', base_class)
 
 
         self.connect(self.searchAndReplace_renameButton, QtCore.SIGNAL('clicked()'), self.rename_searchAndReplace)
@@ -83,7 +84,7 @@ class UI(base_class, form_class):
         self.update()
         self.nameAndNumber_lineEdit.setFocus()
 
-        print 'nope'
+        print('nope')
         ##script job
         #scriptJobDummyWindow = 'ka_renameUI_scriptJobWindow'
         #if cmds.window(scriptJobDummyWindow, exists=True):cmds.deleteUI(scriptJobDummyWindow)
@@ -362,7 +363,6 @@ class UI(base_class, form_class):
         if (mods & 4) > 0:    #Ctrl
             self.close()
 
-return UI
 
 
 def open():
@@ -379,10 +379,10 @@ def open():
     ka_renameUIWindow = UI()
     #cmds.scriptJob(parent=myWindow, killWithScene=True, ct= ["SomethingSelected","print moo"],)
     ka_renameUIWindow.show()
-    print "OPEN"
-    print "OPEN"
-    print "OPEN"
-    print "OPEN"
-    print "OPEN"
+    print("OPEN")
+    print("OPEN")
+    print("OPEN")
+    print("OPEN")
+    print("OPEN")
 
 open()

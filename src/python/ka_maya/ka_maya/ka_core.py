@@ -44,6 +44,11 @@
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
 
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import types
 import os
 import time
@@ -53,7 +58,7 @@ import maya.cmds as cmds
 import maya.mel as mel
 import maya.OpenMayaUI as OpenMayaUI
 
-import ka_preference
+import ka_maya.ka_preference as ka_preference
 
 import ka_maya.ka_util as ka_util    #;reload(ka_util)
 import ka_maya.ka_transforms as ka_transforms    #;reload(ka_transforms)
@@ -157,7 +162,7 @@ class ToolObject(object):
                 argString += str(each)+', '
 
         if kwargs:
-            for key, item in kwargs.iteritems():
+            for key, item in kwargs.items():
                 argString += str(key)+'='+str(item)+', '
 
         pythonCommandString = "import ka_maya.ka_core as ka_maya\nka_maya.%s(%s)" % (self._function.__name__, argString)
@@ -1534,6 +1539,10 @@ def paintInfluenceUnderMouse_label():
 
 @Tool(label=paintInfluenceUnderMouse_label, context=ka_context.paintableInfluenceUnderMouse_context, icon='paint.png')
 def paintInfluenceUnderMouse():
+<<<<<<< HEAD
+=======
+    print('pip')
+>>>>>>> worktree-py2-py3-compat
     context = ka_context.getCurrentContext()
     nodeUnderMouse = context.getTransformUnderMouse()
     return ka_weightPainting.paintInfluence(nodeUnderMouse)
@@ -1596,9 +1605,9 @@ def pasteVertWeights():
 def advance1FrameStep():
     return ka_animation.advanceNFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP)
 
-@Tool(label='>> %s frames' % str(ka_animation.DEFAULT_FRAME_STEP/2),)
+@Tool(label='>> %s frames' % str(ka_animation.DEFAULT_FRAME_STEP//2),)
 def advanceHalfFrameStep():
-    return ka_animation.advanceNFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP/2)
+    return ka_animation.advanceNFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP//2)
 
 @Tool(label='>> %s frames' % str(ka_animation.DEFAULT_FRAME_STEP*2),)
 def advanceDoubleFrameStep():
@@ -1611,11 +1620,11 @@ def insert1FrameStep():
     and set a new keyframe, at the values of the originals on the current frame"""
     return ka_animation.insertFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP)
 
-@Tool(label='insert %s frames' % str(ka_animation.DEFAULT_FRAME_STEP/2),)
+@Tool(label='insert %s frames' % str(ka_animation.DEFAULT_FRAME_STEP//2),)
 def insertHalfFrameStep():
     """will push all animation on and after the current frame ahead by a given amount of frames,
     and set a new keyframe, at the values of the originals on the current frame"""
-    return ka_animation.insertFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP/2)
+    return ka_animation.insertFrames(numberOfFrames=ka_animation.DEFAULT_FRAME_STEP//2)
 
 @Tool(label='insert %s frames' % str(ka_animation.DEFAULT_FRAME_STEP*2),)
 def insertDoubleFrameStep():
@@ -1796,9 +1805,16 @@ def removeNamespacesFromSelection():
 
 def iSpy(thing):
     def doCmd(spy=thing):
+<<<<<<< HEAD
         print('I spy with my little eye:' + spy)
 
     def undoCmd(spy=thing):
         print('I DID NOT spy with my little eye:' + spy)
+=======
+        print('I spy with my little eye:', spy)
+
+    def undoCmd(spy=thing):
+        print('I DID NOT spy with my little eye:', spy)
+>>>>>>> worktree-py2-py3-compat
 
     cmds.kaDoCommand(doCmd, undoCmd)

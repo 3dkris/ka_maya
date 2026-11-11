@@ -1,3 +1,4 @@
+from __future__ import print_function
 import maya.cmds as cmds
 import pymel.core as pymel
 
@@ -12,11 +13,11 @@ def exampleTool(recipient=1):
     """An example of a simple tool that can be added as menu items
     """
     if recipient == 0:
-        print "Hello World"
+        print("Hello World")
 
     elif recipient == 1:
-        print "Hello Nurse"
+        print("Hello Nurse")
 
     else:
-        print "Hello Bud"
+        print("Hello Bud")
 

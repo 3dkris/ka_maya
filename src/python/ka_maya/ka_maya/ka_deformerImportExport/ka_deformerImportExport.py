@@ -41,6 +41,11 @@
 #IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #POSSIBILITY OF SUCH DAMAGE.
 #====================================================================================
+from __future__ import print_function
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import os
 import time
 import importlib
@@ -220,13 +225,13 @@ def importAllDeformers(deformerDirectory=None, **kwargs):
     importDeformers(listOfFiles, **kwargs)
 
 def importListOfDeformerFiles(listOfFiles, **kwargs):
-    print '\n\n#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- '
-    print r"""   /   \___ / _| ___  _ __ _ __ ___   ___ _ __ ___  / _\ |_ __ _ _ __| |_                   #   #
+    print('\n\n#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- ')
+    print(r"""   /   \___ / _| ___  _ __ _ __ ___   ___ _ __ ___  / _\ |_ __ _ _ __| |_                   #   #
   / /\ / _ \ |_ / _ \| '__| '_ ` _ \ / _ \ '__/ __| \ \| __/ _` | '__| __|                  #   #
  / /_//  __/  _| (_) | |  | | | | | |  __/ |  \__ \ _\ \ || (_| | |  | |_                   #   #
 /___,' \___|_|  \___/|_|  |_| |_| |_|\___|_|  |___/ \__/\__\__,_|_|   \__|                  #   #
-#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#-"""
-    print ''
+#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#-""")
+    print('')
 
     startTime = time.clock()
 
@@ -234,9 +239,9 @@ def importListOfDeformerFiles(listOfFiles, **kwargs):
 
     importDeformers(listOfFiles, **kwargs)
 
-    print '\n#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- '
-    print '#-  Finished loading deformers in: %s seconds   #' % str((time.clock() - startTime))
-    print '#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#-\n\n'
+    print('\n#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- ')
+    print('#-  Finished loading deformers in: %s seconds   #' % str((time.clock() - startTime)))
+    print('#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#- -#-\n\n')
 
 
 def importDeformers(listOfPaths, **kwargs):
@@ -312,7 +317,7 @@ def importDeformers(listOfPaths, **kwargs):
 
         listOf_deformedObjectsInfo.append(tuple(dataPair))
 
-    OOOOOOO = "listOf_deformedObjectsInfo_toLoad"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+    OOOOOOO = "listOf_deformedObjectsInfo_toLoad"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
     cA = 0
     # WHILE THERE ARE MESHS TO LOAD DEFORMERS ON
     while listOf_deformedObjectsInfo_toLoad:
@@ -324,8 +329,8 @@ def importDeformers(listOfPaths, **kwargs):
 
         deformedObjectInfo = listOf_deformedObjectsInfo_toLoad[0]
         deformedObject, listOf_deformersAndDeformedObjects = deformedObjectInfo
-        if log:print '~',
-        if log:print deformedObject
+        if log:print('~', end=' ')
+        if log:print(deformedObject)
 
         cB = 0
         #WHILE THERE ARE DEFORMERS TO LOAD
@@ -338,8 +343,8 @@ def importDeformers(listOfPaths, **kwargs):
 
             deformerAndDeformedObjects = listOf_deformersAndDeformedObjects[0]
             deformer, deformedObjects = deformerAndDeformedObjects
-            if log:print '    deformer:',
-            if log:print deformer
+            if log:print('    deformer:', end=' ')
+            if log:print(deformer)
 
             deformerPackage = deformerPath_dictionary[deformer]
 
@@ -351,7 +356,7 @@ def importDeformers(listOfPaths, **kwargs):
                         unloadableFlag = True
 
             if unloadableFlag:
-                if log:print '        %s will never be ready to load because it deformes objects that are not in the selection' % deformer
+                if log:print('        %s will never be ready to load because it deformes objects that are not in the selection' % deformer)
                 break
 
             if isDeformerReadyToLoad(deformer, listOf_deformedObjectsInfo):
@@ -363,7 +368,7 @@ def importDeformers(listOfPaths, **kwargs):
 
                 except:
                     ka_python.printError()
-                    print '            failed to load deformer because of a code error (seek help) %s' % deformer
+                    print('            failed to load deformer because of a code error (seek help) %s' % deformer)
 
             else:
                 listOf_deformersAndDeformedObjects.append(listOf_deformersAndDeformedObjects.pop(0))
@@ -395,11 +400,11 @@ def isDeformerReadyToLoad(deformerToLoad, listOf_deformedObjectsInfo):
 
         nextDeformerToLoad = listOf_deformerTuples[0][0]
         if not nextDeformerToLoad == deformerToLoad:
-            if log:print '        %s not ready to load because %s needs to load %s first' % (deformerToLoad, shape, nextDeformerToLoad,)
+            if log:print('        %s not ready to load because %s needs to load %s first' % (deformerToLoad, shape, nextDeformerToLoad,))
             return False
 
         if not pymel.objExists(shape):
-            if log:print '        %s not ready to load because %s does not exist' % (deformerToLoad, shape,)
+            if log:print('        %s not ready to load because %s does not exist' % (deformerToLoad, shape,))
             return False
 
 
@@ -446,7 +451,7 @@ def getDeformerObj(node=None, deformerPath=None, **deformerKwargs):
 
         className = '%s%s' % (nodeType[0].upper(), nodeType[1:])
         deformerObj = getattr(module, className)(**deformerKwargs)
-        OOOOOOO = "deformerKwargs"; print '%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO))
+        OOOOOOO = "deformerKwargs"; print('%s: ' % OOOOOOO, eval(OOOOOOO), ' ', type(eval(OOOOOOO)))
 
         return deformerObj
 

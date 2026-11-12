@@ -4,8 +4,10 @@ import pymel.core as pymel
 
 import os
 import pickle
-import collections
-
+try:
+    from collections.abc import Mapping  # Python 3.3+
+except ImportError:
+    from collections import Mapping      # Python 2
 
 useGlobalPref = False
 
@@ -71,7 +73,7 @@ def _getPreferenceData():
 
 def quacks_like_dict(object):
     """Check if object is dict-like"""
-    return isinstance(object, collections.Mapping)
+    return isinstance(object, Mapping)
 
 def deepMergeDict(childDict, parentDict):
     """Merge two deep dicts non-destructively, and the resulting dictionary is b, with

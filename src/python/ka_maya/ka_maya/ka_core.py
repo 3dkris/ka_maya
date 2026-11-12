@@ -116,17 +116,17 @@ class ToolObject(object):
         # get args and kwargs for the funcs
         self.toolArgs = []
         self.toolKwargs = {}
-        if function.func_defaults:
-            lenOfArgs = function.func_code.co_argcount - len(function.func_defaults)
+        if function.__defaults__:
+            lenOfArgs = function.__code__.co_argcount - len(function.__defaults__)
         else:
-            lenOfArgs = function.func_code.co_argcount
+            lenOfArgs = function.__code__.co_argcount
 
-        for i in range(function.func_code.co_argcount):
+        for i in range(function.__code__.co_argcount):
             if i < lenOfArgs:
                 self.toolArgs.append(function.func_code.co_varnames[i])
 
             else:
-                self.toolKwargs[function.func_code.co_varnames[i]] = function.func_defaults[i-lenOfArgs]
+                self.toolKwargs[function.func_code.co_varnames[i]] = function.__defaults__[i-lenOfArgs]
         self.toolArgs = tuple(self.toolArgs)
 
         # make a list of all modules used by the function

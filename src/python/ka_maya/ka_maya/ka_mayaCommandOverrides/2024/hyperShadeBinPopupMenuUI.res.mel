@@ -1,0 +1,33 @@
+// Copyright (C) 1997-2014 Autodesk, Inc., and/or its licensors.
+// All rights reserved.
+//
+// The coded instructions, statements, computer programs, and/or related
+// material (collectively the "Data") in these files contain unpublished
+// information proprietary to Autodesk, Inc. ("Autodesk") and/or its licensors,
+// which is protected by U.S. and Canadian federal copyright law and by
+// international treaties.
+//
+// The Data is provided for use exclusively by You. You have the right to use,
+// modify, and incorporate this Data into other products for purposes authorized 
+// by the Autodesk software license agreement, without fee.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. AUTODESK
+// DOES NOT MAKE AND HEREBY DISCLAIMS ANY EXPRESS OR IMPLIED WARRANTIES
+// INCLUDING, BUT NOT LIMITED TO, THE WARRANTIES OF NON-INFRINGEMENT,
+// MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR ARISING FROM A COURSE 
+// OF DEALING, USAGE, OR TRADE PRACTICE. IN NO EVENT WILL AUTODESK AND/OR ITS
+// LICENSORS BE LIABLE FOR ANY LOST REVENUES, DATA, OR PROFITS, OR SPECIAL,
+// DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES, EVEN IF AUTODESK AND/OR ITS
+// LICENSORS HAS BEEN ADVISED OF THE POSSIBILITY OR PROBABILITY OF SUCH DAMAGES.
+
+displayString -replace -value "Add Selected" m_hyperShadeBinPopupMenuUI.kAddSelected;
+displayString -replace -value "Delete" m_hyperShadeBinPopupMenuUI.kDelete;
+displayString -replace -value "Duplicate" m_hyperShadeBinPopupMenuUI.kDuplicate;
+displayString -replace -value "Empty" m_hyperShadeBinPopupMenuUI.kEmpty;
+displayString -replace -value "Make Selected Exclusive" m_hyperShadeBinPopupMenuUI.kMakeSelectedExclusive;
+displayString -replace -value "// No node is removed from bin ^1s.\n" m_hyperShadeBinPopupMenuUI.kNoNodeRemoved;
+displayString -replace -value "Remove selected from bin ^1s: no nodes are selected" m_hyperShadeBinPopupMenuUI.kNoNodesSelected;
+displayString -replace -value "Remove selected from bin ^1s: no shading nodes are selected" m_hyperShadeBinPopupMenuUI.kNoShadingNodesSelected;
+displayString -replace -value "// The nodes ^1sare removed from the bin ^2s\n" m_hyperShadeBinPopupMenuUI.kNodeRemovedFromBin;
+displayString -replace -value "Remove Selected" m_hyperShadeBinPopupMenuUI.kRemoveSelected;
+displayString -replace -value "Rename" m_hyperShadeBinPopupMenuUI.kRename;
+displayString -replace -value "Select Content" m_hyperShadeBinPopupMenuUI.kSelectContent;

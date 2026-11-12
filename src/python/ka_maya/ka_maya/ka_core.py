@@ -123,17 +123,17 @@ class ToolObject(object):
 
         for i in range(function.__code__.co_argcount):
             if i < lenOfArgs:
-                self.toolArgs.append(function.func_code.co_varnames[i])
+                self.toolArgs.append(function.__code__.co_varnames[i])
 
             else:
-                self.toolKwargs[function.func_code.co_varnames[i]] = function.__defaults__[i-lenOfArgs]
+                self.toolKwargs[function.__code__.co_varnames[i]] = function.__defaults__[i-lenOfArgs]
         self.toolArgs = tuple(self.toolArgs)
 
         # make a list of all modules used by the function
         self.dependentModules = []
         self.ka_dependentModules = []
         globalVars = globals()
-        for localVar in self._function.func_code.co_names:
+        for localVar in self._function.__code__.co_names:
             if localVar in globalVars:
                 if isinstance(globalVars[localVar], types.ModuleType):
                     self.dependentModules.append(globalVars[localVar])

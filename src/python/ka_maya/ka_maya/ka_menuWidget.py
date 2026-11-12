@@ -239,10 +239,12 @@ class Ka_menu(object):
 
         else:
             idealPosition = QtGui.QCursor().pos()
-            idealPosition = ka_menuWidget.mapFromGlobal(idealPosition)
-            idealPosition = ka_menuWidget.parent().mapFromGlobal(idealPosition)
+            #idealPosition = ka_menuWidget.mapFromGlobal(idealPosition)
+            #idealPosition = ka_menuWidget.parent().mapFromGlobal(idealPosition)
             idealPosition = QtCore.QPoint(idealPosition.x(), idealPosition.y()-(sizeHint.height()//2))
 
+        print(QtGui.QCursor().pos())
+        print(idealPosition)
         ka_menuWidget.move(idealPosition)
 
         return ka_menuWidget

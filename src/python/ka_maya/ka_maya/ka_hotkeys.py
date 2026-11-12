@@ -119,7 +119,9 @@ def undoHandler(object):
 
 def get_window_state(window_name):
     if not cmds.window(window_name, q=1, exists=1):
+        print('a')
         return False
+    print('b')
     return cmds.window(window_name, q=1, vis=1)
 
 
@@ -129,6 +131,31 @@ def close_window(window_name):
 
     except:
         pass
+
+def togglePanelWindow(panelType, isScriptedType=True):
+    """use this with an if statement to close open windows of this type.
+    if no windows exist, it will return True and you can launch a new window."""
+    if isScriptedType:
+        panels = cmds.getPanel(scriptType=panelType)
+    else:
+        panels = cmds.getPanel(type=panelType)
+
+    print(panels)
+    controlCount = 0
+    if panels:
+        for panel in panels:
+            print(panel)
+            control = cmds.panel(panel, q=1, control=True)
+            print(control)
+            if control:
+                window = control.split("|")[0]
+                cmds.deleteUI(window)
+                controlCount += 1
+
+            #else:
+                #return True
+    if controlCount == 0:
+        return True
 
 class undoable(object):
 
@@ -355,6 +382,10 @@ class Hotkeys(object):
                 melCmd = 'hyperShadePanelGraphCommand("%s", "addSelected");' % context.getPanelUnderMouse()
                 mel.eval(melCmd)
 
+            elif context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                cmds.nodeEditor(nodeEditorUI, e=True, frameAll=True)
+
         @staticmethod
         def release_command():
             pass
@@ -368,9 +399,17 @@ class Hotkeys(object):
 
             panelUnderPointer = cmds.getPanel( underPointer=True )
             toolContext = cmds.currentCtx()
+            context = ka_context.newContext()
 
             if toolContext == 'artAttrSkinContext':
                 ka_display.isolateSelection(mode='skinning')
+
+            elif context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.NodeEditorGraphUpstream()
+
 
             else:
                 ka_display.isolateSelection()
@@ -493,8 +532,24 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            reload(ka_util)
             ka_util.contextDuplicate()
+
+        @staticmethod
+        def release_command():
+            pass
+
+    class d_alt():#keybind--------------------------------------------------------------------------
+        pushKey='d';  ctrl=False;  alt=True;
+
+        @staticmethod
+        def command():
+            context = ka_context.newContext()
+
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.NodeEditorGraphDownstream()
 
         @staticmethod
         def release_command():
@@ -530,11 +585,9 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            script_editor_window = "scriptEditorPanel1Window"
-            script_editor_state = get_window_state(script_editor_window)
-            if script_editor_state:
-                close_window(script_editor_window)
-            else:
+
+            # toggle open the nodeEditor
+            if togglePanelWindow('scriptEditorPanel'):
                 mel.eval('tearOffPanel "Script Editor" "scriptEditorPanel" true;')
 
         @staticmethod
@@ -748,13 +801,17 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            window = "outlinerPanel1Window"
-            state = get_window_state(window)
-            if state:
-                close_window(window)
-
-            else:
+            if togglePanelWindow('outlinerPanel', isScriptedType=False):
                 mel.eval('tearOffPanel "Outliner" "outlinerPanel" false;')
+
+            #window = "outlinerPanel1Window"
+            #state = get_window_state(window)
+            #print(state)
+            #if state:
+                #close_window(window)
+
+            #else:
+                #mel.eval('tearOffPanel "Outliner" "outlinerPanel" false;')
 
         @staticmethod
         def release_command():
@@ -767,6 +824,14 @@ class Hotkeys(object):
         @staticmethod
         def command():
             print(cmds.getPanel(underPointer=True))
+
+            context = ka_context.newContext()
+
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                cmds.nodeEditor(nodeEditorUI, e=True, addNode="")
+
+
 
         @staticmethod
         def release_command():
@@ -877,15 +942,17 @@ class Hotkeys(object):
         @staticmethod
         def command():
             panelUnderPointer = cmds.getPanel( underPointer=True )
+            context = ka_context.newContext()
 
-            #reload(ka_menu_modelEditor)
-            #ka_menu.press()
             if cmds.currentCtx() == 'artAttrSkinContext':
                 ka_weightPainting.toggleSmooth()
                 #mel.eval('ka_MM_toggleSmooth;')
 
-            #elif 'modelPanel' in panelUnderPointer and ka_util.selectionIsComponent():
-                #ka_weightPainting.pasteWeights()
+            elif context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.NodeEditorGraphUpDownstream()
 
             else:
                 mel.eval('ka_snapScaleAndRotate();')
@@ -903,12 +970,21 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
+            context = ka_context.newContext()
 
-            mel.eval('tearOffPanel "Hypershade" "hyperShadePanel" true;')
-            mel.eval('hyperShadePanelMenuCommand("hyperShadePanel1", "showBottomTabsOnly");')
-            mel.eval('hyperShadePanelMenuCommand("hyperShadePanel1", "toggleRenderCreateBar");')
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                cmds.nodeEditor(nodeEditorUI, e=True, graphSelectedConnections=True)
 
-            #mel.eval('ka_hyperGraphMM();')
+            else:
+                #mel.eval('tearOffPanel "Hypershade" "hyperShadePanel" true;')
+                #mel.eval('hyperShadePanelMenuCommand("hyperShadePanel1", "showBottomTabsOnly");')
+                #mel.eval('hyperShadePanelMenuCommand("hyperShadePanel1", "toggleRenderCreateBar");')
+                #mel.eval('ka_hyperGraphMM();')
+
+                # toggle open the nodeEditor
+                if togglePanelWindow('nodeEditorPanel'):
+                    cmds.NodeEditorWindow()
 
         @staticmethod
         def release_command():
@@ -1399,12 +1475,21 @@ setToolTo ShowManips''')
 
         @staticmethod
         def command():
-            ka_util.setTransformManipulatorMode('world')
+            context = ka_context.newContext()
+
+            # Collapse node in nodeEditor
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.nodeEditor(nodeEditorUI, e=True, nodeViewMode="simple")
+
+            else:
+                ka_util.setTransformManipulatorMode('world')
 
         @staticmethod
         def release_command():
             pass
-
 
 # 2 ######################################################################################################################
     class two():#keybind--------------------------------------------------------------------------
@@ -1412,7 +1497,37 @@ setToolTo ShowManips''')
 
         @staticmethod
         def command():
-            ka_util.setTransformManipulatorMode('local')
+            context = ka_context.newContext()
+
+            # Expand node in nodeEditor
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.nodeEditor(nodeEditorUI, e=True, nodeViewMode="connected")
+
+            else:
+                ka_util.setTransformManipulatorMode('local')
+
+        @staticmethod
+        def release_command():
+            pass
+
+    class two_alt():#keybind--------------------------------------------------------------------------
+        pushKey='2';  ctrl=False;  alt=True;
+
+        @staticmethod
+        def command():
+            context = ka_context.newContext()
+
+            # Expand node in nodeEditor
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.nodeEditor(nodeEditorUI, e=True, nodeViewMode="custom")
+                    cmds.nodeEditor(nodeEditorUI, e=True, customAttributeListEdit=[selection[0]])
+
 
         @staticmethod
         def release_command():
@@ -1424,7 +1539,17 @@ setToolTo ShowManips''')
 
         @staticmethod
         def command():
-            ka_util.setTransformManipulatorMode('trueValues')
+            context = ka_context.newContext()
+
+            # Expand node in nodeEditor
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                selection = cmds.ls(sl=1)
+                if selection:
+                    cmds.nodeEditor(nodeEditorUI, e=True, nodeViewMode="all")
+
+            else:
+                ka_util.setTransformManipulatorMode('trueValues')
 
         @staticmethod
         def release_command():
@@ -1468,7 +1593,44 @@ setToolTo ShowManips''')
             pass
 
 # = ######################################################################################################################
+    class dash():#keybind--------------------------------------------------------------------------
+        pushKey='-';  ctrl=False;  alt=False;
+
+        @staticmethod
+        def command():
+            context = ka_context.newContext()
+
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                cmds.nodeEditor(nodeEditorUI, e=True, removeNode="")
+
+
+        @staticmethod
+        def release_command():
+            pass
+
+
+
+
+
+# = ######################################################################################################################
     class equals():#keybind--------------------------------------------------------------------------
+        pushKey='=';  ctrl=False;  alt=False;
+
+        @staticmethod
+        def command():
+            context = ka_context.newContext()
+
+            if context.getUiTypeUnderMouse() == 'nodeEditor':
+                nodeEditorUI = context.getPanelUnderMouse() + "NodeEditorEd"
+                cmds.nodeEditor(nodeEditorUI, e=True, addNode="")
+
+
+        @staticmethod
+        def release_command():
+            pass
+
+    class equals_ctrl():#keybind--------------------------------------------------------------------------
         pushKey='=';  ctrl=True;  alt=False;
 
         @staticmethod
@@ -1480,7 +1642,7 @@ setToolTo ShowManips''')
             pass
 
 
-    class equals_ctrl():#keybind--------------------------------------------------------------------------
+    class plus_ctrl():#keybind--------------------------------------------------------------------------
         pushKey='+';  ctrl=True;  alt=False;
 
         @staticmethod

@@ -11,6 +11,10 @@ Getting Started:
 		-"PATH_TO_KA_MAYA_LOCAL" with the location directory copied in step 1:
 
 """
+try:
+    from importlib import reload  # python 3
+except ImportError:
+    pass  # python 2: reload is a builtin
 import sys
 paths = [
     r'PATH_TO_KA_MAYA', # path to: ...\ka_maya\src\python

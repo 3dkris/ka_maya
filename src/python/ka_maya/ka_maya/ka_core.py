@@ -60,29 +60,29 @@ import maya.OpenMayaUI as OpenMayaUI
 
 import ka_maya.ka_preference as ka_preference
 
-import ka_maya.ka_util as ka_util    #;reload(ka_util)
-import ka_maya.ka_transforms as ka_transforms    #;reload(ka_transforms)
+import ka_maya.ka_util as ka_util
+import ka_maya.ka_transforms as ka_transforms
 
-import ka_maya.ka_rigSetups.ka_advancedFK as ka_advancedFK    #;reload(ka_advancedFK)
+import ka_maya.ka_rigSetups.ka_advancedFK as ka_advancedFK
 
 
-import ka_maya.ka_python as ka_python    #;reload(ka_animation)
-import ka_maya.ka_psd as ka_psd    #;reload(ka_animation)
-import ka_maya.ka_rigAerobics as ka_rigAerobics    #;reload(ka_animation)
-import ka_maya.ka_weightBlender as ka_weightBlender    #;reload(ka_animation)
-import ka_maya.ka_animation as ka_animation    #;reload(ka_animation)
-import ka_maya.ka_shapes as ka_shapes    #;reload(ka_shapes)
-import ka_maya.ka_math as ka_math    #;reload(ka_pymel)
-import ka_maya.ka_pymel as ka_pymel    #;reload(ka_pymel)
-import ka_maya.ka_advancedJoints as ka_advancedJoints    #;reload(ka_advancedJoints)
-import ka_maya.ka_display as ka_display    #;reload(ka_display)
-import ka_maya.ka_weightPainting as ka_weightPainting    #;reload(ka_weightPainting)
-import ka_maya.ka_hyperShade as ka_hyperShade    #;reload(ka_hyperShade)
-import ka_maya.ka_skinCluster as ka_skinCluster    #;reload(ka_skinCluster)
-import ka_maya.ka_context as ka_context    #;reload(ka_context)
-import ka_maya.ka_selection as ka_selection    #;reload(ka_selection)
-import ka_maya.ka_constraints as ka_constraints    #;reload(ka_constraints)
-import ka_maya.ka_attrTool.attrCommands as attrCommands    #;reload(attrCommands)
+import ka_maya.ka_python as ka_python
+import ka_maya.ka_psd as ka_psd
+import ka_maya.ka_rigAerobics as ka_rigAerobics
+import ka_maya.ka_weightBlender as ka_weightBlender
+import ka_maya.ka_animation as ka_animation
+import ka_maya.ka_shapes as ka_shapes
+import ka_maya.ka_math as ka_math
+import ka_maya.ka_pymel as ka_pymel
+import ka_maya.ka_advancedJoints as ka_advancedJoints
+import ka_maya.ka_display as ka_display
+import ka_maya.ka_weightPainting as ka_weightPainting
+import ka_maya.ka_hyperShade as ka_hyperShade
+import ka_maya.ka_skinCluster as ka_skinCluster
+import ka_maya.ka_context as ka_context
+import ka_maya.ka_selection as ka_selection
+import ka_maya.ka_constraints as ka_constraints
+import ka_maya.ka_attrTool.attrCommands as attrCommands
 import ka_maya.ka_nurbsRigging as ka_nurbsRigging
 import ka_maya.ka_naming as ka_naming
 import ka_maya.ka_geometry as ka_geometry
@@ -92,7 +92,7 @@ import ka_maya.ka_deformers as ka_deformers
 
 import ka_maya.ka_rename as ka_rename
 import ka_maya.ka_filterSelection as ka_filterSelection
-import ka_maya.ka_attrTool.ka_attrTool_UI as ka_attrTool_UI    #;reload(ka_attrTool_UI)
+import ka_maya.ka_attrTool.ka_attrTool_UI as ka_attrTool_UI
 
 ALWAYS_RELOAD = True
 

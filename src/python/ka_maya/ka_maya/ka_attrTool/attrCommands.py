@@ -15,11 +15,11 @@ import maya.cmds as cmds
 import maya.mel as mel
 import pymel.core as pymel
 
-import ka_maya.ka_python as ka_python    #;reload(ka_clipBoard)
-import ka_maya.ka_clipBoard as ka_clipBoard    #;reload(ka_clipBoard)
-import ka_maya.ka_preference as ka_preference    #;reload(ka_preference)
-import ka_maya.ka_math as ka_math    #;reload(ka_math)
-import ka_maya.ka_attrTool.attributeObj as attributeObj    #;reload(attributeObj)
+import ka_maya.ka_python as ka_python
+import ka_maya.ka_clipBoard as ka_clipBoard
+import ka_maya.ka_preference as ka_preference
+import ka_maya.ka_math as ka_math
+import ka_maya.ka_attrTool.attributeObj as attributeObj
 
 attrObjectDict = {}
 

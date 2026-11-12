@@ -50,7 +50,7 @@ import pymel.core as pymel
 import maya.cmds as cmds
 import maya.mel as mel
 
-import ka_maya.ka_context as ka_context    #;reload(ka_context)
+import ka_maya.ka_context as ka_context
 
 #class ContextActionObject(object):
     #"""A decorator that creates a ContextAction from a function"""

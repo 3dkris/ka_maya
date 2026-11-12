@@ -678,7 +678,6 @@ class Hotkeys(object):
 
         @staticmethod
         def command():
-            reload(ka_util)
             ka_util.setKeyframes()
 
         @staticmethod

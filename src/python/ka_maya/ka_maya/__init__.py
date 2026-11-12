@@ -46,7 +46,6 @@
 
 from __future__ import print_function
 import os
-import python_version_support
 
 import pymel.core as pymel
 import maya.cmds as cmds
